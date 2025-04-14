@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { supabase } from '@/lib/supabase';
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { useRouter } from 'next/navigation';
 
 export default function LoginForm() {
@@ -10,6 +10,7 @@ export default function LoginForm() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const router = useRouter();
+  const supabase = createClientComponentClient();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -17,6 +18,8 @@ export default function LoginForm() {
     setError('');
     
     try {
+      console.log('Attempting login with:', { email });
+      
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
@@ -27,8 +30,12 @@ export default function LoginForm() {
       }
       
       // Successfully logged in
-      console.log('Logged in user:', data.user);
-      router.push('/dashboard');
+      console.log('Login successful, session:', data.session ? 'exists' : 'none');
+      console.log('User:', data.user);
+      
+      // Explicitly refresh the page instead of using router.push
+      // This ensures cookies are properly sent in the next request
+      window.location.href = '/dashboard';
       
     } catch (error) {
       console.error('Login error:', error);
