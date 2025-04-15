@@ -1,10 +1,59 @@
 'use client';
 
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, Fragment } from 'react';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { useRouter } from 'next/navigation';
 import DashboardLayout from './DashboardLayout';
 import Script from 'next/script';
+
+// Helper function to format date in AM/PM format
+function formatTimeAmPm(dateStr) {
+  if (!dateStr) return '';
+  
+  const date = new Date(dateStr);
+  let hours = date.getHours();
+  const minutes = date.getMinutes();
+  const ampm = hours >= 12 ? 'PM' : 'AM';
+  
+  // Convert hours from 24-hour format to 12-hour format
+  hours = hours % 12;
+  hours = hours ? hours : 12; // "0" should be displayed as "12"
+  
+  // Format minutes to always have two digits
+  const minutesStr = minutes.toString().padStart(2, '0');
+  
+  return `${hours}:${minutesStr} ${ampm}`;
+}
+
+// Generate time slots for selection in 15-minute intervals
+function generateTimeSlots() {
+  const slots = [];
+  for (let hour = 0; hour < 24; hour++) {
+    for (let minute = 0; minute < 60; minute += 15) {
+      const h = hour % 12 || 12;
+      const ampm = hour < 12 ? 'AM' : 'PM';
+      const m = minute.toString().padStart(2, '0');
+      slots.push({
+        label: `${h}:${m} ${ampm}`,
+        value: { hour, minute }
+      });
+    }
+  }
+  return slots;
+}
+
+// Helper to get the day name
+function getDayName(date) {
+  return new Date(date).toLocaleDateString('en-US', { weekday: 'short' });
+}
+
+// Helper to format date as Month Day
+function formatMonthDay(date) {
+  return new Date(date).toLocaleDateString('en-US', { 
+    month: 'short', 
+    day: 'numeric' 
+  });
+}
 
 export default function BookingForm({ user }) {
   const [formData, setFormData] = useState({
@@ -15,14 +64,22 @@ export default function BookingForm({ user }) {
     isRoundTrip: false,
   });
   const [isLoading, setIsLoading] = useState(false);
+  const [bookingStatus, setBookingStatus] = useState('idle'); // idle, loading, submitting, success, error
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
   const [isGoogleLoaded, setIsGoogleLoaded] = useState(false);
+  
+  // Date/time picker state
+  const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
+  const [currentView, setCurrentView] = useState('date'); // 'date' or 'time'
+  const [selectedDate, setSelectedDate] = useState(null);
+  const [availableTimeSlots, setAvailableTimeSlots] = useState(generateTimeSlots());
+  const datePickerRef = useRef(null);
 
   const router = useRouter();
   const supabase = createClientComponentClient();
 
-  // Format datetime-local default value
+  // Format datetime default value
   useEffect(() => {
     // Set default pickup time to 1 hour from now, rounded to nearest 15 minutes
     const now = new Date();
@@ -33,7 +90,24 @@ export default function BookingForm({ user }) {
     
     const formattedDate = now.toISOString().slice(0, 16); // Format: YYYY-MM-DDThh:mm
     setFormData(prev => ({ ...prev, pickupTime: formattedDate }));
+    setSelectedDate(now);
   }, []);
+  
+  // Handle click outside date picker to close it
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (datePickerRef.current && !datePickerRef.current.contains(event.target)) {
+        setIsDatePickerOpen(false);
+      }
+    }
+    
+    // Add event listener
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      // Remove event listener on cleanup
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [datePickerRef]);
 
   const mapRef = useRef(null);
   const [mapInstance, setMapInstance] = useState(null);
@@ -293,10 +367,58 @@ export default function BookingForm({ user }) {
       [name]: value
     }));
   };
+  
+  // Generate an array of dates for the next 30 days
+  const getDateOptions = () => {
+    const dates = [];
+    const today = new Date();
+    today.setHours(0, 0, 0, 0); // Start of today
+    
+    for (let i = 0; i < 30; i++) {
+      const date = new Date(today);
+      date.setDate(today.getDate() + i);
+      dates.push(date);
+    }
+    return dates;
+  };
+  
+  // Handle date selection
+  const handleDateSelect = (date) => {
+    setSelectedDate(date);
+    setCurrentView('time'); // Switch to time selection after date is selected
+    
+    // In the future, we would fetch available time slots for the selected date
+    // For now, we just use the generated slots
+  };
+  
+  // Handle time selection and update the form
+  const handleTimeSelect = (timeSlot) => {
+    const { hour, minute } = timeSlot.value;
+    
+    const newDate = new Date(selectedDate);
+    newDate.setHours(hour, minute, 0, 0);
+    
+    const formattedDate = newDate.toISOString().slice(0, 16);
+    setFormData(prev => ({
+      ...prev,
+      pickupTime: formattedDate
+    }));
+    
+    // Close the date picker after selection
+    setIsDatePickerOpen(false);
+    setCurrentView('date'); // Reset to date view for next time
+  };
+  
+  // Open the date/time picker
+  const openDatePicker = () => {
+    setIsDatePickerOpen(true);
+    setCurrentView('date');
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
+    setBookingStatus('loading');
     setError('');
     setSuccess(false);
 
@@ -321,12 +443,14 @@ export default function BookingForm({ user }) {
     if (!pickupAddressValue) {
       setError('Please enter a pickup address');
       setIsLoading(false);
+      setBookingStatus('error');
       return;
     }
 
     if (!destinationAddressValue) {
       setError('Please enter a destination address');
       setIsLoading(false);
+      setBookingStatus('error');
       return;
     }
 
@@ -336,6 +460,7 @@ export default function BookingForm({ user }) {
     if (pickupTime <= now) {
       setError('Pickup time must be in the future');
       setIsLoading(false);
+      setBookingStatus('error');
       return;
     }
 
@@ -347,6 +472,8 @@ export default function BookingForm({ user }) {
       } else if (!calculatedPrice) {
         calculatedPrice = 50;  // Base rate without route
       }
+      
+      setBookingStatus('submitting');
       
       // Insert the trip into the database
       const { data, error: insertError } = await supabase
@@ -372,33 +499,9 @@ export default function BookingForm({ user }) {
 
       console.log('Trip booked successfully:', data);
       
-      // Trip was created, now notify dispatchers
-      const createdTrip = data[0]; // Get the first trip from the returned data
-      
-      try {
-        // Call the dispatcher notification API
-        const notifyResponse = await fetch('/api/trips/notify-dispatchers', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ tripId: createdTrip.id }),
-        });
-        
-        const notifyResult = await notifyResponse.json();
-        
-        if (!notifyResponse.ok) {
-          console.error('Error notifying dispatchers:', notifyResult.error);
-          // We don't want to block the user flow if notification fails
-        } else {
-          console.log('Dispatchers notified successfully');
-        }
-      } catch (notifyError) {
-        console.error('Error in dispatcher notification:', notifyError);
-        // Again, we don't block the user flow on notification errors
-      }
-      
+      // Trip was created, show success immediately
       setSuccess(true);
+      setBookingStatus('success');
       
       // Reset form
       setFormData({
@@ -409,15 +512,48 @@ export default function BookingForm({ user }) {
         isRoundTrip: false,
       });
 
-      // Redirect to trips page after a short delay
+      // Start the redirect process
       setTimeout(() => {
         router.push('/dashboard/trips');
       }, 2000);
+      
+      // In the background, notify dispatchers without blocking the user flow
+      const createdTrip = data[0]; // Get the first trip from the returned data
+      
+      // Use non-blocking notification in the background
+      notifyDispatchersInBackground(createdTrip.id);
+      
     } catch (error) {
       console.error('Error booking trip:', error);
       setError(error.message || 'Failed to book trip. Please try again.');
+      setBookingStatus('error');
     } finally {
       setIsLoading(false);
+    }
+  };
+  
+  // Function to notify dispatchers in the background
+  const notifyDispatchersInBackground = async (tripId) => {
+    try {
+      const notifyResponse = await fetch('/api/trips/notify-dispatchers', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ tripId }),
+      });
+      
+      const notifyResult = await notifyResponse.json();
+      
+      if (!notifyResponse.ok) {
+        console.error('Error notifying dispatchers:', notifyResult.error);
+        // We don't block the user experience if notification fails
+      } else {
+        console.log('Dispatchers notified successfully');
+      }
+    } catch (notifyError) {
+      console.error('Error in dispatcher notification:', notifyError);
+      // Again, we don't block the user experience on notification errors
     }
   };
 
@@ -440,7 +576,12 @@ export default function BookingForm({ user }) {
           
           {success ? (
             <div className="bg-[#7CCFD0]/20 dark:bg-[#7CCFD0]/30 text-[#2E4F54] dark:text-[#E0F4F5] p-4 rounded mb-6">
-              Your trip request has been submitted successfully! It is pending dispatcher approval. Redirecting to your trips...
+              <div className="flex items-center">
+                <svg className="w-6 h-6 text-[#3B5B63] dark:text-[#7CCFD0] mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
+                </svg>
+                <span>Your trip request has been submitted successfully! It is pending dispatcher approval. Redirecting to your trips...</span>
+              </div>
             </div>
           ) : (
             <form onSubmit={handleSubmit} className="space-y-6">
@@ -491,21 +632,126 @@ export default function BookingForm({ user }) {
                   />
                 </div>
                 
-                {/* Pickup Time */}
-                <div>
-                  <label htmlFor="pickupTime" className="block text-sm font-medium text-[#2E4F54] dark:text-[#E0F4F5] mb-1">
-                    Pickup Time
-                  </label>
-                  <input
-                    id="pickupTime"
-                    name="pickupTime"
-                    type="datetime-local"
-                    required
-                    value={formData.pickupTime}
-                    onChange={handleChange}
-                    className="w-full px-3 py-2 border border-[#DDE5E7] dark:border-[#3F5E63] rounded-md shadow-sm focus:outline-none focus:ring-[#7CCFD0] focus:border-[#7CCFD0] dark:bg-[#1C2C2F] text-[#2E4F54] dark:text-[#E0F4F5]"
-                    style={{colorScheme: 'light dark'}}
-                  />
+                {/* Pickup Date and Time - Popup Picker */}
+                <div className="space-y-4">
+                  <div>
+                    <label htmlFor="pickupDateTime" className="block text-sm font-medium text-[#2E4F54] dark:text-[#E0F4F5] mb-1">
+                      Pickup Date & Time
+                    </label>
+                    <div className="relative">
+                      <button
+                        type="button"
+                        id="pickupDateTime"
+                        onClick={openDatePicker}
+                        className="w-full px-3 py-2 border border-[#DDE5E7] dark:border-[#3F5E63] rounded-md shadow-sm focus:outline-none focus:ring-[#7CCFD0] focus:border-[#7CCFD0] dark:bg-[#1C2C2F] text-left flex justify-between items-center"
+                      >
+                        <span className={formData.pickupTime ? "text-[#2E4F54] dark:text-[#E0F4F5]" : "text-[#2E4F54]/50 dark:text-[#E0F4F5]/50"}>
+                          {formData.pickupTime 
+                            ? `${formatMonthDay(formData.pickupTime)}, ${getDayName(formData.pickupTime)} - ${formatTimeAmPm(formData.pickupTime)}`
+                            : "Select pickup date and time"}
+                        </span>
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-[#3B5B63] dark:text-[#84CED3]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                      </button>
+                      
+                      {/* Date and Time Picker Popup */}
+                      {isDatePickerOpen && (
+                        <div 
+                          ref={datePickerRef}
+                          className="absolute z-50 mt-2 w-full bg-white dark:bg-[#1C2C2F] border border-[#DDE5E7] dark:border-[#3F5E63] rounded-md shadow-lg p-4"
+                        >
+                          {/* Header with back button for time view */}
+                          <div className="flex justify-between items-center mb-2">
+                            <h4 className="text-[#2E4F54] dark:text-[#E0F4F5] font-medium">
+                              {currentView === 'date' ? 'Select Date' : 'Select Time'}
+                            </h4>
+                            {currentView === 'time' && (
+                              <button 
+                                type="button"
+                                onClick={() => setCurrentView('date')}
+                                className="text-[#3B5B63] dark:text-[#84CED3] hover:text-[#7CCFD0] flex items-center text-sm"
+                              >
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                                </svg>
+                                Back to dates
+                              </button>
+                            )}
+                          </div>
+                          
+                          {/* Date selection view */}
+                          {currentView === 'date' && (
+                            <div className="grid grid-cols-3 sm:grid-cols-4 gap-2 max-h-60 overflow-y-auto">
+                              {getDateOptions().map((date, index) => {
+                                const isToday = new Date().toDateString() === date.toDateString();
+                                const isSelected = selectedDate && selectedDate.toDateString() === date.toDateString();
+                                
+                                return (
+                                  <button
+                                    key={index}
+                                    type="button"
+                                    onClick={() => handleDateSelect(date)}
+                                    className={`
+                                      p-2 rounded-md border text-center flex flex-col items-center
+                                      ${isSelected 
+                                        ? 'bg-[#7CCFD0]/20 border-[#7CCFD0] text-[#3B5B63] dark:text-[#E0F4F5]' 
+                                        : 'border-[#DDE5E7] dark:border-[#3F5E63] hover:bg-[#F8F9FA] dark:hover:bg-[#24393C]'}
+                                    `}
+                                  >
+                                    <span className="text-xs font-medium">{getDayName(date)}</span>
+                                    <span className={`text-sm ${isToday ? 'font-bold' : ''}`}>{formatMonthDay(date)}</span>
+                                    {isToday && <span className="text-xs text-[#7CCFD0] mt-1">Today</span>}
+                                  </button>
+                                );
+                              })}
+                            </div>
+                          )}
+                          
+                          {/* Time selection view */}
+                          {currentView === 'time' && selectedDate && (
+                            <div>
+                              <div className="text-sm text-[#2E4F54]/70 dark:text-[#E0F4F5]/70 mb-2">
+                                {new Date(selectedDate).toLocaleDateString('en-US', { 
+                                  weekday: 'long', 
+                                  month: 'long', 
+                                  day: 'numeric',
+                                  year: 'numeric'
+                                })}
+                              </div>
+                              
+                              <div className="grid grid-cols-3 sm:grid-cols-4 gap-2 max-h-60 overflow-y-auto">
+                                {availableTimeSlots.map((slot, index) => {
+                                  // In the future, we could mark some slots as unavailable
+                                  // For now, all slots are available
+                                  
+                                  return (
+                                    <button
+                                      key={index}
+                                      type="button"
+                                      onClick={() => handleTimeSelect(slot)}
+                                      className="p-2 rounded-md border border-[#DDE5E7] dark:border-[#3F5E63] hover:bg-[#7CCFD0]/10 text-center"
+                                    >
+                                      {slot.label}
+                                    </button>
+                                  );
+                                })}
+                              </div>
+                              
+                              <div className="text-xs text-[#2E4F54]/60 dark:text-[#E0F4F5]/60 mt-2 italic">
+                                All times shown are in your local timezone
+                              </div>
+                            </div>
+                          )}
+                          
+                          {/* Optional hint for future availability feature */}
+                          <div className="mt-4 pt-2 border-t border-[#DDE5E7] dark:border-[#3F5E63] text-xs text-[#3B5B63] dark:text-[#84CED3]">
+                            <p>Select a date and then choose an available time slot</p>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
                 </div>
                 
                 {/* Wheelchair Type */}
@@ -573,6 +819,20 @@ export default function BookingForm({ user }) {
                 
                 <div className="grid grid-cols-2 gap-4 mb-4">
                   <div>
+                    <p className="text-sm text-[#2E4F54]/70 dark:text-[#E0F4F5]/70">Pickup Time</p>
+                    {formData.pickupTime ? (
+                      <p className="font-medium text-[#2E4F54] dark:text-[#E0F4F5]">
+                        {new Date(formData.pickupTime).toLocaleDateString('en-US', { 
+                          weekday: 'short', 
+                          month: 'short', 
+                          day: 'numeric'
+                        })}, {formatTimeAmPm(formData.pickupTime)}
+                      </p>
+                    ) : (
+                      <p className="font-medium text-[#2E4F54]/50 dark:text-[#E0F4F5]/50">Select a time</p>
+                    )}
+                  </div>
+                  <div>
                     <p className="text-sm text-[#2E4F54]/70 dark:text-[#E0F4F5]/70">Estimated Fare</p>
                     {pickupLocation && destinationLocation ? (
                       <p className="font-medium text-[#2E4F54] dark:text-[#E0F4F5]">
@@ -598,10 +858,6 @@ export default function BookingForm({ user }) {
                       <p className="font-medium text-[#2E4F54]/50 dark:text-[#E0F4F5]/50">Enter addresses</p>
                     )}
                   </div>
-                  <div>
-                    <p className="text-sm text-[#2E4F54]/70 dark:text-[#E0F4F5]/70">Price Calculation</p>
-                    <p className="font-medium text-xs text-[#2E4F54]/90 dark:text-[#E0F4F5]/90">Base + mileage + adjustments</p>
-                  </div>
                 </div>
                 
                 <div className="bg-[#7CCFD0]/10 dark:bg-[#7CCFD0]/20 p-3 rounded-md text-sm mb-4">
@@ -615,9 +871,31 @@ export default function BookingForm({ user }) {
                 <button
                   type="submit"
                   disabled={isLoading}
-                  className="w-full py-3 px-4 bg-[#7CCFD0] hover:bg-[#60BFC0] text-white dark:text-[#1C2C2F] font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#7CCFD0] disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-full py-3 px-4 bg-[#7CCFD0] hover:bg-[#60BFC0] text-white dark:text-[#1C2C2F] font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#7CCFD0] disabled:opacity-50 disabled:cursor-not-allowed relative overflow-hidden"
                 >
-                  {isLoading ? 'Submitting...' : 'Request Ride'}
+                  {bookingStatus === 'loading' && (
+                    <span className="absolute inset-0 flex items-center justify-center bg-[#7CCFD0]">
+                      <svg className="animate-spin h-5 w-5 text-white dark:text-[#1C2C2F]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                    </span>
+                  )}
+                  {bookingStatus === 'submitting' && (
+                    <span className="absolute inset-0 flex items-center justify-center bg-[#7CCFD0]">
+                      <div className="flex items-center space-x-2">
+                        <svg className="animate-spin h-5 w-5 text-white dark:text-[#1C2C2F]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        <span className="text-white dark:text-[#1C2C2F]">Booking your trip...</span>
+                      </div>
+                    </span>
+                  )}
+                  
+                  <span className={bookingStatus === 'loading' || bookingStatus === 'submitting' ? 'invisible' : ''}>
+                    {isLoading ? 'Submitting...' : 'Request Ride'}
+                  </span>
                 </button>
               </div>
             </form>
