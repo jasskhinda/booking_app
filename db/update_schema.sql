@@ -1,7 +1,9 @@
 -- Add new columns to profiles table for Stripe integration
 ALTER TABLE IF EXISTS profiles 
 ADD COLUMN IF NOT EXISTS stripe_customer_id TEXT,
-ADD COLUMN IF NOT EXISTS default_payment_method_id TEXT;
+ADD COLUMN IF NOT EXISTS default_payment_method_id TEXT,
+ADD COLUMN IF NOT EXISTS birthdate DATE,
+ADD COLUMN IF NOT EXISTS marketing_consent BOOLEAN DEFAULT FALSE;
 
 -- Add first_name and last_name columns to profiles table
 ALTER TABLE IF EXISTS profiles
@@ -52,7 +54,7 @@ DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
 
 -- Update the handle_new_user function to use first_name and last_name
 CREATE OR REPLACE FUNCTION public.handle_new_user() 
-RETURNS TRIGGER AS $$$
+RETURNS TRIGGER AS $$
 DECLARE
   first_name_val TEXT;
   last_name_val TEXT;
@@ -79,60 +81,64 @@ BEGIN
     END IF;
   END IF;
   
-  INSERT INTO public.profiles (id, first_name, last_name, role)
+  INSERT INTO public.profiles (
+    id, 
+    first_name, 
+    last_name, 
+    role, 
+    birthdate, 
+    marketing_consent
+  )
   VALUES (
     NEW.id, 
     first_name_val,
     last_name_val,
-    COALESCE(NEW.raw_user_meta_data->>'role', 'client') -- Use role from metadata or default to 'client'
+    COALESCE(NEW.raw_user_meta_data->>'role', 'client'), -- Use role from metadata or default to 'client'
+    CAST(NEW.raw_user_meta_data->>'birthdate' AS DATE), -- Cast birthdate string to DATE
+    COALESCE((NEW.raw_user_meta_data->>'marketing_consent')::boolean, FALSE) -- Boolean conversion with default
   );
   RETURN NEW;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
+-- Create a stored procedure to avoid the infinite recursion
+CREATE OR REPLACE FUNCTION is_dispatcher(uid uuid)
+RETURNS boolean AS $$
+DECLARE
+  user_role text;
+BEGIN
+  -- Direct access to the profiles table without RLS
+  SELECT role INTO user_role FROM profiles WHERE id = uid;
+  RETURN user_role = 'dispatcher';
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- A simpler approach with direct policy creation
 -- Policies for profiles table
--- Policy to allow dispatchers to view all profiles
-CREATE POLICY IF NOT EXISTS "Dispatchers can view all profiles" 
+CREATE POLICY "Dispatchers can view all profiles" 
 ON profiles FOR SELECT 
-USING (
-  (SELECT role FROM profiles WHERE id = auth.uid()) = 'dispatcher'
-);
+USING (is_dispatcher(auth.uid()));
 
--- Policy to allow dispatchers to update all profiles
-CREATE POLICY IF NOT EXISTS "Dispatchers can update all profiles" 
+CREATE POLICY "Dispatchers can update all profiles" 
 ON profiles FOR UPDATE 
-USING (
-  (SELECT role FROM profiles WHERE id = auth.uid()) = 'dispatcher'
-);
+USING (is_dispatcher(auth.uid()));
 
--- Policy to allow dispatchers to delete profiles
-CREATE POLICY IF NOT EXISTS "Dispatchers can delete profiles" 
+CREATE POLICY "Dispatchers can delete profiles" 
 ON profiles FOR DELETE 
-USING (
-  (SELECT role FROM profiles WHERE id = auth.uid()) = 'dispatcher'
-);
+USING (is_dispatcher(auth.uid()));
 
--- Policies for trips table (must be applied after profiles are updated)
--- Policy to allow dispatchers to view all trips
-CREATE POLICY IF NOT EXISTS "Dispatchers can view all trips" 
+-- Policies for trips table
+CREATE POLICY "Dispatchers can view all trips" 
 ON trips FOR SELECT 
-USING (
-  (SELECT role FROM profiles WHERE id = auth.uid()) = 'dispatcher'
-);
+USING (is_dispatcher(auth.uid()));
 
--- Policy to allow dispatchers to update all trips
-CREATE POLICY IF NOT EXISTS "Dispatchers can update all trips" 
+CREATE POLICY "Dispatchers can update all trips" 
 ON trips FOR UPDATE 
-USING (
-  (SELECT role FROM profiles WHERE id = auth.uid()) = 'dispatcher'
-);
+USING (is_dispatcher(auth.uid()));
 
--- Policy to allow dispatchers to delete trips
-CREATE POLICY IF NOT EXISTS "Dispatchers can delete trips" 
+CREATE POLICY "Dispatchers can delete trips" 
 ON trips FOR DELETE 
-USING (
-  (SELECT role FROM profiles WHERE id = auth.uid()) = 'dispatcher'
-);
+USING (is_dispatcher(auth.uid()));
 
 -- Recreate the trigger
 CREATE TRIGGER on_auth_user_created

@@ -1,0 +1,14 @@
+{
+  "name": "Compassionate Rides",
+  "short_name": "CompassionateRides",
+  "icons": [
+    {
+      "src": "/favicon.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    }
+  ],
+  "theme_color": "#7CCFD0",
+  "background_color": "#FFFFFF",
+  "display": "standalone"
+}

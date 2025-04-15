@@ -1,8 +1,23 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Original Colors - For Reference */
+  /* --background: #ffffff;
+  --foreground: #171717; */
+  
+  /* Compassionate Rides Color Palette - Light Mode */
+  --background: #FFFFFF;
+  --foreground: #2E4F54;
+  --accent: #7CCFD0;
+  --button-text: #FFFFFF;
+  --card-background: #F8F9FA;
+  --border-color: #DDE5E7;
+  
+  /* Tailwind CSS custom colors */
+  --primary: #2E4F54;
+  --primary-hover: #1A3438;
+  --secondary: #7CCFD0;
+  --secondary-hover: #60BFC0;
 }
 
 @theme inline {
@@ -14,8 +29,23 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    /* Original Colors - For Reference */
+    /* --background: #0a0a0a;
+    --foreground: #ededed; */
+    
+    /* Compassionate Rides Color Palette - Dark Mode */
+    --background: #1C2C2F;
+    --foreground: #E0F4F5;
+    --accent: #7CCFD0;
+    --button-text: #1C2C2F;
+    --card-background: #24393C;
+    --border-color: #3F5E63;
+    
+    /* Tailwind CSS custom colors */
+    --primary: #E0F4F5;
+    --primary-hover: #C0E4E5;
+    --secondary: #7CCFD0;
+    --secondary-hover: #60BFC0;
   }
 }
 
@@ -23,4 +53,53 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+}
+
+/* Custom utility classes for the Compassionate Rides color scheme */
+.btn-primary {
+  @apply bg-[#7CCFD0] text-white hover:bg-[#60BFC0] focus:ring-[#7CCFD0]/50;
+}
+
+.btn-secondary {
+  @apply bg-transparent border border-[#7CCFD0] text-[#7CCFD0] hover:bg-[#7CCFD0]/10 focus:ring-[#7CCFD0]/50;
+}
+
+.card {
+  @apply bg-[#F8F9FA] dark:bg-[#24393C] border border-[#DDE5E7] dark:border-[#3F5E63] rounded-lg shadow-sm;
+}
+
+/* Status colors */
+.status-pending {
+  @apply bg-[#7CCFD0]/20 text-[#7CCFD0] dark:bg-[#7CCFD0]/30 dark:text-[#E0F4F5];
+}
+
+.status-upcoming {
+  @apply bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300;
+}
+
+.status-completed {
+  @apply bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300;
+}
+
+.status-cancelled {
+  @apply bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300;
+}
+
+.status-in-progress {
+  @apply bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300;
+}
+
+/* Custom datetime-local input styling */
+input[type="datetime-local"]::-webkit-calendar-picker-indicator {
+  filter: invert(74%) sepia(34%) saturate(438%) hue-rotate(142deg) brightness(87%) contrast(85%);
+  opacity: 0.9;
+  cursor: pointer;
+}
+
+/* Dark mode calendar icon */
+@media (prefers-color-scheme: dark) {
+  input[type="datetime-local"]::-webkit-calendar-picker-indicator {
+    filter: invert(95%) sepia(12%) saturate(529%) hue-rotate(167deg) brightness(103%) contrast(96%);
+    opacity: 0.9;
+  }
 }

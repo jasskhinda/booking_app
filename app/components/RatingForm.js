@@ -51,8 +51,8 @@ export default function RatingForm({ trip, onRatingSubmitted }) {
   };
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg p-4 shadow-sm border border-gray-200 dark:border-gray-700">
-      <h3 className="text-lg font-medium mb-4">Rate your trip</h3>
+    <div className="bg-white dark:bg-[#1C2C2F] rounded-lg p-4 shadow-sm border border-[#DDE5E7] dark:border-[#3F5E63]">
+      <h3 className="text-lg font-medium mb-4 text-[#2E4F54] dark:text-[#E0F4F5]">Rate your trip</h3>
       
       {errorMessage && (
         <div className="mb-4 p-3 bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300 rounded-md">
@@ -77,7 +77,7 @@ export default function RatingForm({ trip, onRatingSubmitted }) {
                     className={`h-8 w-8 ${
                       (hoverRating || rating) >= star 
                         ? 'text-yellow-400' 
-                        : 'text-gray-300 dark:text-gray-600'
+                        : 'text-[#DDE5E7] dark:text-[#3F5E63]'
                     }`}
                     fill="currentColor"
                     viewBox="0 0 20 20"
@@ -88,7 +88,7 @@ export default function RatingForm({ trip, onRatingSubmitted }) {
               ))}
             </div>
           </div>
-          <div className="text-center mt-2 text-sm text-gray-600 dark:text-gray-400">
+          <div className="text-center mt-2 text-sm text-[#2E4F54]/70 dark:text-[#E0F4F5]/70">
             {rating === 0 && 'Tap to rate'}
             {rating === 1 && 'Poor'}
             {rating === 2 && 'Fair'}
@@ -99,12 +99,12 @@ export default function RatingForm({ trip, onRatingSubmitted }) {
         </div>
         
         <div className="mb-4">
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+          <label className="block text-sm font-medium text-[#2E4F54] dark:text-[#E0F4F5] mb-1">
             Additional Feedback (Optional)
           </label>
           <textarea
             rows={3}
-            className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700"
+            className="w-full p-2 border border-[#DDE5E7] dark:border-[#3F5E63] rounded-md dark:bg-[#1C2C2F] text-[#2E4F54] dark:text-[#E0F4F5]"
             placeholder="Tell us about your experience..."
             value={feedback}
             onChange={(e) => setFeedback(e.target.value)}
@@ -114,7 +114,7 @@ export default function RatingForm({ trip, onRatingSubmitted }) {
         <button
           type="submit"
           disabled={isSubmitting || rating === 0}
-          className="w-full inline-flex justify-center items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
+          className="w-full inline-flex justify-center items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-[#7CCFD0] hover:bg-[#60BFC0] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#7CCFD0] disabled:opacity-50"
         >
           {isSubmitting ? 'Submitting...' : 'Submit Rating'}
         </button>

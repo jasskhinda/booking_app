@@ -11,7 +11,6 @@ export default function BookingForm({ user }) {
     pickupAddress: '',
     destinationAddress: '',
     pickupTime: '',
-    specialRequirements: '',
     wheelchairType: 'no_wheelchair',
     isRoundTrip: false,
   });
@@ -41,8 +40,8 @@ export default function BookingForm({ user }) {
   const [directionsRenderer, setDirectionsRenderer] = useState(null);
   const [pickupLocation, setPickupLocation] = useState(null);
   const [destinationLocation, setDestinationLocation] = useState(null);
-  const [estimatedFare, setEstimatedFare] = useState('$25-35');
-  const [estimatedDuration, setEstimatedDuration] = useState('25-35 min');
+  const [estimatedFare, setEstimatedFare] = useState(null);
+  const [estimatedDuration, setEstimatedDuration] = useState(null);
   const [distanceMiles, setDistanceMiles] = useState(0);
   const [distanceMeters, setDistanceMeters] = useState(0);
   
@@ -101,7 +100,7 @@ export default function BookingForm({ user }) {
             basePrice += 40;
           }
           
-          // Set the price as an integer
+          // Set the price as an integer without the $ prefix
           const finalPrice = Math.round(basePrice);
           setEstimatedFare(finalPrice);
           setEstimatedDuration(duration);
@@ -164,13 +163,13 @@ export default function BookingForm({ user }) {
       if (!pickupAutocompleteContainerRef.current.firstChild && !destinationAutocompleteContainerRef.current.firstChild) {
         // Create traditional input fields for autocomplete
         const pickupInput = document.createElement('input');
-        pickupInput.className = 'w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800';
+        pickupInput.className = 'w-full px-3 py-2 border border-[#DDE5E7] dark:border-[#3F5E63] rounded-md shadow-sm focus:outline-none focus:ring-[#7CCFD0] focus:border-[#7CCFD0] dark:bg-[#1C2C2F]';
         pickupInput.placeholder = 'Enter your pickup location';
         pickupInput.value = formData.pickupAddress || '';
         pickupInput.id = 'pickup-autocomplete-input';
         
         const destinationInput = document.createElement('input');
-        destinationInput.className = 'w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800';
+        destinationInput.className = 'w-full px-3 py-2 border border-[#DDE5E7] dark:border-[#3F5E63] rounded-md shadow-sm focus:outline-none focus:ring-[#7CCFD0] focus:border-[#7CCFD0] dark:bg-[#1C2C2F]';
         destinationInput.placeholder = 'Enter your destination';
         destinationInput.value = formData.destinationAddress || '';
         destinationInput.id = 'destination-autocomplete-input';
@@ -358,7 +357,7 @@ export default function BookingForm({ user }) {
           destination_address: destinationAddressValue,
           pickup_time: formData.pickupTime,
           status: 'pending', // Changed from 'upcoming' to 'pending'
-          special_requirements: formData.specialRequirements,
+          special_requirements: null,
           wheelchair_type: formData.wheelchairType,
           is_round_trip: formData.isRoundTrip,
           price: calculatedPrice, // Save estimated price
@@ -406,7 +405,6 @@ export default function BookingForm({ user }) {
         pickupAddress: '',
         destinationAddress: '',
         pickupTime: formData.pickupTime, // Keep the time
-        specialRequirements: '',
         wheelchairType: 'no_wheelchair',
         isRoundTrip: false,
       });
@@ -437,17 +435,17 @@ export default function BookingForm({ user }) {
       />
 
       <DashboardLayout user={user} activeTab="book">
-        <div className="bg-white dark:bg-gray-900 rounded-lg shadow-md p-6 mb-6">
-          <h2 className="text-xl font-semibold mb-4">Book a Ride</h2>
+        <div className="bg-[#F8F9FA] dark:bg-[#24393C] rounded-lg shadow-md border border-[#DDE5E7] dark:border-[#3F5E63] p-6 mb-6">
+          <h2 className="text-xl font-semibold text-[#2E4F54] dark:text-[#E0F4F5] mb-4">Book a Ride</h2>
           
           {success ? (
-            <div className="bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 p-4 rounded mb-6">
+            <div className="bg-[#7CCFD0]/20 dark:bg-[#7CCFD0]/30 text-[#2E4F54] dark:text-[#E0F4F5] p-4 rounded mb-6">
               Your trip request has been submitted successfully! It is pending dispatcher approval. Redirecting to your trips...
             </div>
           ) : (
             <form onSubmit={handleSubmit} className="space-y-6">
               {error && (
-                <div className="bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 p-4 rounded">
+                <div className="bg-red-100 dark:bg-red-900/30 text-[#FF4A4A] dark:text-[#FF7A7A] p-4 rounded">
                   {error}
                 </div>
               )}
@@ -455,7 +453,7 @@ export default function BookingForm({ user }) {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {/* Pickup Address */}
                 <div className="col-span-1 md:col-span-2">
-                  <label htmlFor="pickupAddress" className="block text-sm font-medium mb-1">
+                  <label htmlFor="pickupAddress" className="block text-sm font-medium text-[#2E4F54] dark:text-[#E0F4F5] mb-1">
                     Pickup Address
                   </label>
                   <div 
@@ -475,7 +473,7 @@ export default function BookingForm({ user }) {
                 
                 {/* Destination Address */}
                 <div className="col-span-1 md:col-span-2">
-                  <label htmlFor="destinationAddress" className="block text-sm font-medium mb-1">
+                  <label htmlFor="destinationAddress" className="block text-sm font-medium text-[#2E4F54] dark:text-[#E0F4F5] mb-1">
                     Destination Address
                   </label>
                   <div 
@@ -495,7 +493,7 @@ export default function BookingForm({ user }) {
                 
                 {/* Pickup Time */}
                 <div>
-                  <label htmlFor="pickupTime" className="block text-sm font-medium mb-1">
+                  <label htmlFor="pickupTime" className="block text-sm font-medium text-[#2E4F54] dark:text-[#E0F4F5] mb-1">
                     Pickup Time
                   </label>
                   <input
@@ -505,53 +503,42 @@ export default function BookingForm({ user }) {
                     required
                     value={formData.pickupTime}
                     onChange={handleChange}
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800"
+                    className="w-full px-3 py-2 border border-[#DDE5E7] dark:border-[#3F5E63] rounded-md shadow-sm focus:outline-none focus:ring-[#7CCFD0] focus:border-[#7CCFD0] dark:bg-[#1C2C2F] text-[#2E4F54] dark:text-[#E0F4F5]"
+                    style={{colorScheme: 'light dark'}}
                   />
                 </div>
                 
                 {/* Wheelchair Type */}
                 <div>
-                  <label htmlFor="wheelchairType" className="block text-sm font-medium mb-1">
+                  <label htmlFor="wheelchairType" className="block text-sm font-medium text-[#2E4F54] dark:text-[#E0F4F5] mb-1">
                     Wheelchair Requirements
                   </label>
-                  <select
-                    id="wheelchairType"
-                    name="wheelchairType"
-                    value={formData.wheelchairType}
-                    onChange={handleChange}
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800"
-                  >
-                    <option value="no_wheelchair">No Wheelchair</option>
-                    <option value="wheelchair">Wheelchair</option>
-                  </select>
+                  <div className="relative">
+                    <select
+                      id="wheelchairType"
+                      name="wheelchairType"
+                      value={formData.wheelchairType}
+                      onChange={handleChange}
+                      className="w-full appearance-none px-3 py-2 border border-[#DDE5E7] dark:border-[#3F5E63] rounded-md shadow-sm focus:outline-none focus:ring-[#7CCFD0] focus:border-[#7CCFD0] dark:bg-[#1C2C2F] text-[#2E4F54] dark:text-[#E0F4F5] pr-10"
+                    >
+                      <option value="no_wheelchair">No Wheelchair</option>
+                      <option value="wheelchair">Wheelchair</option>
+                    </select>
+                    <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-[#2E4F54] dark:text-[#E0F4F5]">
+                      <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+                        <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" />
+                      </svg>
+                    </div>
+                  </div>
                 </div>
                 
-                {/* Special Requirements */}
-                <div>
-                  <label htmlFor="specialRequirements" className="block text-sm font-medium mb-1">
-                    Special Requirements <span className="text-xs text-gray-500">(Optional)</span>
-                  </label>
-                  <select
-                    id="specialRequirements"
-                    name="specialRequirements"
-                    value={formData.specialRequirements}
-                    onChange={handleChange}
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800"
-                  >
-                    <option value="">None</option>
-                    <option value="assistance">Assistance Required</option>
-                    <option value="service_animal">Service Animal</option>
-                    <option value="child_seat">Child Seat</option>
-                    <option value="extra_space">Extra Space</option>
-                  </select>
-                </div>
               </div>
               
               {/* Map display */}
               <div className="col-span-1 md:col-span-2 mt-4">
                 <div 
                   ref={mapRef} 
-                  className="w-full h-[300px] rounded-md border border-gray-300 dark:border-gray-700"
+                  className="w-full h-[300px] rounded-md border border-[#DDE5E7] dark:border-[#3F5E63]"
                 ></div>
               </div>
               
@@ -564,47 +551,61 @@ export default function BookingForm({ user }) {
                     id="isRoundTrip"
                     checked={formData.isRoundTrip}
                     onChange={(e) => setFormData({...formData, isRoundTrip: e.target.checked})}
-                    className="absolute block w-6 h-6 rounded-full bg-white border-4 border-gray-300 appearance-none cursor-pointer checked:right-0 checked:border-blue-500 transition-all duration-200 focus:outline-none"
+                    className="absolute block w-6 h-6 rounded-full bg-white border-4 border-[#DDE5E7] appearance-none cursor-pointer checked:right-0 checked:border-[#7CCFD0] transition-all duration-200 focus:outline-none"
                   />
                   <label 
                     htmlFor="isRoundTrip"
-                    className={`block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer ${formData.isRoundTrip ? 'bg-blue-500' : ''}`}
+                    className={`block overflow-hidden h-6 rounded-full bg-[#DDE5E7] cursor-pointer ${formData.isRoundTrip ? 'bg-[#7CCFD0]' : ''}`}
                   ></label>
                 </div>
                 <label htmlFor="isRoundTrip" className="text-sm font-medium cursor-pointer">
                   Round Trip
                 </label>
                 {formData.isRoundTrip && (
-                  <span className="ml-2 text-xs text-blue-600 dark:text-blue-400">
+                  <span className="ml-2 text-xs text-[#2E4F54] dark:text-[#7CCFD0]">
                     The vehicle will wait for you and take you back to your pickup location.
                   </span>
                 )}
               </div>
 
-              <div className="col-span-1 md:col-span-2 border-t border-gray-200 dark:border-gray-700 pt-4">
-                <h3 className="text-md font-medium mb-2">Ride Details</h3>
+              <div className="col-span-1 md:col-span-2 border-t border-[#DDE5E7] dark:border-[#3F5E63] pt-4">
+                <h3 className="text-md font-medium text-[#2E4F54] dark:text-[#E0F4F5] mb-2">Ride Details</h3>
                 
                 <div className="grid grid-cols-2 gap-4 mb-4">
                   <div>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">Estimated Fare</p>
-                    <p className="font-medium">${estimatedFare}</p>
+                    <p className="text-sm text-[#2E4F54]/70 dark:text-[#E0F4F5]/70">Estimated Fare</p>
+                    {pickupLocation && destinationLocation ? (
+                      <p className="font-medium text-[#2E4F54] dark:text-[#E0F4F5]">
+                        {estimatedFare ? `$${estimatedFare}`.replace('$$', '$') : 'Calculating...'}
+                      </p>
+                    ) : (
+                      <p className="font-medium text-[#2E4F54]/50 dark:text-[#E0F4F5]/50">Enter addresses</p>
+                    )}
                   </div>
                   <div>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">Estimated Duration</p>
-                    <p className="font-medium">{formData.isRoundTrip ? `${estimatedDuration} × 2` : estimatedDuration}</p>
+                    <p className="text-sm text-[#2E4F54]/70 dark:text-[#E0F4F5]/70">Estimated Duration</p>
+                    {pickupLocation && destinationLocation ? (
+                      <p className="font-medium text-[#2E4F54] dark:text-[#E0F4F5]">{formData.isRoundTrip ? `${estimatedDuration} × 2` : estimatedDuration}</p>
+                    ) : (
+                      <p className="font-medium text-[#2E4F54]/50 dark:text-[#E0F4F5]/50">Enter addresses</p>
+                    )}
                   </div>
                   <div>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">Distance</p>
-                    <p className="font-medium">{distanceMiles > 0 ? `${distanceMiles.toFixed(1)} miles` : 'N/A'}</p>
+                    <p className="text-sm text-[#2E4F54]/70 dark:text-[#E0F4F5]/70">Distance</p>
+                    {pickupLocation && destinationLocation ? (
+                      <p className="font-medium text-[#2E4F54] dark:text-[#E0F4F5]">{distanceMiles > 0 ? `${distanceMiles.toFixed(1)} miles` : 'Calculating...'}</p>
+                    ) : (
+                      <p className="font-medium text-[#2E4F54]/50 dark:text-[#E0F4F5]/50">Enter addresses</p>
+                    )}
                   </div>
                   <div>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">Price Calculation</p>
-                    <p className="font-medium text-xs text-gray-600">Base + mileage + adjustments</p>
+                    <p className="text-sm text-[#2E4F54]/70 dark:text-[#E0F4F5]/70">Price Calculation</p>
+                    <p className="font-medium text-xs text-[#2E4F54]/90 dark:text-[#E0F4F5]/90">Base + mileage + adjustments</p>
                   </div>
                 </div>
                 
-                <div className="bg-blue-50 dark:bg-blue-900/20 p-3 rounded-md text-sm mb-4">
-                  <p className="text-blue-700 dark:text-blue-300">
+                <div className="bg-[#7CCFD0]/10 dark:bg-[#7CCFD0]/20 p-3 rounded-md text-sm mb-4">
+                  <p className="text-[#2E4F54] dark:text-[#E0F4F5]">
                     <strong>Note:</strong> Your ride request will be reviewed and approved by a dispatcher. Once approved, it will be assigned to a compassionate driver who specializes in supportive transportation.
                   </p>
                 </div>
@@ -614,7 +615,7 @@ export default function BookingForm({ user }) {
                 <button
                   type="submit"
                   disabled={isLoading}
-                  className="w-full py-3 px-4 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-full py-3 px-4 bg-[#7CCFD0] hover:bg-[#60BFC0] text-white dark:text-[#1C2C2F] font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#7CCFD0] disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {isLoading ? 'Submitting...' : 'Request Ride'}
                 </button>

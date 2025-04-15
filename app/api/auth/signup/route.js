@@ -5,12 +5,12 @@ import { createClient } from '@supabase/supabase-js';
 
 export async function POST(request) {
   try {
-    const { email, password, firstName, lastName } = await request.json();
+    const { email, password, firstName, lastName, birthdate, marketingConsent } = await request.json();
     
     // Validate inputs
-    if (!email || !password || !firstName || !lastName) {
+    if (!email || !password || !firstName || !lastName || !birthdate) {
       return NextResponse.json(
-        { error: 'Email, password, first name, and last name are required' },
+        { error: 'Email, password, first name, last name, and date of birth are required' },
         { status: 400 }
       );
     }
@@ -23,6 +23,8 @@ export async function POST(request) {
       user_metadata: {
         first_name: firstName,
         last_name: lastName,
+        birthdate: birthdate,
+        marketing_consent: marketingConsent || false,
         role: 'client',
       },
     });
