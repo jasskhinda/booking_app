@@ -33,19 +33,53 @@ export async function middleware(req) {
   console.log('Session check in middleware:', session ? 'Session exists' : 'No session');
   
   // Define which routes should be protected
-  const protectedRoutes = ['/dashboard', '/dashboard/book', '/dashboard/trips', '/dashboard/settings'];
+  const protectedRoutes = ['/dashboard', '/dashboard/book', '/dashboard/trips', '/dashboard/settings', '/dashboard/payment-methods'];
   
   // Check if the current route is protected
   const isProtectedRoute = protectedRoutes.some(route => 
     pathname === route || pathname.startsWith(`${route}/`)
   );
   
-  if (isProtectedRoute && !session) {
-    // If the route is protected and user is not authenticated, redirect to login
-    console.log('Redirecting to login from protected route');
-    const redirectUrl = new URL('/login', req.url);
-    redirectUrl.searchParams.set('returnTo', pathname);
-    return NextResponse.redirect(redirectUrl);
+  if (isProtectedRoute) {
+    // If there's no session, redirect to login
+    if (!session) {
+      console.log('Redirecting to login from protected route - No session');
+      const redirectUrl = new URL('/login', req.url);
+      redirectUrl.searchParams.set('returnTo', pathname);
+      return NextResponse.redirect(redirectUrl);
+    }
+    
+    // Email verification is disabled in Supabase settings
+    
+    // Check if user has 'client' role in their metadata
+    const userRole = session.user.user_metadata?.role;
+    
+    if (userRole !== 'client') {
+      // If user doesn't have the right role, fetch from profiles table
+      // This is necessary for users created before role implementation
+      try {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('role')
+          .eq('id', session.user.id)
+          .single();
+          
+        // If profile exists and doesn't have 'client' role, log the user out
+        if (!profile || profile.role !== 'client') {
+          console.log('Redirecting to login from protected route - Invalid role');
+          await supabase.auth.signOut();
+          const redirectUrl = new URL('/login', req.url);
+          redirectUrl.searchParams.set('error', 'access_denied');
+          return NextResponse.redirect(redirectUrl);
+        }
+      } catch (error) {
+        console.error('Error fetching user profile:', error);
+        // On error, also redirect to login
+        const redirectUrl = new URL('/login', req.url);
+        redirectUrl.searchParams.set('error', 'server_error');
+        return NextResponse.redirect(redirectUrl);
+      }
+    }
   }
   
   // Define auth routes that should redirect to dashboard if user is already logged in

@@ -77,9 +77,12 @@ export default function DashboardLayout({ user, activeTab = 'dashboard', childre
               
               {/* User menu */}
               <div className="ml-3 relative flex items-center space-x-4">
-                <div className="text-sm text-gray-700 dark:text-gray-300">
-                  {user?.email}
-                </div>
+                <Link 
+                  href="/dashboard/settings"
+                  className="text-sm text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400"
+                >
+                  {user?.user_metadata?.full_name || user?.email}
+                </Link>
                 <button
                   onClick={handleSignOut}
                   className="text-sm text-blue-600 hover:text-blue-800 dark:text-blue-400"

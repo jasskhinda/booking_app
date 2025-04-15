@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { useRouter } from 'next/navigation';
 
@@ -11,6 +11,18 @@ export default function LoginForm() {
   const [error, setError] = useState('');
   const router = useRouter();
   const supabase = createClientComponentClient();
+  
+  // Check for error query parameter on page load
+  useEffect(() => {
+    const searchParams = new URLSearchParams(window.location.search);
+    const errorParam = searchParams.get('error');
+    
+    if (errorParam === 'access_denied') {
+      setError('Access denied. You do not have permission to access this application.');
+    } else if (errorParam === 'server_error') {
+      setError('Server error. Please try again later.');
+    }
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -20,18 +32,23 @@ export default function LoginForm() {
     try {
       console.log('Attempting login with:', { email });
       
+      // Sign in with Supabase - email confirmation is now disabled in settings
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
       
       if (error) {
-        throw error;
+        // For refresh token errors, still proceed with login
+        if (error.message && error.message.includes('Refresh Token Not Found')) {
+          console.log('Ignoring refresh token error during login');
+        } else {
+          throw error;
+        }
       }
       
       // Successfully logged in
       console.log('Login successful, session:', data.session ? 'exists' : 'none');
-      console.log('User:', data.user);
       
       // Explicitly refresh the page instead of using router.push
       // This ensures cookies are properly sent in the next request
@@ -39,6 +56,15 @@ export default function LoginForm() {
       
     } catch (error) {
       console.error('Login error:', error);
+      
+      // Don't show refresh token errors to the user, as they're likely harmless
+      if (error.message && error.message.includes('Refresh Token Not Found')) {
+        console.log('Ignoring refresh token error and proceeding with redirect');
+        // Still try to redirect to dashboard
+        window.location.href = '/dashboard';
+        return;
+      }
+      
       setError(error.message || 'Invalid email or password');
     } finally {
       setIsLoading(false);
@@ -51,6 +77,9 @@ export default function LoginForm() {
         provider: 'google',
         options: {
           redirectTo: `${window.location.origin}/auth/callback`,
+          data: {
+            role: 'client', // Ensure role is set even on login
+          },
         },
       });
       

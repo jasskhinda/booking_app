@@ -2,10 +2,20 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import DashboardLayout from './DashboardLayout';
+import RatingForm from './RatingForm';
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 
 export default function TripsView({ user, trips = [] }) {
   const [filter, setFilter] = useState('all'); // all, upcoming, completed, cancelled
+  const [cancellingTrip, setCancellingTrip] = useState(null);
+  const [cancelReason, setCancelReason] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [ratingTrip, setRatingTrip] = useState(null);
+  const [rebookingTrip, setRebookingTrip] = useState(null);
+  const supabase = createClientComponentClient();
+  const router = useRouter();
 
   // Filter trips based on status
   const filteredTrips = trips.filter(trip => {
@@ -13,42 +23,104 @@ export default function TripsView({ user, trips = [] }) {
     return trip.status === filter;
   });
 
-  // Mock data in case no trips exist yet
-  const mockTrips = [
-    {
-      id: 'mock-1',
-      pickup_address: '123 Main St, San Francisco, CA',
-      destination_address: 'SF General Hospital, San Francisco, CA',
-      pickup_time: new Date('2025-04-20T10:00:00').toISOString(),
-      status: 'upcoming',
-      driver_name: 'Michael Chen',
-      vehicle: 'Tesla Model Y (White)',
-      price: 28.50
-    },
-    {
-      id: 'mock-2',
-      pickup_address: '456 Market St, San Francisco, CA',
-      destination_address: 'UCSF Medical Center, San Francisco, CA',
-      pickup_time: new Date('2025-04-15T14:30:00').toISOString(),
-      status: 'completed',
-      driver_name: 'Sarah Johnson',
-      vehicle: 'Toyota Prius (Blue)',
-      price: 22.75,
-      rating: 5
-    },
-    {
-      id: 'mock-3',
-      pickup_address: '789 Mission St, San Francisco, CA',
-      destination_address: 'Kaiser Permanente, San Francisco, CA',
-      pickup_time: new Date('2025-04-10T09:15:00').toISOString(),
-      status: 'cancelled',
-      cancellation_reason: 'Driver unavailable',
-      refund_status: 'Completed'
+  // Use filtered trips for display
+  const displayTrips = filteredTrips;
+  
+  // Function to start trip cancellation
+  const startCancellation = (tripId) => {
+    setCancellingTrip(tripId);
+  };
+  
+  // Function to cancel cancellation
+  const cancelCancellation = () => {
+    setCancellingTrip(null);
+    setCancelReason('');
+  };
+  
+  // Function to submit trip cancellation
+  const submitCancellation = async (tripId) => {
+    setIsSubmitting(true);
+    try {
+      // Update trip status to cancelled in Supabase
+      const { data, error } = await supabase
+        .from('trips')
+        .update({
+          status: 'cancelled',
+          cancellation_reason: cancelReason || 'Customer cancelled',
+          refund_status: 'Pending'
+        })
+        .eq('id', tripId)
+        .select();
+        
+      if (error) {
+        console.error('Error cancelling trip:', error);
+        alert('Failed to cancel trip. Please try again.');
+      } else {
+        // Update trip in local state without needing a full refresh
+        const updatedTrips = trips.map(trip => 
+          trip.id === tripId ? { ...trip, status: 'cancelled', cancellation_reason: cancelReason || 'Customer cancelled', refund_status: 'Pending' } : trip
+        );
+        trips.splice(0, trips.length, ...updatedTrips);
+        
+        setCancellingTrip(null);
+        setCancelReason('');
+      }
+    } catch (err) {
+      console.error('Unexpected error:', err);
+      alert('An unexpected error occurred. Please try again.');
+    } finally {
+      setIsSubmitting(false);
     }
-  ];
-
-  // Use mock data if no real trips exist
-  const displayTrips = trips.length > 0 ? filteredTrips : mockTrips;
+  };
+  
+  // Function to handle rating submission
+  const handleRatingSubmitted = (updatedTrip) => {
+    // Update trip in local state without needing a full refresh
+    const updatedTrips = trips.map(trip => 
+      trip.id === updatedTrip.id ? updatedTrip : trip
+    );
+    trips.splice(0, trips.length, ...updatedTrips);
+    
+    // Close the rating form
+    setRatingTrip(null);
+  };
+  
+  // Function to handle rebooking a trip
+  const handleRebookTrip = async (trip) => {
+    setRebookingTrip(trip.id);
+    setIsSubmitting(true);
+    
+    try {
+      // Create a new trip based on the completed one
+      const { data, error } = await supabase
+        .from('trips')
+        .insert({
+          user_id: user.id,
+          pickup_address: trip.pickup_address,
+          destination_address: trip.destination_address,
+          pickup_time: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(), // 24 hours from now
+          status: 'upcoming',
+          price: trip.price,
+          special_requirements: trip.special_requirements
+        })
+        .select();
+        
+      if (error) {
+        throw error;
+      }
+      
+      // Redirect to the new trip's details page
+      if (data && data[0]) {
+        router.push(`/dashboard/trips/${data[0].id}`);
+      }
+    } catch (err) {
+      console.error('Error rebooking trip:', err);
+      alert('Failed to rebook trip. Please try again.');
+      setRebookingTrip(null);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   const formatDate = (dateString) => {
     const date = new Date(dateString);
@@ -64,6 +136,8 @@ export default function TripsView({ user, trips = [] }) {
 
   const getStatusBadgeClass = (status) => {
     switch(status) {
+      case 'pending':
+        return 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300';
       case 'upcoming':
         return 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300';
       case 'completed':
@@ -100,6 +174,14 @@ export default function TripsView({ user, trips = [] }) {
                 : 'border-b-2 border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300'}`}
             >
               All
+            </button>
+            <button
+              onClick={() => setFilter('pending')}
+              className={`pb-3 px-1 ${filter === 'pending' 
+                ? 'border-b-2 border-blue-500 text-blue-600 dark:text-blue-400 font-medium' 
+                : 'border-b-2 border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300'}`}
+            >
+              Pending
             </button>
             <button
               onClick={() => setFilter('upcoming')}
@@ -154,7 +236,7 @@ export default function TripsView({ user, trips = [] }) {
             <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
               {trips.length === 0 
                 ? "You haven't booked any trips yet." 
-                : "No trips match the selected filter."}
+                : `No ${filter !== 'all' ? filter : ''} trips found.`}
             </p>
             <div className="mt-6">
               <Link
@@ -176,7 +258,8 @@ export default function TripsView({ user, trips = [] }) {
                   <div className="flex flex-col sm:flex-row justify-between">
                     <div className="mb-2 sm:mb-0">
                       <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusBadgeClass(trip.status)}`}>
-                        {trip.status === 'upcoming' ? 'Upcoming' : 
+                        {trip.status === 'pending' ? 'Pending Approval' :
+                         trip.status === 'upcoming' ? 'Upcoming' : 
                          trip.status === 'completed' ? 'Completed' : 
                          trip.status === 'in_progress' ? 'In Progress' : 'Cancelled'}
                       </span>
@@ -214,6 +297,47 @@ export default function TripsView({ user, trips = [] }) {
                     </div>
                   </div>
                   
+                  {trip.status === 'pending' && (
+                    <div className="mt-4">
+                      <div className="flex justify-between items-center">
+                        <div>
+                          <p className="text-sm font-medium">Wheelchair</p>
+                          <p className="text-sm text-gray-600 dark:text-gray-300">
+                            {trip.wheelchair_type === 'wheelchair' ? 'Yes' : 'No'}
+                          </p>
+                          {trip.distance && (
+                            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                              Distance: {trip.distance} miles
+                            </p>
+                          )}
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium">Round Trip</p>
+                          <p className="text-sm text-gray-600 dark:text-gray-300">
+                            {trip.is_round_trip ? 'Yes' : 'No'}
+                          </p>
+                        </div>
+                        <div className="flex space-x-2">
+                          <Link
+                            href={`/dashboard/trips/${trip.id}`}
+                            className="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded text-blue-700 bg-blue-100 hover:bg-blue-200 dark:bg-blue-900/30 dark:text-blue-300 dark:hover:bg-blue-900/50"
+                          >
+                            Details
+                          </Link>
+                          <button
+                            onClick={() => startCancellation(trip.id)}
+                            className="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded text-red-700 bg-red-100 hover:bg-red-200 dark:bg-red-900/30 dark:text-red-300 dark:hover:bg-red-900/50"
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      </div>
+                      <div className="mt-2 text-xs text-purple-600 dark:text-purple-400">
+                        Your request is pending approval from a dispatcher
+                      </div>
+                    </div>
+                  )}
+                  
                   {trip.status === 'upcoming' && (
                     <div className="mt-4 flex justify-between">
                       <div>
@@ -228,6 +352,7 @@ export default function TripsView({ user, trips = [] }) {
                           Details
                         </Link>
                         <button
+                          onClick={() => startCancellation(trip.id)}
                           className="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded text-red-700 bg-red-100 hover:bg-red-200 dark:bg-red-900/30 dark:text-red-300 dark:hover:bg-red-900/50"
                         >
                           Cancel
@@ -237,17 +362,61 @@ export default function TripsView({ user, trips = [] }) {
                   )}
                   
                   {trip.status === 'completed' && (
-                    <div className="mt-4 flex justify-between items-center">
-                      <div>
-                        <p className="text-sm font-medium">Price</p>
-                        <p className="text-sm text-gray-600 dark:text-gray-300">${trip.price?.toFixed(2) || 'N/A'}</p>
+                    <div className="mt-4">
+                      <div className="flex justify-between items-center mb-3">
+                        <div>
+                          <p className="text-sm font-medium">Price</p>
+                          <p className="text-sm text-gray-600 dark:text-gray-300">${trip.price?.toFixed(2) || 'N/A'}</p>
+                        </div>
+                        <div className="flex space-x-2">
+                          {!trip.rating && (
+                            <button
+                              onClick={() => setRatingTrip(trip)}
+                              className="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded text-yellow-700 bg-yellow-100 hover:bg-yellow-200 dark:bg-yellow-900/30 dark:text-yellow-300 dark:hover:bg-yellow-900/50"
+                            >
+                              <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                              </svg>
+                              Rate
+                            </button>
+                          )}
+                          <button
+                            onClick={() => handleRebookTrip(trip)}
+                            disabled={isSubmitting && rebookingTrip === trip.id}
+                            className="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded text-green-700 bg-green-100 hover:bg-green-200 dark:bg-green-900/30 dark:text-green-300 dark:hover:bg-green-900/50"
+                          >
+                            {isSubmitting && rebookingTrip === trip.id ? (
+                              <>
+                                <svg className="animate-spin w-4 h-4 mr-1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                </svg>
+                                Rebooking...
+                              </>
+                            ) : (
+                              <>
+                                <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                </svg>
+                                Rebook
+                              </>
+                            )}
+                          </button>
+                          <Link
+                            href={`/dashboard/trips/${trip.id}`}
+                            className="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded text-blue-700 bg-blue-100 hover:bg-blue-200 dark:bg-blue-900/30 dark:text-blue-300 dark:hover:bg-blue-900/50"
+                          >
+                            Details
+                          </Link>
+                        </div>
                       </div>
-                      <Link
-                        href={`/dashboard/trips/${trip.id}`}
-                        className="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded text-blue-700 bg-blue-100 hover:bg-blue-200 dark:bg-blue-900/30 dark:text-blue-300 dark:hover:bg-blue-900/50"
-                      >
-                        Details
-                      </Link>
+                      
+                      {/* Show rating form if this trip is being rated */}
+                      {ratingTrip && ratingTrip.id === trip.id && (
+                        <div className="mt-3">
+                          <RatingForm trip={trip} onRatingSubmitted={handleRatingSubmitted} />
+                        </div>
+                      )}
                     </div>
                   )}
                   
@@ -263,12 +432,82 @@ export default function TripsView({ user, trips = [] }) {
                       )}
                     </div>
                   )}
+                  
+                  {trip.status === 'in_progress' && (
+                    <div className="mt-4 flex justify-between items-center">
+                      <div>
+                        <p className="text-sm font-medium">Driver</p>
+                        <p className="text-sm text-gray-600 dark:text-gray-300">{trip.driver_name || 'Not assigned'}</p>
+                      </div>
+                      <div className="flex space-x-2">
+                        <Link
+                          href={`/dashboard/trips/${trip.id}`}
+                          className="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded text-blue-700 bg-blue-100 hover:bg-blue-200 dark:bg-blue-900/30 dark:text-blue-300 dark:hover:bg-blue-900/50"
+                        >
+                          Details
+                        </Link>
+                        <Link
+                          href={`/dashboard/track/${trip.id}`}
+                          className="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded text-green-700 bg-green-100 hover:bg-green-200 dark:bg-green-900/30 dark:text-green-300 dark:hover:bg-green-900/50"
+                        >
+                          <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                          </svg>
+                          Track Driver
+                        </Link>
+                      </div>
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
           </div>
         )}
       </div>
+
+      {/* Cancellation Modal */}
+      {cancellingTrip && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-md mx-4">
+            <h3 className="text-lg font-medium mb-4">Cancel Trip</h3>
+            <p className="text-gray-600 dark:text-gray-300 mb-4">
+              Are you sure you want to cancel this trip? This action cannot be undone.
+            </p>
+            
+            <div className="mb-4">
+              <label htmlFor="cancelReason" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                Reason for cancellation (optional)
+              </label>
+              <textarea
+                id="cancelReason"
+                value={cancelReason}
+                onChange={(e) => setCancelReason(e.target.value)}
+                className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700"
+                placeholder="Please provide a reason..."
+                rows={3}
+              ></textarea>
+            </div>
+            
+            <div className="flex justify-end space-x-3">
+              <button
+                onClick={cancelCancellation}
+                className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
+                disabled={isSubmitting}
+              >
+                Keep Trip
+              </button>
+              <button
+                onClick={() => submitCancellation(cancellingTrip)}
+                className="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? 'Cancelling...' : 'Confirm Cancellation'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </DashboardLayout>
   );
 }

@@ -12,6 +12,8 @@ export default function BookingForm({ user }) {
     destinationAddress: '',
     pickupTime: '',
     specialRequirements: '',
+    wheelchairType: 'no_wheelchair',
+    isRoundTrip: false,
   });
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
@@ -41,6 +43,8 @@ export default function BookingForm({ user }) {
   const [destinationLocation, setDestinationLocation] = useState(null);
   const [estimatedFare, setEstimatedFare] = useState('$25-35');
   const [estimatedDuration, setEstimatedDuration] = useState('25-35 min');
+  const [distanceMiles, setDistanceMiles] = useState(0);
+  const [distanceMeters, setDistanceMeters] = useState(0);
   
   // Function to calculate route between two points and update the map
   const calculateRoute = useCallback((origin, destination) => {
@@ -59,29 +63,54 @@ export default function BookingForm({ user }) {
         // Calculate estimated values based on route data
         const route = result.routes[0];
         if (route && route.legs && route.legs[0]) {
-          const distance = route.legs[0].distance.text;
           const duration = route.legs[0].duration.text;
           
-          // Simple fare calculation based on distance and duration
+          // Get distance values
           const distanceValue = route.legs[0].distance.value; // in meters
           const durationValue = route.legs[0].duration.value; // in seconds
           
-          const baseFare = 5;
-          const distanceFare = (distanceValue / 1000) * 1.5; // $1.50 per km
-          const durationFare = (durationValue / 60) * 0.5; // $0.50 per minute
+          // Convert meters to miles (1 meter = 0.000621371 miles)
+          const miles = distanceValue * 0.000621371;
+          const formattedMiles = miles.toFixed(1);
           
-          const estimatedTotal = baseFare + distanceFare + durationFare;
-          const roundedLower = Math.floor(estimatedTotal);
-          const roundedUpper = Math.ceil(estimatedTotal + 5); // Add a small buffer
+          // Store both distance values for future use
+          setDistanceMiles(miles);
+          setDistanceMeters(distanceValue);
           
-          setEstimatedFare(`$${roundedLower}-${roundedUpper}`);
+          // Calculate price using base price logic
+          let basePrice = 50; // Base price
+
+          // Round trip adjustment
+          if (formData.isRoundTrip) {
+            basePrice = 100;
+          }
+          
+          // Mileage calculation ($3 per mile)
+          basePrice += miles * 3;
+          
+          // Weekend adjustment
+          const pickupDate = new Date(formData.pickupTime);
+          const day = pickupDate.getDay();
+          if (day === 0 || day === 6) { // Weekend (0 = Sunday, 6 = Saturday)
+            basePrice += 40;
+          }
+          
+          // Extra hour adjustment (before 8am or after 8pm)
+          const hour = pickupDate.getHours();
+          if (hour <= 8 || hour >= 20) {
+            basePrice += 40;
+          }
+          
+          // Set the price as an integer
+          const finalPrice = Math.round(basePrice);
+          setEstimatedFare(finalPrice);
           setEstimatedDuration(duration);
         }
       } else {
         console.error('Error calculating route:', status);
       }
     });
-  }, [mapInstance, directionsRenderer]);
+  }, [mapInstance, directionsRenderer, formData.isRoundTrip, formData.pickupTime]);
 
   // References to PlaceAutocompleteElement containers
   const pickupAutocompleteContainerRef = useRef(null);
@@ -94,8 +123,8 @@ export default function BookingForm({ user }) {
     try {
       // Initialize Map
       const map = new window.google.maps.Map(mapRef.current, {
-        center: { lat: 37.7749, lng: -122.4194 }, // Default to San Francisco
-        zoom: 12,
+        center: { lat: 40.4173, lng: -82.9071 }, // Default to Columbus, Ohio
+        zoom: 7, // Wider view for Ohio state
         mapTypeControl: false,
         streetViewControl: false,
         fullscreenControl: false
@@ -152,14 +181,24 @@ export default function BookingForm({ user }) {
         
         // Initialize traditional Google Places Autocomplete
         const pickupAutocomplete = new window.google.maps.places.Autocomplete(pickupInput, {
-          fields: ['formatted_address', 'geometry', 'name', 'place_id'],
+          fields: ['formatted_address', 'geometry', 'name', 'place_id', 'address_components'],
           componentRestrictions: { country: 'us' }
         });
         
+        // Set bias to Ohio region for better results
+        const ohioBounds = new window.google.maps.LatLngBounds(
+          new window.google.maps.LatLng(38.4031, -84.8204), // SW corner of Ohio
+          new window.google.maps.LatLng(42.3270, -80.5183)  // NE corner of Ohio
+        );
+        pickupAutocomplete.setBounds(ohioBounds);
+        
         const destinationAutocomplete = new window.google.maps.places.Autocomplete(destinationInput, {
-          fields: ['formatted_address', 'geometry', 'name', 'place_id'],
+          fields: ['formatted_address', 'geometry', 'name', 'place_id', 'address_components'],
           componentRestrictions: { country: 'us' }
         });
+        
+        // Also set bias for destination
+        destinationAutocomplete.setBounds(ohioBounds);
         
         // Store references to autocomplete instances
         pickupAutocompleteRef.current = pickupAutocomplete;
@@ -302,6 +341,14 @@ export default function BookingForm({ user }) {
     }
 
     try {
+      // Calculate final price (in case route hasn't been calculated yet)
+      let calculatedPrice = estimatedFare;
+      if (!calculatedPrice && formData.isRoundTrip) {
+        calculatedPrice = 100; // Base rate for round trip without route
+      } else if (!calculatedPrice) {
+        calculatedPrice = 50;  // Base rate without route
+      }
+      
       // Insert the trip into the database
       const { data, error: insertError } = await supabase
         .from('trips')
@@ -310,8 +357,12 @@ export default function BookingForm({ user }) {
           pickup_address: pickupAddressValue,
           destination_address: destinationAddressValue,
           pickup_time: formData.pickupTime,
-          status: 'upcoming',
+          status: 'pending', // Changed from 'upcoming' to 'pending'
           special_requirements: formData.specialRequirements,
+          wheelchair_type: formData.wheelchairType,
+          is_round_trip: formData.isRoundTrip,
+          price: calculatedPrice, // Save estimated price
+          distance: distanceMiles > 0 ? Math.round(distanceMiles * 10) / 10 : null, // Save distance in miles, rounded to 1 decimal
           created_at: new Date().toISOString(),
         }])
         .select();
@@ -321,6 +372,33 @@ export default function BookingForm({ user }) {
       }
 
       console.log('Trip booked successfully:', data);
+      
+      // Trip was created, now notify dispatchers
+      const createdTrip = data[0]; // Get the first trip from the returned data
+      
+      try {
+        // Call the dispatcher notification API
+        const notifyResponse = await fetch('/api/trips/notify-dispatchers', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ tripId: createdTrip.id }),
+        });
+        
+        const notifyResult = await notifyResponse.json();
+        
+        if (!notifyResponse.ok) {
+          console.error('Error notifying dispatchers:', notifyResult.error);
+          // We don't want to block the user flow if notification fails
+        } else {
+          console.log('Dispatchers notified successfully');
+        }
+      } catch (notifyError) {
+        console.error('Error in dispatcher notification:', notifyError);
+        // Again, we don't block the user flow on notification errors
+      }
+      
       setSuccess(true);
       
       // Reset form
@@ -329,6 +407,8 @@ export default function BookingForm({ user }) {
         destinationAddress: '',
         pickupTime: formData.pickupTime, // Keep the time
         specialRequirements: '',
+        wheelchairType: 'no_wheelchair',
+        isRoundTrip: false,
       });
 
       // Redirect to trips page after a short delay
@@ -362,7 +442,7 @@ export default function BookingForm({ user }) {
           
           {success ? (
             <div className="bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 p-4 rounded mb-6">
-              Your trip has been booked successfully! Redirecting to your trips...
+              Your trip request has been submitted successfully! It is pending dispatcher approval. Redirecting to your trips...
             </div>
           ) : (
             <form onSubmit={handleSubmit} className="space-y-6">
@@ -429,6 +509,23 @@ export default function BookingForm({ user }) {
                   />
                 </div>
                 
+                {/* Wheelchair Type */}
+                <div>
+                  <label htmlFor="wheelchairType" className="block text-sm font-medium mb-1">
+                    Wheelchair Requirements
+                  </label>
+                  <select
+                    id="wheelchairType"
+                    name="wheelchairType"
+                    value={formData.wheelchairType}
+                    onChange={handleChange}
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800"
+                  >
+                    <option value="no_wheelchair">No Wheelchair</option>
+                    <option value="wheelchair">Wheelchair</option>
+                  </select>
+                </div>
+                
                 {/* Special Requirements */}
                 <div>
                   <label htmlFor="specialRequirements" className="block text-sm font-medium mb-1">
@@ -442,7 +539,6 @@ export default function BookingForm({ user }) {
                     className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800"
                   >
                     <option value="">None</option>
-                    <option value="wheelchair">Wheelchair Accessible</option>
                     <option value="assistance">Assistance Required</option>
                     <option value="service_animal">Service Animal</option>
                     <option value="child_seat">Child Seat</option>
@@ -459,23 +555,57 @@ export default function BookingForm({ user }) {
                 ></div>
               </div>
               
+              {/* Round trip toggle */}
+              <div className="col-span-1 md:col-span-2 flex items-center">
+                <div className="relative inline-block w-10 mr-2 align-middle select-none">
+                  <input
+                    type="checkbox"
+                    name="isRoundTrip"
+                    id="isRoundTrip"
+                    checked={formData.isRoundTrip}
+                    onChange={(e) => setFormData({...formData, isRoundTrip: e.target.checked})}
+                    className="absolute block w-6 h-6 rounded-full bg-white border-4 border-gray-300 appearance-none cursor-pointer checked:right-0 checked:border-blue-500 transition-all duration-200 focus:outline-none"
+                  />
+                  <label 
+                    htmlFor="isRoundTrip"
+                    className={`block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer ${formData.isRoundTrip ? 'bg-blue-500' : ''}`}
+                  ></label>
+                </div>
+                <label htmlFor="isRoundTrip" className="text-sm font-medium cursor-pointer">
+                  Round Trip
+                </label>
+                {formData.isRoundTrip && (
+                  <span className="ml-2 text-xs text-blue-600 dark:text-blue-400">
+                    The vehicle will wait for you and take you back to your pickup location.
+                  </span>
+                )}
+              </div>
+
               <div className="col-span-1 md:col-span-2 border-t border-gray-200 dark:border-gray-700 pt-4">
                 <h3 className="text-md font-medium mb-2">Ride Details</h3>
                 
                 <div className="grid grid-cols-2 gap-4 mb-4">
                   <div>
                     <p className="text-sm text-gray-500 dark:text-gray-400">Estimated Fare</p>
-                    <p className="font-medium">{estimatedFare}</p>
+                    <p className="font-medium">${estimatedFare}</p>
                   </div>
                   <div>
                     <p className="text-sm text-gray-500 dark:text-gray-400">Estimated Duration</p>
-                    <p className="font-medium">{estimatedDuration}</p>
+                    <p className="font-medium">{formData.isRoundTrip ? `${estimatedDuration} × 2` : estimatedDuration}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">Distance</p>
+                    <p className="font-medium">{distanceMiles > 0 ? `${distanceMiles.toFixed(1)} miles` : 'N/A'}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">Price Calculation</p>
+                    <p className="font-medium text-xs text-gray-600">Base + mileage + adjustments</p>
                   </div>
                 </div>
                 
                 <div className="bg-blue-50 dark:bg-blue-900/20 p-3 rounded-md text-sm mb-4">
                   <p className="text-blue-700 dark:text-blue-300">
-                    <strong>Note:</strong> Your ride will be assigned to a compassionate driver who specializes in supportive transportation.
+                    <strong>Note:</strong> Your ride request will be reviewed and approved by a dispatcher. Once approved, it will be assigned to a compassionate driver who specializes in supportive transportation.
                   </p>
                 </div>
               </div>
@@ -486,7 +616,7 @@ export default function BookingForm({ user }) {
                   disabled={isLoading}
                   className="w-full py-3 px-4 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {isLoading ? 'Booking...' : 'Book Ride'}
+                  {isLoading ? 'Submitting...' : 'Request Ride'}
                 </button>
               </div>
             </form>

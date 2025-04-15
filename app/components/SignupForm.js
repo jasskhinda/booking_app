@@ -1,13 +1,14 @@
 'use client';
 
 import { useState } from 'react';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { useRouter } from 'next/navigation';
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 
 export default function SignupForm() {
   const supabase = createClientComponentClient();
   const [formData, setFormData] = useState({
-    name: '',
+    firstName: '',
+    lastName: '',
     email: '',
     password: '',
     confirmPassword: ''
@@ -37,36 +38,65 @@ export default function SignupForm() {
     }
     
     try {
-      // Sign up with Supabase
+      // Sign up with Supabase - email confirmation is now disabled in settings
       const { data, error } = await supabase.auth.signUp({
         email: formData.email,
         password: formData.password,
         options: {
           data: {
-            full_name: formData.name,
+            first_name: formData.firstName,
+            last_name: formData.lastName,
+            role: 'client',
           },
         },
       });
       
-      if (error) {
-        throw error;
-      }
-      
-      // If email confirmation is enabled, show success message
-      if (data?.user?.identities?.length === 0) {
-        // User already exists
-        setError('An account with this email already exists');
-        return;
-      }
+      if (error) throw error;
       
       console.log('Signup successful', data);
       
-      // Show success message and redirect to login page
-      router.push('/login?message=Please check your email to confirm your account');
+      // With email confirmation disabled, we should now have a session
+      if (data?.session) {
+        // Redirect to dashboard
+        router.push('/dashboard');
+      } else {
+        // If for some reason we don't have a session yet, try signing in explicitly
+        try {
+          const { error: signInError } = await supabase.auth.signInWithPassword({
+            email: formData.email,
+            password: formData.password,
+          });
+          
+          if (signInError && !signInError.message.includes('Refresh Token Not Found')) {
+            throw signInError;
+          }
+          
+          // Redirect even if there was a refresh token error, since the user is likely still authenticated
+          router.push('/dashboard');
+        } catch (signInError) {
+          console.error('Signin after signup error:', signInError);
+          throw signInError;
+        }
+      }
       
     } catch (error) {
       console.error('Signup error:', error);
-      setError(error.message || 'Failed to create account');
+      
+      // Don't show refresh token errors to the user, as they're likely harmless
+      // and the user is probably still authenticated
+      if (error.message && error.message.includes('Refresh Token Not Found')) {
+        console.log('Ignoring refresh token error and proceeding with redirect');
+        // Still try to redirect to dashboard
+        router.push('/dashboard');
+        return;
+      }
+      
+      // Handle common errors with user-friendly messages
+      if (error.message && error.message.includes('already registered')) {
+        setError('An account with this email already exists');
+      } else {
+        setError(error.message || 'Failed to create account');
+      }
     } finally {
       setIsLoading(false);
     }
@@ -78,6 +108,9 @@ export default function SignupForm() {
         provider: 'google',
         options: {
           redirectTo: `${window.location.origin}/auth/callback`,
+          data: {
+            role: 'client', // Assign client role for Google sign-in
+          },
         },
       });
       
@@ -99,20 +132,37 @@ export default function SignupForm() {
       )}
       
       <div className="space-y-4">
-        <div>
-          <label htmlFor="name" className="block text-sm font-medium">
-            Full name
-          </label>
-          <input
-            id="name"
-            name="name"
-            type="text"
-            autoComplete="name"
-            required
-            value={formData.name}
-            onChange={handleChange}
-            className="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-900"
-          />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label htmlFor="firstName" className="block text-sm font-medium">
+              First name
+            </label>
+            <input
+              id="firstName"
+              name="firstName"
+              type="text"
+              autoComplete="given-name"
+              required
+              value={formData.firstName}
+              onChange={handleChange}
+              className="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-900"
+            />
+          </div>
+          <div>
+            <label htmlFor="lastName" className="block text-sm font-medium">
+              Last name
+            </label>
+            <input
+              id="lastName"
+              name="lastName"
+              type="text"
+              autoComplete="family-name"
+              required
+              value={formData.lastName}
+              onChange={handleChange}
+              className="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-900"
+            />
+          </div>
         </div>
         
         <div>

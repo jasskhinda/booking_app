@@ -5,9 +5,16 @@ A specialized transportation service for individuals with unique needs and medic
 ## Features
 
 - **User Authentication**: Sign up, login, password reset with Supabase Auth
+- **Role-Based Access**: Client and dispatcher roles with appropriate permissions
+- **User Profile**: Manage personal information, accessibility needs, and preferences
+- **Payment Management**: Add, remove, and set default payment methods securely via Stripe
 - **Google Maps Integration**: Address autocomplete and route visualization
-- **Trip Booking**: Schedule rides with special requirements
-- **Trip Management**: View and manage upcoming, completed, and cancelled trips
+- **Trip Booking**: Request rides with wheelchair options and round trip capability
+- **Dispatcher Approval**: All ride requests require dispatcher approval before being assigned to drivers
+- **Dispatcher Notifications**: Email alerts to dispatchers when new trips are booked
+- **Trip Management**: View and manage pending, upcoming, completed, and cancelled trips
+- **Trip Rating**: Rate completed trips and provide feedback
+- **Live Tracking**: Track the driver's location in real-time during an active ride
 - **Responsive Design**: Works on mobile and desktop devices
 
 ## Tech Stack
@@ -52,6 +59,19 @@ npm run dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the application.
+
+### Seeding Sample Data
+
+To populate your database with sample trip data for testing:
+
+1. First, create an account in the app
+2. Run the seed script with your credentials:
+
+```bash
+node seed.js your@email.com yourpassword
+```
+
+This will create 5 sample trips with various statuses (upcoming, completed, cancelled, in progress) for your account.
 
 ## Project Structure
 
