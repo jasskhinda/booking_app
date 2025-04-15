@@ -46,6 +46,7 @@ export async function middleware(req) {
       console.log('Redirecting to login from protected route - No session');
       const redirectUrl = new URL('/login', req.url);
       redirectUrl.searchParams.set('returnTo', pathname);
+      redirectUrl.searchParams.set('fresh', 'true'); // Add flag to prevent redirect loops
       return NextResponse.redirect(redirectUrl);
     }
     
@@ -68,8 +69,11 @@ export async function middleware(req) {
         if (!profile || profile.role !== 'client') {
           console.log('Redirecting to login from protected route - Invalid role');
           await supabase.auth.signOut();
+          // Add a small delay to ensure session is cleared
+          await new Promise(resolve => setTimeout(resolve, 100));
           const redirectUrl = new URL('/login', req.url);
           redirectUrl.searchParams.set('error', 'access_denied');
+          redirectUrl.searchParams.set('fresh', 'true'); // Add flag to prevent redirect loops
           return NextResponse.redirect(redirectUrl);
         }
       } catch (error) {
@@ -77,6 +81,7 @@ export async function middleware(req) {
         // On error, also redirect to login
         const redirectUrl = new URL('/login', req.url);
         redirectUrl.searchParams.set('error', 'server_error');
+        redirectUrl.searchParams.set('fresh', 'true'); // Add flag to prevent redirect loops
         return NextResponse.redirect(redirectUrl);
       }
     }
@@ -86,9 +91,12 @@ export async function middleware(req) {
   const authRoutes = ['/login', '/signup', '/reset-password'];
   
   if (authRoutes.includes(pathname) && session) {
-    // If trying to access an auth route while already logged in, redirect to dashboard
-    console.log('Redirecting to dashboard from auth route');
-    return NextResponse.redirect(new URL('/dashboard', req.url));
+    // Check for the 'fresh' flag to prevent redirect loops
+    const freshLogin = req.nextUrl.searchParams.get('fresh') === 'true';
+    if (!freshLogin) {
+      console.log('Redirecting to dashboard from auth route');
+      return NextResponse.redirect(new URL('/dashboard', req.url));
+    }
   }
   
   // For all other cases, return the response with any session cookie updates

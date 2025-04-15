@@ -16,13 +16,22 @@ export default function LoginForm() {
   useEffect(() => {
     const searchParams = new URLSearchParams(window.location.search);
     const errorParam = searchParams.get('error');
+    const freshLogin = searchParams.get('fresh') === 'true';
+    
+    // If this is a fresh login after signout, clear any existing session
+    if (freshLogin) {
+      // Clear session to prevent redirect loops
+      supabase.auth.signOut().catch(err => 
+        console.error('Error clearing session on fresh login:', err)
+      );
+    }
     
     if (errorParam === 'access_denied') {
       setError('Access denied. You do not have permission to access this application.');
     } else if (errorParam === 'server_error') {
       setError('Server error. Please try again later.');
     }
-  }, []);
+  }, [supabase.auth]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
