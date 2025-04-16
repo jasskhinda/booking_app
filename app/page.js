@@ -1,7 +1,26 @@
+'use client';
+
+import { useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import Image from "next/image";
 import Link from "next/link";
 
 export default function Home() {
+  const searchParams = useSearchParams();
+  const supabase = createClientComponentClient();
+  
+  useEffect(() => {
+    // Check if the user just logged out
+    const wasLoggedOut = searchParams.get('logout') === 'true';
+    
+    if (wasLoggedOut) {
+      // Ensure we clear the session
+      supabase.auth.signOut().catch(err => 
+        console.error('Error clearing session after logout:', err)
+      );
+    }
+  }, [searchParams, supabase.auth]);
   return (
     <div className="min-h-screen flex flex-col">
       <header className="p-4 bg-[#F8F9FA] dark:bg-[#1C2C2F] shadow border-b border-[#DDE5E7] dark:border-[#3F5E63]">

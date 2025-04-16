@@ -1,6 +1,30 @@
+'use client';
+
+import { useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import LoginForm from '@/app/components/LoginForm';
 
 export default function Login() {
+  const searchParams = useSearchParams();
+  const supabase = createClientComponentClient();
+  
+  useEffect(() => {
+    // If user was logged out, ensure we clear the session
+    const wasLoggedOut = searchParams.get('logout') === 'true';
+    
+    if (wasLoggedOut) {
+      // Force signOut one more time to ensure cookies are cleared
+      supabase.auth.signOut()
+        .then(() => {
+          // Add the logout parameter to the URL without triggering a navigation
+          const url = new URL(window.location);
+          url.searchParams.set('logout', 'true');
+          window.history.replaceState({}, '', url);
+        })
+        .catch(err => console.error('Error clearing session after logout:', err));
+    }
+  }, [searchParams, supabase.auth]);
   
   return (
     <div className="min-h-screen flex items-center justify-center p-4 bg-background">

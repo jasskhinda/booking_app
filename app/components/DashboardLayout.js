@@ -12,7 +12,8 @@ export default function DashboardLayout({ user, activeTab = 'dashboard', childre
   const handleSignOut = async () => {
     try {
       await supabase.auth.signOut();
-      router.push('/');
+      // Use window.location.href to force a full page reload and clear session
+      window.location.href = '/?logout=true'; 
     } catch (error) {
       console.error('Error signing out:', error);
     }

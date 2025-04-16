@@ -17,12 +17,13 @@ export default function LoginForm() {
     const searchParams = new URLSearchParams(window.location.search);
     const errorParam = searchParams.get('error');
     const freshLogin = searchParams.get('fresh') === 'true';
+    const wasLoggedOut = searchParams.get('logout') === 'true';
     
-    // If this is a fresh login after signout, clear any existing session
-    if (freshLogin) {
+    // If this is a fresh login after signout or a logout, clear any existing session
+    if (freshLogin || wasLoggedOut) {
       // Clear session to prevent redirect loops
       supabase.auth.signOut().catch(err => 
-        console.error('Error clearing session on fresh login:', err)
+        console.error('Error clearing session on login page load:', err)
       );
     }
     

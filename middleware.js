@@ -91,9 +91,11 @@ export async function middleware(req) {
   const authRoutes = ['/login', '/signup', '/reset-password'];
   
   if (authRoutes.includes(pathname) && session) {
-    // Check for the 'fresh' flag to prevent redirect loops
+    // Check for the 'fresh' flag or logout flag to prevent redirect loops
     const freshLogin = req.nextUrl.searchParams.get('fresh') === 'true';
-    if (!freshLogin) {
+    const isLogout = req.nextUrl.searchParams.get('logout') === 'true';
+    
+    if (!freshLogin && !isLogout) {
       console.log('Redirecting to dashboard from auth route');
       return NextResponse.redirect(new URL('/dashboard', req.url));
     }
