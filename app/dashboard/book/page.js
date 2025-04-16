@@ -3,6 +3,8 @@ import { createServerComponentClient } from '@supabase/auth-helpers-nextjs';
 import { cookies } from 'next/headers';
 import BookingForm from '@/app/components/BookingForm';
 
+export const dynamic = 'force-dynamic';
+
 export default async function BookRide() {
   try {
     // Create server component client

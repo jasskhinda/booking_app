@@ -3,6 +3,8 @@ import { createServerComponentClient } from '@supabase/auth-helpers-nextjs';
 import { cookies } from 'next/headers';
 import DashboardView from '@/app/components/DashboardView';
 
+export const dynamic = 'force-dynamic';
+
 // This is a Server Component
 export default async function Dashboard() {
     console.log('Dashboard server component executing');

@@ -358,7 +358,7 @@ export default function BookingForm({ user }) {
     if (pickupLocation && destinationLocation && mapInstance && directionsRenderer) {
       calculateRoute(pickupLocation, destinationLocation);
     }
-  }, [pickupLocation, destinationLocation, mapInstance, directionsRenderer, calculateRoute]);
+  }, [pickupLocation, destinationLocation, mapInstance, directionsRenderer, calculateRoute, formData]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;

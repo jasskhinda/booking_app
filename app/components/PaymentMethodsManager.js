@@ -70,7 +70,7 @@ function CardSetupForm({ clientSecret, onSuccess, onError, onCancel, profile, us
         cardElement.current.unmount();
       }
     };
-  }, [clientSecret]);
+  }, [clientSecret, onError]);
   
   const handleSubmit = async (event) => {
     event.preventDefault();

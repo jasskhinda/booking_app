@@ -3,6 +3,8 @@ import { createServerComponentClient } from '@supabase/auth-helpers-nextjs';
 import { cookies } from 'next/headers';
 import DriverTracker from '@/app/components/DriverTracker';
 
+export const dynamic = 'force-dynamic';
+
 export default async function TrackDriver({ params }) {
   try {
     const { tripId } = params;

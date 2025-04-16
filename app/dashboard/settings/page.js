@@ -3,6 +3,8 @@ import { createServerComponentClient } from '@supabase/auth-helpers-nextjs';
 import { cookies } from 'next/headers';
 import ProfileForm from '@/app/components/ProfileForm';
 
+export const dynamic = 'force-dynamic';
+
 export default async function Settings() {
   try {
     // Create server component client

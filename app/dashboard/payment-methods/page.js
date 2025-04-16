@@ -3,6 +3,8 @@ import { createServerComponentClient } from '@supabase/auth-helpers-nextjs';
 import { cookies } from 'next/headers';
 import PaymentMethodsManager from '@/app/components/PaymentMethodsManager';
 
+export const dynamic = 'force-dynamic';
+
 export default async function PaymentMethods() {
   try {
     // Create server component client

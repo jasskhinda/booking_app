@@ -1,11 +1,11 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import LoginForm from '@/app/components/LoginForm';
 
-export default function Login() {
+function LoginContent() {
   const searchParams = useSearchParams();
   const supabase = createClientComponentClient();
   
@@ -41,5 +41,13 @@ export default function Login() {
         <LoginForm />
       </div>
     </div>
+  );
+}
+
+export default function Login() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <LoginContent />
+    </Suspense>
   );
 }
