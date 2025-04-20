@@ -35,10 +35,23 @@ export default function TripDetailsPage() {
         
         setUser(session.user);
         
-        // Fetch trip data
+        // Fetch trip data with driver information
         const { data: tripData, error: tripError } = await supabase
           .from('trips')
-          .select(`*`)
+          .select(`
+            *,
+            driver:driver_id (
+              id,
+              email,
+              profile:profiles (
+                first_name,
+                last_name,
+                full_name,
+                avatar_url,
+                phone_number
+              )
+            )
+          `)
           .eq('id', tripId)
           .eq('user_id', session.user.id)
           .single();
@@ -284,20 +297,32 @@ export default function TripDetailsPage() {
         </div>
         
         {/* Driver Information (if assigned) */}
-        {trip.driver_id && (
+        {(trip.driver_id || trip.driver) && (
           <div className="bg-white dark:bg-[#1C2C2F] rounded-lg p-5 shadow-sm border border-[#DDE5E7] dark:border-[#3F5E63] mb-6">
             <h3 className="text-lg font-medium mb-4 text-[#2E4F54] dark:text-[#E0F4F5]">Driver Information</h3>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <p className="text-sm font-medium text-[#2E4F54] dark:text-[#E0F4F5]">Driver Name</p>
-                <p className="text-sm text-[#2E4F54]/90 dark:text-[#E0F4F5]/90">{trip.driver_name || 'Not assigned'}</p>
+                <p className="text-sm text-[#2E4F54]/90 dark:text-[#E0F4F5]/90">
+                  {trip.driver 
+                    ? (trip.driver.profile?.full_name || `${trip.driver.profile?.first_name || ''} ${trip.driver.profile?.last_name || ''}`.trim() || trip.driver_name || trip.driver.email) 
+                    : (trip.driver_name || 'Not assigned')
+                  }
+                </p>
               </div>
               
               <div>
                 <p className="text-sm font-medium text-[#2E4F54] dark:text-[#E0F4F5]">Vehicle</p>
-                <p className="text-sm text-[#2E4F54]/90 dark:text-[#E0F4F5]/90">{trip.vehicle_info || 'Not available'}</p>
+                <p className="text-sm text-[#2E4F54]/90 dark:text-[#E0F4F5]/90">{trip.vehicle || 'Not available'}</p>
               </div>
+              
+              {trip.driver?.profile?.phone_number && (
+                <div>
+                  <p className="text-sm font-medium text-[#2E4F54] dark:text-[#E0F4F5]">Contact</p>
+                  <p className="text-sm text-[#2E4F54]/90 dark:text-[#E0F4F5]/90">{trip.driver.profile.phone_number}</p>
+                </div>
+              )}
             </div>
           </div>
         )}

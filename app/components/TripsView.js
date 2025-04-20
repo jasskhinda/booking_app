@@ -363,7 +363,11 @@ export default function TripsView({ user, trips: initialTrips = [], successMessa
                     <div className="mt-4 flex justify-between">
                       <div>
                         <p className="text-sm font-medium">Driver</p>
-                        <p className="text-sm text-gray-600 dark:text-gray-300">{trip.driver_name || 'Not assigned yet'}</p>
+                        <p className="text-sm text-gray-600 dark:text-gray-300">
+                          {trip.driver 
+                            ? (trip.driver.profile?.full_name || `${trip.driver.profile?.first_name || ''} ${trip.driver.profile?.last_name || ''}`.trim() || trip.driver_name || trip.driver.email) 
+                            : (trip.driver_name || 'Not assigned yet')}
+                        </p>
                       </div>
                       <div className="flex space-x-2">
                         <Link
@@ -458,7 +462,11 @@ export default function TripsView({ user, trips: initialTrips = [], successMessa
                     <div className="mt-4 flex justify-between items-center">
                       <div>
                         <p className="text-sm font-medium">Driver</p>
-                        <p className="text-sm text-gray-600 dark:text-gray-300">{trip.driver_name || 'Not assigned'}</p>
+                        <p className="text-sm text-gray-600 dark:text-gray-300">
+                          {trip.driver 
+                            ? (trip.driver.profile?.full_name || `${trip.driver.profile?.first_name || ''} ${trip.driver.profile?.last_name || ''}`.trim() || trip.driver_name || trip.driver.email) 
+                            : (trip.driver_name || 'Not assigned')}
+                        </p>
                       </div>
                       <div className="flex space-x-2">
                         <Link

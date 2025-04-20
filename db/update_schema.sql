@@ -36,10 +36,21 @@ CHECK (status IN ('pending', 'upcoming', 'completed', 'cancelled', 'in_progress'
 ALTER TABLE IF EXISTS trips
 ADD COLUMN IF NOT EXISTS wheelchair_type TEXT,
 ADD COLUMN IF NOT EXISTS is_round_trip BOOLEAN DEFAULT FALSE,
-ADD COLUMN IF NOT EXISTS distance DECIMAL(10,1);
+ADD COLUMN IF NOT EXISTS distance DECIMAL(10,1),
+ADD COLUMN IF NOT EXISTS driver_id UUID REFERENCES auth.users(id);
 
 -- Update existing users to have the 'client' role
 UPDATE profiles SET role = 'client' WHERE role IS NULL;
+
+-- Migrate drivers: This will attempt to find users with matching full_name to populate driver_id
+-- Note: This is a best-effort migration. Manual intervention may be required if names don't match exactly.
+UPDATE trips t
+SET driver_id = p.id
+FROM profiles p
+WHERE t.driver_name IS NOT NULL 
+AND t.driver_name != '' 
+AND p.full_name = t.driver_name
+AND p.role = 'driver';
 
 -- Drop existing policies if they exist to avoid conflicts
 DROP POLICY IF EXISTS "Dispatchers can view all profiles" ON profiles;
@@ -139,6 +150,15 @@ USING (is_dispatcher(auth.uid()));
 CREATE POLICY "Dispatchers can delete trips" 
 ON trips FOR DELETE 
 USING (is_dispatcher(auth.uid()));
+
+-- Policies for drivers to view and update their assigned trips
+CREATE POLICY "Drivers can view trips assigned to them"
+ON trips FOR SELECT
+USING (auth.uid() = driver_id);
+
+CREATE POLICY "Drivers can update trips assigned to them"
+ON trips FOR UPDATE
+USING (auth.uid() = driver_id);
 
 -- Recreate the trigger
 CREATE TRIGGER on_auth_user_created

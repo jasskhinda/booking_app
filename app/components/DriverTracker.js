@@ -81,7 +81,9 @@ export default function DriverTracker({ trip, driverLocation, user }) {
     const driverMarker = new window.google.maps.Marker({
       position: pickupLocation,
       map: mapInstance,
-      title: trip.driver_name || 'Driver',
+      title: trip.driver
+        ? (trip.driver.profile?.full_name || `${trip.driver.profile?.first_name || ''} ${trip.driver.profile?.last_name || ''}`.trim() || trip.driver_name || trip.driver.email)
+        : (trip.driver_name || 'Driver'),
       icon: {
         url: 'https://maps.google.com/mapfiles/ms/icons/blue-dot.png', // Blue marker for driver
         scaledSize: new window.google.maps.Size(40, 40),
@@ -94,7 +96,10 @@ export default function DriverTracker({ trip, driverLocation, user }) {
     // Create info window
     const infoWindow = new window.google.maps.InfoWindow({
       content: `<div>
-        <strong>${trip.driver_name || 'Driver'}</strong><br>
+        <strong>${trip.driver
+          ? (trip.driver.profile?.full_name || `${trip.driver.profile?.first_name || ''} ${trip.driver.profile?.last_name || ''}`.trim() || trip.driver_name || trip.driver.email)
+          : (trip.driver_name || 'Driver')
+        }</strong><br>
         ${trip.vehicle || 'Vehicle information unavailable'}
       </div>`,
     });
@@ -205,7 +210,12 @@ export default function DriverTracker({ trip, driverLocation, user }) {
             </div>
             <div>
               <p className="text-sm font-medium text-[#2E4F54] dark:text-[#E0F4F5]">Driver</p>
-              <p className="text-sm text-[#2E4F54]/70 dark:text-[#E0F4F5]/70">{trip.driver_name || 'Not assigned yet'}</p>
+              <p className="text-sm text-[#2E4F54]/70 dark:text-[#E0F4F5]/70">
+                {trip.driver 
+                  ? (trip.driver.profile?.full_name || `${trip.driver.profile?.first_name || ''} ${trip.driver.profile?.last_name || ''}`.trim() || trip.driver_name || trip.driver.email) 
+                  : (trip.driver_name || 'Not assigned yet')
+                }
+              </p>
             </div>
             <div>
               <p className="text-sm font-medium text-[#2E4F54] dark:text-[#E0F4F5]">Vehicle</p>

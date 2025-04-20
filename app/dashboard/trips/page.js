@@ -75,7 +75,19 @@ export default function TripsPage() {
           // Fetch trips with more detailed error handling
           const { data: tripsData, error: tripsError } = await supabase
             .from('trips')
-            .select('*')
+            .select(`
+              *,
+              driver:driver_id (
+                id,
+                email,
+                profile:profiles (
+                  first_name,
+                  last_name,
+                  full_name,
+                  avatar_url
+                )
+              )
+            `)
             .eq('user_id', userId)
             .order('created_at', { ascending: false });
 

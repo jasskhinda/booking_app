@@ -20,10 +20,23 @@ export default async function TrackDriver({ params }) {
       redirect('/login');
     }
     
-    // Fetch trip data to verify it belongs to the user and is in progress
+    // Fetch trip data with driver information
     const { data: trip, error } = await supabase
       .from('trips')
-      .select('*')
+      .select(`
+        *,
+        driver:driver_id (
+          id,
+          email,
+          profile:profiles (
+            first_name,
+            last_name,
+            full_name,
+            avatar_url,
+            phone_number
+          )
+        )
+      `)
       .eq('id', tripId)
       .eq('user_id', session.user.id)
       .single();
