@@ -72,32 +72,58 @@ export default function TripsPage() {
             console.log('User role from profile:', profileData?.role);
           }
           
-          // Fetch trips with more detailed error handling
+          // First fetch trips without driver info
           const { data: tripsData, error: tripsError } = await supabase
             .from('trips')
-            .select(`
-              *,
-              driver:driver_id (
-                id,
-                email,
-                profile:profiles (
-                  first_name,
-                  last_name,
-                  full_name,
-                  avatar_url
-                )
-              )
-            `)
+            .select('*')
             .eq('user_id', userId)
             .order('created_at', { ascending: false });
+          
+          // If trips are found and there are driver_ids, fetch driver information
+          if (!tripsError && tripsData && tripsData.length > 0) {
+            const tripsWithDriverIds = tripsData.filter(trip => trip.driver_id);
+            
+            if (tripsWithDriverIds.length > 0) {
+              // Get all unique driver IDs
+              const driverIds = [...new Set(tripsWithDriverIds.map(trip => trip.driver_id))];
+              
+              // Fetch driver profiles 
+              const { data: driverProfiles, error: driversError } = await supabase
+                .from('profiles')
+                .select('id, first_name, last_name, full_name, avatar_url')
+                .in('id', driverIds);
+                
+              if (!driversError && driverProfiles) {
+                // Map driver info to each trip
+                const enrichedTrips = tripsData.map(trip => {
+                  if (trip.driver_id) {
+                    const driverProfile = driverProfiles.find(profile => profile.id === trip.driver_id);
+                    return {
+                      ...trip,
+                      driver: driverProfile || null
+                    };
+                  }
+                  return trip;
+                });
+                
+                console.log(`Successfully enriched ${enrichedTrips.length} trips with driver data`);
+                setTrips(enrichedTrips || []);
+              } else {
+                console.error('Error fetching driver profiles:', driversError);
+                setTrips(tripsData || []);
+              }
+            } else {
+              setTrips(tripsData || []);
+            }
+          }
 
           if (tripsError) {
             console.error('Error fetching trips:', tripsError);
             console.error('Error details:', JSON.stringify(tripsError));
             setError(tripsError.message || 'An error occurred while fetching your trips');
-          } else {
-            console.log(`Successfully fetched ${tripsData?.length || 0} trips`);
-            setTrips(tripsData || []);
+          } else if (!tripsData || tripsData.length === 0) {
+            console.log('No trips found for this user');
+            setTrips([]);
           }
         } catch (tripsError) {
           console.error('Trips fetch error:', tripsError);
