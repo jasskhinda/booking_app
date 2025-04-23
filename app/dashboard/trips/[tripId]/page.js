@@ -35,26 +35,38 @@ export default function TripDetailsPage() {
         
         setUser(session.user);
         
-        // Fetch trip data with driver information
+        // Fetch trip data
         const { data: tripData, error: tripError } = await supabase
           .from('trips')
-          .select(`
-            *,
-            driver:driver_id (
-              id,
-              email,
-              profile:profiles (
-                first_name,
-                last_name,
-                full_name,
-                avatar_url,
-                phone_number
-              )
-            )
-          `)
+          .select('*')
           .eq('id', tripId)
           .eq('user_id', session.user.id)
           .single();
+          
+        // If trip has a driver_id, fetch driver information separately
+        if (tripData && tripData.driver_id) {
+          const { data: driverData } = await supabase
+            .from('profiles')
+            .select('id, first_name, last_name, full_name, avatar_url, phone_number')
+            .eq('id', tripData.driver_id)
+            .single();
+            
+          if (driverData) {
+            // Get driver email from auth
+            const { data: userData } = await supabase
+              .from('users')
+              .select('email')
+              .eq('id', tripData.driver_id)
+              .single();
+              
+            // Add driver information to trip data
+            tripData.driver = {
+              id: tripData.driver_id,
+              email: userData?.email,
+              profile: driverData
+            };
+          }
+        }
         
         if (tripError) {
           if (tripError.code === 'PGRST116') {
