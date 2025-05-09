@@ -16,6 +16,13 @@ export default function ProfileForm({ user, profile = {} }) {
     medical_requirements: '',
     emergency_contact: '',
     preferred_payment_method: '',
+    is_veteran: false,
+    favorite_addresses: [],
+  });
+  const [newFavoriteAddress, setNewFavoriteAddress] = useState({
+    name: '',
+    address: '',
+    type: 'both', // pickup, destination, or both
   });
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState({ text: '', type: '' });
@@ -43,13 +50,62 @@ export default function ProfileForm({ user, profile = {} }) {
         medical_requirements: profile.medical_requirements || '',
         emergency_contact: profile.emergency_contact || '',
         preferred_payment_method: profile.preferred_payment_method || '',
+        is_veteran: profile.is_veteran || false,
+        favorite_addresses: profile.favorite_addresses || [],
       }));
     }
   }, [profile, user]);
 
   const handleChange = (e) => {
+    const { name, value, type, checked } = e.target;
+    setFormData(prevData => ({ 
+      ...prevData, 
+      [name]: type === 'checkbox' ? checked : value 
+    }));
+  };
+  
+  const handleNewAddressChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prevData => ({ ...prevData, [name]: value }));
+    setNewFavoriteAddress(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+  
+  const handleAddFavoriteAddress = () => {
+    // Validate fields
+    if (!newFavoriteAddress.name || !newFavoriteAddress.address) {
+      setMessage({
+        text: 'Please provide both name and address for your favorite location',
+        type: 'error'
+      });
+      return;
+    }
+    
+    // Add new address with a generated ID
+    const newAddress = {
+      ...newFavoriteAddress,
+      id: crypto.randomUUID() // Generate unique ID
+    };
+    
+    setFormData(prev => ({
+      ...prev,
+      favorite_addresses: [...prev.favorite_addresses, newAddress]
+    }));
+    
+    // Reset the form
+    setNewFavoriteAddress({
+      name: '',
+      address: '',
+      type: 'both'
+    });
+  };
+  
+  const handleRemoveFavoriteAddress = (id) => {
+    setFormData(prev => ({
+      ...prev,
+      favorite_addresses: prev.favorite_addresses.filter(address => address.id !== id)
+    }));
   };
 
   const handleSubmit = async (e) => {
@@ -76,6 +132,8 @@ export default function ProfileForm({ user, profile = {} }) {
         medical_requirements: formData.medical_requirements,
         emergency_contact: formData.emergency_contact,
         preferred_payment_method: formData.preferred_payment_method,
+        is_veteran: formData.is_veteran,
+        favorite_addresses: formData.favorite_addresses,
         updated_at: new Date().toISOString()
       };
       
@@ -241,6 +299,20 @@ export default function ProfileForm({ user, profile = {} }) {
                     className="w-full p-2 border border-[#DDE5E7] dark:border-[#3F5E63] rounded-md dark:bg-[#1C2C2F] text-[#2E4F54] dark:text-[#E0F4F5]"
                   />
                 </div>
+                
+                <div className="md:col-span-2 flex items-center pt-2">
+                  <input
+                    id="is_veteran"
+                    name="is_veteran"
+                    type="checkbox"
+                    checked={formData.is_veteran}
+                    onChange={handleChange}
+                    className="h-4 w-4 text-[#7CCFD0] focus:ring-[#7CCFD0] border-[#DDE5E7] dark:border-[#3F5E63] rounded dark:bg-[#1C2C2F] dark:checked:bg-[#7CCFD0]"
+                  />
+                  <label htmlFor="is_veteran" className="ml-2 block text-sm font-medium text-[#2E4F54] dark:text-[#E0F4F5]">
+                    I am a veteran
+                  </label>
+                </div>
               </div>
             </div>
             
@@ -276,6 +348,117 @@ export default function ProfileForm({ user, profile = {} }) {
                     className="w-full p-2 border border-[#DDE5E7] dark:border-[#3F5E63] rounded-md dark:bg-[#1C2C2F] text-[#2E4F54] dark:text-[#E0F4F5]"
                     placeholder="e.g., Oxygen tank, Medical equipment storage"
                   ></textarea>
+                </div>
+              </div>
+            </div>
+            
+            {/* Favorite Addresses Section */}
+            <div>
+              <h3 className="text-lg font-medium text-[#2E4F54] dark:text-[#E0F4F5] mb-4">Favorite Addresses</h3>
+              <div className="space-y-6">
+                {/* List of existing favorite addresses */}
+                {formData.favorite_addresses.length > 0 ? (
+                  <div className="space-y-4">
+                    <p className="text-sm text-[#2E4F54]/70 dark:text-[#E0F4F5]/70 mb-2">
+                      Your saved addresses
+                    </p>
+                    <div className="grid grid-cols-1 gap-4">
+                      {formData.favorite_addresses.map((address) => (
+                        <div 
+                          key={address.id} 
+                          className="flex justify-between items-center p-3 bg-white dark:bg-[#1C2C2F] border border-[#DDE5E7] dark:border-[#3F5E63] rounded-md"
+                        >
+                          <div>
+                            <div className="font-medium text-[#2E4F54] dark:text-[#E0F4F5]">
+                              {address.name}
+                              <span className="ml-2 text-xs px-2 py-1 rounded-full bg-[#7CCFD0]/20 text-[#2E4F54] dark:bg-[#7CCFD0]/30 dark:text-[#E0F4F5]">
+                                {address.type === 'both' ? 'Pickup & Destination' : address.type === 'pickup' ? 'Pickup' : 'Destination'}
+                              </span>
+                            </div>
+                            <div className="text-sm text-[#2E4F54]/70 dark:text-[#E0F4F5]/70">
+                              {address.address}
+                            </div>
+                          </div>
+                          <button 
+                            type="button"
+                            onClick={() => handleRemoveFavoriteAddress(address.id)}
+                            className="text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
+                          >
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ) : (
+                  <p className="text-[#2E4F54]/70 dark:text-[#E0F4F5]/70 italic">No favorite addresses saved yet.</p>
+                )}
+                
+                {/* Add new address form */}
+                <div className="border-t border-[#DDE5E7] dark:border-[#3F5E63] pt-4 mt-2">
+                  <p className="text-sm font-medium text-[#2E4F54] dark:text-[#E0F4F5] mb-3">
+                    Add a new favorite address
+                  </p>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label htmlFor="favorite_name" className="block text-sm font-medium text-[#2E4F54] dark:text-[#E0F4F5] mb-1">
+                        Location Name
+                      </label>
+                      <input
+                        id="favorite_name"
+                        name="name"
+                        type="text"
+                        value={newFavoriteAddress.name}
+                        onChange={handleNewAddressChange}
+                        placeholder="Home, Work, Doctor, etc."
+                        className="w-full p-2 border border-[#DDE5E7] dark:border-[#3F5E63] rounded-md dark:bg-[#1C2C2F] text-[#2E4F54] dark:text-[#E0F4F5]"
+                      />
+                    </div>
+                    <div>
+                      <label htmlFor="favorite_address_type" className="block text-sm font-medium text-[#2E4F54] dark:text-[#E0F4F5] mb-1">
+                        Address Type
+                      </label>
+                      <select
+                        id="favorite_address_type"
+                        name="type"
+                        value={newFavoriteAddress.type}
+                        onChange={handleNewAddressChange}
+                        className="w-full p-2 border border-[#DDE5E7] dark:border-[#3F5E63] rounded-md dark:bg-[#1C2C2F] text-[#2E4F54] dark:text-[#E0F4F5]"
+                      >
+                        <option value="both">Pickup & Destination</option>
+                        <option value="pickup">Pickup Only</option>
+                        <option value="destination">Destination Only</option>
+                      </select>
+                    </div>
+                    <div className="md:col-span-2">
+                      <label htmlFor="favorite_address" className="block text-sm font-medium text-[#2E4F54] dark:text-[#E0F4F5] mb-1">
+                        Address
+                      </label>
+                      <input
+                        id="favorite_address"
+                        name="address"
+                        type="text"
+                        value={newFavoriteAddress.address}
+                        onChange={handleNewAddressChange}
+                        placeholder="Full address"
+                        className="w-full p-2 border border-[#DDE5E7] dark:border-[#3F5E63] rounded-md dark:bg-[#1C2C2F] text-[#2E4F54] dark:text-[#E0F4F5]"
+                      />
+                    </div>
+                  </div>
+                  <div className="mt-3">
+                    <button
+                      type="button"
+                      onClick={handleAddFavoriteAddress}
+                      className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-[#7CCFD0] hover:bg-[#60BFC0] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#7CCFD0]"
+                    >
+                      <svg className="-ml-0.5 mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />
+                      </svg>
+                      Add Address
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>

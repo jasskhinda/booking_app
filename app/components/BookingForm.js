@@ -60,6 +60,7 @@ export default function BookingForm({ user }) {
     pickupAddress: '',
     destinationAddress: '',
     pickupTime: '',
+    returnPickupTime: '',
     wheelchairType: 'no_wheelchair',
     isRoundTrip: false,
   });
@@ -68,13 +69,19 @@ export default function BookingForm({ user }) {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
   const [isGoogleLoaded, setIsGoogleLoaded] = useState(false);
+  const [favoriteAddresses, setFavoriteAddresses] = useState([]);
+  const [showFavoritePickupDropdown, setShowFavoritePickupDropdown] = useState(false);
+  const [showFavoriteDestinationDropdown, setShowFavoriteDestinationDropdown] = useState(false);
   
   // Date/time picker state
   const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
+  const [isReturnDatePickerOpen, setIsReturnDatePickerOpen] = useState(false);
   const [currentView, setCurrentView] = useState('date'); // 'date' or 'time'
   const [selectedDate, setSelectedDate] = useState(null);
+  const [selectedReturnDate, setSelectedReturnDate] = useState(null);
   const [availableTimeSlots, setAvailableTimeSlots] = useState(generateTimeSlots());
   const datePickerRef = useRef(null);
+  const returnDatePickerRef = useRef(null);
 
   const router = useRouter();
   const supabase = createClientComponentClient();
@@ -88,16 +95,76 @@ export default function BookingForm({ user }) {
     now.setSeconds(0);
     now.setMilliseconds(0);
     
+    // Set default return pickup time to 3 hours from now (2 hours after initial pickup)
+    const returnTime = new Date(now);
+    returnTime.setHours(returnTime.getHours() + 2);
+    
     const formattedDate = now.toISOString().slice(0, 16); // Format: YYYY-MM-DDThh:mm
-    setFormData(prev => ({ ...prev, pickupTime: formattedDate }));
+    const formattedReturnDate = returnTime.toISOString().slice(0, 16); // Format: YYYY-MM-DDThh:mm
+    
+    setFormData(prev => ({ 
+      ...prev, 
+      pickupTime: formattedDate,
+      returnPickupTime: formattedReturnDate
+    }));
+    
     setSelectedDate(now);
+    setSelectedReturnDate(returnTime);
   }, []);
   
-  // Handle click outside date picker to close it
+  // Fetch user's favorite addresses
+  useEffect(() => {
+    const fetchFavoriteAddresses = async () => {
+      if (!user?.id) return;
+      
+      try {
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('favorite_addresses')
+          .eq('id', user.id)
+          .single();
+          
+        if (error) {
+          console.error('Error fetching favorite addresses:', error);
+          return;
+        }
+        
+        if (data?.favorite_addresses) {
+          setFavoriteAddresses(data.favorite_addresses);
+        }
+      } catch (error) {
+        console.error('Failed to fetch favorite addresses:', error);
+      }
+    };
+    
+    fetchFavoriteAddresses();
+  }, [user, supabase]);
+  
+  // Handle click outside date picker and favorite address dropdowns to close them
   useEffect(() => {
     function handleClickOutside(event) {
+      // Close date picker if clicking outside
       if (datePickerRef.current && !datePickerRef.current.contains(event.target)) {
         setIsDatePickerOpen(false);
+      }
+      
+      // Close return date picker if clicking outside
+      if (returnDatePickerRef.current && !returnDatePickerRef.current.contains(event.target)) {
+        setIsReturnDatePickerOpen(false);
+      }
+      
+      // Close pickup favorites dropdown when clicking outside
+      if (showFavoritePickupDropdown && 
+          !event.target.closest('.favorite-pickup-dropdown') && 
+          !event.target.closest('.favorite-pickup-button')) {
+        setShowFavoritePickupDropdown(false);
+      }
+      
+      // Close destination favorites dropdown when clicking outside
+      if (showFavoriteDestinationDropdown && 
+          !event.target.closest('.favorite-destination-dropdown') && 
+          !event.target.closest('.favorite-destination-button')) {
+        setShowFavoriteDestinationDropdown(false);
       }
     }
     
@@ -107,7 +174,7 @@ export default function BookingForm({ user }) {
       // Remove event listener on cleanup
       document.removeEventListener("mousedown", handleClickOutside);
     };
-  }, [datePickerRef]);
+  }, [datePickerRef, returnDatePickerRef, showFavoritePickupDropdown, showFavoriteDestinationDropdown]);
 
   const mapRef = useRef(null);
   const [mapInstance, setMapInstance] = useState(null);
@@ -156,10 +223,12 @@ export default function BookingForm({ user }) {
           // Round trip adjustment
           if (formData.isRoundTrip) {
             basePrice = 100;
+            // Double the miles for round trip
+            basePrice += (miles * 2) * 3; // Double miles at $3 per mile
+          } else {
+            // Regular mileage calculation for one-way trip ($3 per mile)
+            basePrice += miles * 3;
           }
-          
-          // Mileage calculation ($3 per mile)
-          basePrice += miles * 3;
           
           // Weekend adjustment
           const pickupDate = new Date(formData.pickupTime);
@@ -173,6 +242,14 @@ export default function BookingForm({ user }) {
           if (hour <= 8 || hour >= 20) {
             basePrice += 40;
           }
+          
+          // Wheelchair adjustment ($25 additional fee)
+          if (formData.wheelchairType === 'wheelchair') {
+            basePrice += 25;
+          }
+          
+          // Apply 10% discount for individual clients
+          basePrice = basePrice * 0.9;
           
           // Set the price as an integer without the $ prefix
           const finalPrice = Math.round(basePrice);
@@ -192,6 +269,17 @@ export default function BookingForm({ user }) {
   // Initialize Google Maps
   useEffect(() => {
     if (!isGoogleLoaded || !mapRef.current) return;
+    
+    // If we already have a map instance, clean it up first
+    if (mapInstance) {
+      // Clean up the previous map instance
+      setMapInstance(null);
+    }
+    
+    if (directionsRenderer) {
+      directionsRenderer.setMap(null);
+      setDirectionsRenderer(null);
+    }
 
     try {
       // Initialize Map
@@ -219,6 +307,13 @@ export default function BookingForm({ user }) {
     } catch (error) {
       console.error('Error initializing Google Maps:', error);
     }
+    
+    // Clean up function
+    return () => {
+      if (directionsRenderer) {
+        directionsRenderer.setMap(null);
+      }
+    };
   }, [isGoogleLoaded]);
   
   // References for autocomplete instances
@@ -233,109 +328,128 @@ export default function BookingForm({ user }) {
         !destinationAutocompleteContainerRef.current) return;
 
     try {
-      // Only initialize once to avoid losing focus
-      if (!pickupAutocompleteContainerRef.current.firstChild && !destinationAutocompleteContainerRef.current.firstChild) {
-        // Create traditional input fields for autocomplete
-        const pickupInput = document.createElement('input');
-        pickupInput.className = 'w-full px-3 py-2 border border-[#DDE5E7] dark:border-[#3F5E63] rounded-md shadow-sm focus:outline-none focus:ring-[#7CCFD0] focus:border-[#7CCFD0] dark:bg-[#1C2C2F]';
-        pickupInput.placeholder = 'Enter your pickup location';
-        pickupInput.value = formData.pickupAddress || '';
-        pickupInput.id = 'pickup-autocomplete-input';
+      // Perform cleanup first to ensure we start fresh
+      const cleanupAutocomplete = () => {
+        // Clean up existing autocomplete instances
+        if (pickupAutocompleteRef.current) {
+          window.google.maps.event.clearInstanceListeners(pickupAutocompleteRef.current);
+          pickupAutocompleteRef.current = null;
+        }
         
-        const destinationInput = document.createElement('input');
-        destinationInput.className = 'w-full px-3 py-2 border border-[#DDE5E7] dark:border-[#3F5E63] rounded-md shadow-sm focus:outline-none focus:ring-[#7CCFD0] focus:border-[#7CCFD0] dark:bg-[#1C2C2F]';
-        destinationInput.placeholder = 'Enter your destination';
-        destinationInput.value = formData.destinationAddress || '';
-        destinationInput.id = 'destination-autocomplete-input';
+        if (destinationAutocompleteRef.current) {
+          window.google.maps.event.clearInstanceListeners(destinationAutocompleteRef.current);
+          destinationAutocompleteRef.current = null;
+        }
         
-        // Append inputs to container
-        pickupAutocompleteContainerRef.current.appendChild(pickupInput);
-        destinationAutocompleteContainerRef.current.appendChild(destinationInput);
-        
-        // Initialize traditional Google Places Autocomplete
-        const pickupAutocomplete = new window.google.maps.places.Autocomplete(pickupInput, {
-          fields: ['formatted_address', 'geometry', 'name', 'place_id', 'address_components'],
-          componentRestrictions: { country: 'us' }
-        });
-        
-        // Set bias to Ohio region for better results
-        const ohioBounds = new window.google.maps.LatLngBounds(
-          new window.google.maps.LatLng(38.4031, -84.8204), // SW corner of Ohio
-          new window.google.maps.LatLng(42.3270, -80.5183)  // NE corner of Ohio
-        );
-        pickupAutocomplete.setBounds(ohioBounds);
-        
-        const destinationAutocomplete = new window.google.maps.places.Autocomplete(destinationInput, {
-          fields: ['formatted_address', 'geometry', 'name', 'place_id', 'address_components'],
-          componentRestrictions: { country: 'us' }
-        });
-        
-        // Also set bias for destination
-        destinationAutocomplete.setBounds(ohioBounds);
-        
-        // Store references to autocomplete instances
-        pickupAutocompleteRef.current = pickupAutocomplete;
-        destinationAutocompleteRef.current = destinationAutocomplete;
-        
-        // Add event listeners
-        pickupAutocomplete.addListener('place_changed', () => {
-          const place = pickupAutocomplete.getPlace();
-          if (!place.geometry) return;
-          
-          const address = place.formatted_address || place.name || '';
-          setFormData(prev => ({ ...prev, pickupAddress: address }));
-          
-          const location = {
-            lat: place.geometry.location.lat(),
-            lng: place.geometry.location.lng()
-          };
-          
-          setPickupLocation(location);
-          
-          if (mapInstance) {
-            mapInstance.setCenter(location);
-            mapInstance.setZoom(15);
+        // Remove existing input elements to create fresh ones
+        if (pickupAutocompleteContainerRef.current) {
+          while (pickupAutocompleteContainerRef.current.firstChild) {
+            pickupAutocompleteContainerRef.current.removeChild(
+              pickupAutocompleteContainerRef.current.firstChild
+            );
           }
-        });
+        }
         
-        destinationAutocomplete.addListener('place_changed', () => {
-          const place = destinationAutocomplete.getPlace();
-          if (!place.geometry) return;
-          
-          const address = place.formatted_address || place.name || '';
-          setFormData(prev => ({ ...prev, destinationAddress: address }));
-          
-          const location = {
-            lat: place.geometry.location.lat(),
-            lng: place.geometry.location.lng()
-          };
-          
-          setDestinationLocation(location);
-        });
+        if (destinationAutocompleteContainerRef.current) {
+          while (destinationAutocompleteContainerRef.current.firstChild) {
+            destinationAutocompleteContainerRef.current.removeChild(
+              destinationAutocompleteContainerRef.current.firstChild
+            );
+          }
+        }
+      };
+      
+      // Clean up existing elements first
+      cleanupAutocomplete();
+
+      // Create traditional input fields for autocomplete
+      const pickupInput = document.createElement('input');
+      pickupInput.className = 'w-full px-3 py-2 border border-[#DDE5E7] dark:border-[#3F5E63] rounded-md shadow-sm focus:outline-none focus:ring-[#7CCFD0] focus:border-[#7CCFD0] dark:bg-[#1C2C2F]';
+      pickupInput.placeholder = 'Enter your pickup location';
+      pickupInput.value = formData.pickupAddress || '';
+      pickupInput.id = 'pickup-autocomplete-input';
+      
+      const destinationInput = document.createElement('input');
+      destinationInput.className = 'w-full px-3 py-2 border border-[#DDE5E7] dark:border-[#3F5E63] rounded-md shadow-sm focus:outline-none focus:ring-[#7CCFD0] focus:border-[#7CCFD0] dark:bg-[#1C2C2F]';
+      destinationInput.placeholder = 'Enter your destination';
+      destinationInput.value = formData.destinationAddress || '';
+      destinationInput.id = 'destination-autocomplete-input';
+      
+      // Append inputs to container
+      pickupAutocompleteContainerRef.current.appendChild(pickupInput);
+      destinationAutocompleteContainerRef.current.appendChild(destinationInput);
+      
+      // Initialize traditional Google Places Autocomplete
+      const pickupAutocomplete = new window.google.maps.places.Autocomplete(pickupInput, {
+        fields: ['formatted_address', 'geometry', 'name', 'place_id', 'address_components'],
+        componentRestrictions: { country: 'us' }
+      });
+      
+      // Set bias to Ohio region for better results
+      const ohioBounds = new window.google.maps.LatLngBounds(
+        new window.google.maps.LatLng(38.4031, -84.8204), // SW corner of Ohio
+        new window.google.maps.LatLng(42.3270, -80.5183)  // NE corner of Ohio
+      );
+      pickupAutocomplete.setBounds(ohioBounds);
+      
+      const destinationAutocomplete = new window.google.maps.places.Autocomplete(destinationInput, {
+        fields: ['formatted_address', 'geometry', 'name', 'place_id', 'address_components'],
+        componentRestrictions: { country: 'us' }
+      });
+      
+      // Also set bias for destination
+      destinationAutocomplete.setBounds(ohioBounds);
+      
+      // Store references to autocomplete instances
+      pickupAutocompleteRef.current = pickupAutocomplete;
+      destinationAutocompleteRef.current = destinationAutocomplete;
+      
+      // Add event listeners
+      pickupAutocomplete.addListener('place_changed', () => {
+        const place = pickupAutocomplete.getPlace();
+        if (!place.geometry) return;
         
-        // Manual input change handlers (two-way binding without re-rendering)
-        pickupInput.addEventListener('input', (e) => {
-          // Update the form state without causing a re-render
-          formData.pickupAddress = e.target.value;
-        });
+        const address = place.formatted_address || place.name || '';
+        setFormData(prev => ({ ...prev, pickupAddress: address }));
         
-        destinationInput.addEventListener('input', (e) => {
-          // Update the form state without causing a re-render
-          formData.destinationAddress = e.target.value;
-        });
-      }
+        const location = {
+          lat: place.geometry.location.lat(),
+          lng: place.geometry.location.lng()
+        };
+        
+        setPickupLocation(location);
+        
+        if (mapInstance) {
+          mapInstance.setCenter(location);
+          mapInstance.setZoom(15);
+        }
+      });
       
-      // Update the input values when they change from elsewhere
-      if (pickupAutocompleteContainerRef.current.firstChild && 
-          pickupAutocompleteContainerRef.current.firstChild.value !== formData.pickupAddress) {
-        pickupAutocompleteContainerRef.current.firstChild.value = formData.pickupAddress || '';
-      }
+      destinationAutocomplete.addListener('place_changed', () => {
+        const place = destinationAutocomplete.getPlace();
+        if (!place.geometry) return;
+        
+        const address = place.formatted_address || place.name || '';
+        setFormData(prev => ({ ...prev, destinationAddress: address }));
+        
+        const location = {
+          lat: place.geometry.location.lat(),
+          lng: place.geometry.location.lng()
+        };
+        
+        setDestinationLocation(location);
+      });
       
-      if (destinationAutocompleteContainerRef.current.firstChild &&
-          destinationAutocompleteContainerRef.current.firstChild.value !== formData.destinationAddress) {
-        destinationAutocompleteContainerRef.current.firstChild.value = formData.destinationAddress || '';
-      }
+      // Manual input change handlers (two-way binding without re-rendering)
+      pickupInput.addEventListener('input', (e) => {
+        // Update the form state without causing a re-render
+        formData.pickupAddress = e.target.value;
+      });
       
+      destinationInput.addEventListener('input', (e) => {
+        // Update the form state without causing a re-render
+        formData.destinationAddress = e.target.value;
+      });
     } catch (error) {
       console.error('Error initializing Places Autocomplete:', error);
     }
@@ -344,19 +458,26 @@ export default function BookingForm({ user }) {
     return () => {
       // Clean up autocomplete instances and event listeners on unmount
       if (pickupAutocompleteRef.current) {
-        google.maps.event.clearInstanceListeners(pickupAutocompleteRef.current);
+        window.google?.maps?.event?.clearInstanceListeners(pickupAutocompleteRef.current);
+        pickupAutocompleteRef.current = null;
       }
       
       if (destinationAutocompleteRef.current) {
-        google.maps.event.clearInstanceListeners(destinationAutocompleteRef.current);
+        window.google?.maps?.event?.clearInstanceListeners(destinationAutocompleteRef.current);
+        destinationAutocompleteRef.current = null;
       }
     };
-  }, [isGoogleLoaded]);
+  }, [isGoogleLoaded, formData.pickupAddress, formData.destinationAddress]);
   
   // Effect to calculate route when both locations are available
   useEffect(() => {
     if (pickupLocation && destinationLocation && mapInstance && directionsRenderer) {
-      calculateRoute(pickupLocation, destinationLocation);
+      // Small timeout to ensure the map is fully initialized
+      const timer = setTimeout(() => {
+        calculateRoute(pickupLocation, destinationLocation);
+      }, 100);
+      
+      return () => clearTimeout(timer);
     }
   }, [pickupLocation, destinationLocation, mapInstance, directionsRenderer, calculateRoute, formData]);
 
@@ -366,6 +487,38 @@ export default function BookingForm({ user }) {
       ...prev,
       [name]: value
     }));
+  };
+  
+  const handleSelectFavoritePickup = (address) => {
+    // Update pickup address with the selected favorite
+    setFormData(prev => ({
+      ...prev,
+      pickupAddress: address.address
+    }));
+    
+    // If using Google places autocomplete, manually update the input field
+    if (pickupAutocompleteContainerRef.current?.firstChild) {
+      pickupAutocompleteContainerRef.current.firstChild.value = address.address;
+    }
+    
+    // Close the dropdown
+    setShowFavoritePickupDropdown(false);
+  };
+  
+  const handleSelectFavoriteDestination = (address) => {
+    // Update destination address with the selected favorite
+    setFormData(prev => ({
+      ...prev,
+      destinationAddress: address.address
+    }));
+    
+    // If using Google places autocomplete, manually update the input field
+    if (destinationAutocompleteContainerRef.current?.firstChild) {
+      destinationAutocompleteContainerRef.current.firstChild.value = address.address;
+    }
+    
+    // Close the dropdown
+    setShowFavoriteDestinationDropdown(false);
   };
   
   // Generate an array of dates for the next 30 days
@@ -392,20 +545,35 @@ export default function BookingForm({ user }) {
   };
   
   // Handle time selection and update the form
-  const handleTimeSelect = (timeSlot) => {
+  const handleTimeSelect = (timeSlot, isReturn = false) => {
     const { hour, minute } = timeSlot.value;
     
-    const newDate = new Date(selectedDate);
-    newDate.setHours(hour, minute, 0, 0);
+    if (isReturn) {
+      const newDate = new Date(selectedReturnDate);
+      newDate.setHours(hour, minute, 0, 0);
+      
+      const formattedDate = newDate.toISOString().slice(0, 16);
+      setFormData(prev => ({
+        ...prev,
+        returnPickupTime: formattedDate
+      }));
+      
+      // Close the date picker after selection
+      setIsReturnDatePickerOpen(false);
+    } else {
+      const newDate = new Date(selectedDate);
+      newDate.setHours(hour, minute, 0, 0);
+      
+      const formattedDate = newDate.toISOString().slice(0, 16);
+      setFormData(prev => ({
+        ...prev,
+        pickupTime: formattedDate
+      }));
+      
+      // Close the date picker after selection
+      setIsDatePickerOpen(false);
+    }
     
-    const formattedDate = newDate.toISOString().slice(0, 16);
-    setFormData(prev => ({
-      ...prev,
-      pickupTime: formattedDate
-    }));
-    
-    // Close the date picker after selection
-    setIsDatePickerOpen(false);
     setCurrentView('date'); // Reset to date view for next time
   };
   
@@ -413,6 +581,18 @@ export default function BookingForm({ user }) {
   const openDatePicker = () => {
     setIsDatePickerOpen(true);
     setCurrentView('date');
+  };
+  
+  // Open the return date/time picker
+  const openReturnDatePicker = () => {
+    setIsReturnDatePickerOpen(true);
+    setCurrentView('date');
+  };
+  
+  // Handle return date selection
+  const handleReturnDateSelect = (date) => {
+    setSelectedReturnDate(date);
+    setCurrentView('time'); // Switch to time selection after date is selected
   };
 
   const handleSubmit = async (e) => {
@@ -463,6 +643,25 @@ export default function BookingForm({ user }) {
       setBookingStatus('error');
       return;
     }
+    
+    // Validate return pickup time for round trips
+    if (formData.isRoundTrip) {
+      if (!formData.returnPickupTime) {
+        setError('Please select a return pickup time for your round trip');
+        setIsLoading(false);
+        setBookingStatus('error');
+        return;
+      }
+      
+      const returnPickupTime = new Date(formData.returnPickupTime);
+      
+      if (returnPickupTime <= pickupTime) {
+        setError('Return pickup time must be after initial pickup time');
+        setIsLoading(false);
+        setBookingStatus('error');
+        return;
+      }
+    }
 
     try {
       // Calculate final price (in case route hasn't been calculated yet)
@@ -483,12 +682,15 @@ export default function BookingForm({ user }) {
           pickup_address: pickupAddressValue,
           destination_address: destinationAddressValue,
           pickup_time: formData.pickupTime,
+          return_pickup_time: formData.isRoundTrip ? formData.returnPickupTime : null, // Save return pickup time only for round trips
           status: 'pending', // Changed from 'upcoming' to 'pending'
           special_requirements: null,
           wheelchair_type: formData.wheelchairType,
           is_round_trip: formData.isRoundTrip,
           price: calculatedPrice, // Save estimated price
-          distance: distanceMiles > 0 ? Math.round(distanceMiles * 10) / 10 : null, // Save distance in miles, rounded to 1 decimal
+          distance: distanceMiles > 0 
+            ? Math.round((formData.isRoundTrip ? distanceMiles * 2 : distanceMiles) * 10) / 10 
+            : null, // Save distance in miles, doubled for round trips, rounded to 1 decimal
           created_at: new Date().toISOString(),
         }])
         .select();
@@ -508,6 +710,7 @@ export default function BookingForm({ user }) {
         pickupAddress: '',
         destinationAddress: '',
         pickupTime: formData.pickupTime, // Keep the time
+        returnPickupTime: formData.returnPickupTime, // Keep the return time
         wheelchairType: 'no_wheelchair',
         isRoundTrip: false,
       });
@@ -562,10 +765,14 @@ export default function BookingForm({ user }) {
       {/* Load Google Maps JavaScript API with Places and Directions libraries */}
       <Script
         id="google-maps-script"
-        strategy="lazyOnload"
+        strategy="afterInteractive"
         src={`https://maps.googleapis.com/maps/api/js?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}&libraries=places&callback=Function.prototype`}
         onLoad={() => {
           console.log('Google Maps script loaded');
+          setIsGoogleLoaded(true);
+        }}
+        onReady={() => {
+          console.log('Google Maps script ready');
           setIsGoogleLoaded(true);
         }}
       />
@@ -594,42 +801,126 @@ export default function BookingForm({ user }) {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {/* Pickup Address */}
                 <div className="col-span-1 md:col-span-2">
-                  <label htmlFor="pickupAddress" className="block text-sm font-medium text-[#2E4F54] dark:text-[#E0F4F5] mb-1">
-                    Pickup Address
-                  </label>
-                  <div 
-                    ref={pickupAutocompleteContainerRef} 
-                    className="w-full"
-                    aria-label="Pickup location input"
-                  >
-                    {/* Autocomplete input will be inserted here */}
+                  <div className="flex justify-between items-center mb-1">
+                    <label htmlFor="pickupAddress" className="block text-sm font-medium text-[#2E4F54] dark:text-[#E0F4F5]">
+                      Pickup Address
+                    </label>
+                    {favoriteAddresses.filter(addr => addr.type === 'pickup' || addr.type === 'both').length > 0 && (
+                      <button
+                        type="button"
+                        onClick={() => setShowFavoritePickupDropdown(!showFavoritePickupDropdown)}
+                        className="text-xs text-[#7CCFD0] hover:text-[#60BFC0] flex items-center favorite-pickup-button"
+                      >
+                        <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+                        </svg>
+                        Favorites
+                      </button>
+                    )}
                   </div>
-                  <input 
-                    type="hidden" 
-                    name="pickupAddress" 
-                    value={formData.pickupAddress} 
-                    required
-                  />
+                  
+                  <div className="relative">
+                    <div 
+                      ref={pickupAutocompleteContainerRef} 
+                      className="w-full"
+                      aria-label="Pickup location input"
+                    >
+                      {/* Autocomplete input will be inserted here */}
+                    </div>
+                    <input 
+                      type="hidden" 
+                      name="pickupAddress" 
+                      value={formData.pickupAddress} 
+                      required
+                    />
+                    
+                    {/* Favorite Addresses Dropdown for Pickup */}
+                    {showFavoritePickupDropdown && favoriteAddresses.length > 0 && (
+                      <div className="absolute z-40 mt-1 w-full bg-white dark:bg-[#1C2C2F] border border-[#DDE5E7] dark:border-[#3F5E63] rounded-md shadow-lg max-h-60 overflow-y-auto favorite-pickup-dropdown">
+                        <ul className="py-1">
+                          {favoriteAddresses
+                            .filter(addr => addr.type === 'pickup' || addr.type === 'both')
+                            .map((address) => (
+                              <li 
+                                key={address.id}
+                                className="px-3 py-2 hover:bg-[#7CCFD0]/10 cursor-pointer"
+                                onClick={() => handleSelectFavoritePickup(address)}
+                              >
+                                <div className="font-medium text-[#2E4F54] dark:text-[#E0F4F5]">
+                                  {address.name}
+                                </div>
+                                <div className="text-sm text-[#2E4F54]/70 dark:text-[#E0F4F5]/70">
+                                  {address.address}
+                                </div>
+                              </li>
+                            ))
+                          }
+                        </ul>
+                      </div>
+                    )}
+                  </div>
                 </div>
                 
                 {/* Destination Address */}
                 <div className="col-span-1 md:col-span-2">
-                  <label htmlFor="destinationAddress" className="block text-sm font-medium text-[#2E4F54] dark:text-[#E0F4F5] mb-1">
-                    Destination Address
-                  </label>
-                  <div 
-                    ref={destinationAutocompleteContainerRef} 
-                    className="w-full"
-                    aria-label="Destination location input"
-                  >
-                    {/* Autocomplete input will be inserted here */}
+                  <div className="flex justify-between items-center mb-1">
+                    <label htmlFor="destinationAddress" className="block text-sm font-medium text-[#2E4F54] dark:text-[#E0F4F5]">
+                      Destination Address
+                    </label>
+                    {favoriteAddresses.filter(addr => addr.type === 'destination' || addr.type === 'both').length > 0 && (
+                      <button
+                        type="button"
+                        onClick={() => setShowFavoriteDestinationDropdown(!showFavoriteDestinationDropdown)}
+                        className="text-xs text-[#7CCFD0] hover:text-[#60BFC0] flex items-center favorite-destination-button"
+                      >
+                        <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+                        </svg>
+                        Favorites
+                      </button>
+                    )}
                   </div>
-                  <input 
-                    type="hidden" 
-                    name="destinationAddress" 
-                    value={formData.destinationAddress} 
-                    required
-                  />
+                  
+                  <div className="relative">
+                    <div 
+                      ref={destinationAutocompleteContainerRef} 
+                      className="w-full"
+                      aria-label="Destination location input"
+                    >
+                      {/* Autocomplete input will be inserted here */}
+                    </div>
+                    <input 
+                      type="hidden" 
+                      name="destinationAddress" 
+                      value={formData.destinationAddress} 
+                      required
+                    />
+                    
+                    {/* Favorite Addresses Dropdown for Destination */}
+                    {showFavoriteDestinationDropdown && favoriteAddresses.length > 0 && (
+                      <div className="absolute z-40 mt-1 w-full bg-white dark:bg-[#1C2C2F] border border-[#DDE5E7] dark:border-[#3F5E63] rounded-md shadow-lg max-h-60 overflow-y-auto favorite-destination-dropdown">
+                        <ul className="py-1">
+                          {favoriteAddresses
+                            .filter(addr => addr.type === 'destination' || addr.type === 'both')
+                            .map((address) => (
+                              <li 
+                                key={address.id}
+                                className="px-3 py-2 hover:bg-[#7CCFD0]/10 cursor-pointer"
+                                onClick={() => handleSelectFavoriteDestination(address)}
+                              >
+                                <div className="font-medium text-[#2E4F54] dark:text-[#E0F4F5]">
+                                  {address.name}
+                                </div>
+                                <div className="text-sm text-[#2E4F54]/70 dark:text-[#E0F4F5]/70">
+                                  {address.address}
+                                </div>
+                              </li>
+                            ))
+                          }
+                        </ul>
+                      </div>
+                    )}
+                  </div>
                 </div>
                 
                 {/* Pickup Date and Time - Popup Picker */}
@@ -768,7 +1059,7 @@ export default function BookingForm({ user }) {
                       className="w-full appearance-none px-3 py-2 border border-[#DDE5E7] dark:border-[#3F5E63] rounded-md shadow-sm focus:outline-none focus:ring-[#7CCFD0] focus:border-[#7CCFD0] dark:bg-[#1C2C2F] text-[#2E4F54] dark:text-[#E0F4F5] pr-10"
                     >
                       <option value="no_wheelchair">No Wheelchair</option>
-                      <option value="wheelchair">Wheelchair</option>
+                      <option value="wheelchair">Wheelchair (+$25)</option>
                     </select>
                     <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-[#2E4F54] dark:text-[#E0F4F5]">
                       <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
@@ -813,6 +1104,127 @@ export default function BookingForm({ user }) {
                   </span>
                 )}
               </div>
+              
+              {/* Return Pickup Time - Only visible for round trips */}
+              {formData.isRoundTrip && (
+                <div className="col-span-1 md:col-span-2 pt-4 border-t border-[#DDE5E7] dark:border-[#3F5E63] mt-4">
+                  <div>
+                    <label htmlFor="returnPickupTime" className="block text-sm font-medium text-[#2E4F54] dark:text-[#E0F4F5] mb-1">
+                      Return Pickup Time
+                    </label>
+                    <div className="relative">
+                      <button
+                        type="button"
+                        id="returnPickupTime"
+                        onClick={openReturnDatePicker}
+                        className="w-full px-3 py-2 border border-[#DDE5E7] dark:border-[#3F5E63] rounded-md shadow-sm focus:outline-none focus:ring-[#7CCFD0] focus:border-[#7CCFD0] dark:bg-[#1C2C2F] text-left flex justify-between items-center"
+                      >
+                        <span className={formData.returnPickupTime ? "text-[#2E4F54] dark:text-[#E0F4F5]" : "text-[#2E4F54]/50 dark:text-[#E0F4F5]/50"}>
+                          {formData.returnPickupTime 
+                            ? `${formatMonthDay(formData.returnPickupTime)}, ${getDayName(formData.returnPickupTime)} - ${formatTimeAmPm(formData.returnPickupTime)}`
+                            : "Select return pickup time"}
+                        </span>
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-[#3B5B63] dark:text-[#84CED3]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                      </button>
+                      
+                      {/* Return Date and Time Picker Popup */}
+                      {isReturnDatePickerOpen && (
+                        <div 
+                          ref={returnDatePickerRef}
+                          className="absolute z-50 mt-2 w-full bg-white dark:bg-[#1C2C2F] border border-[#DDE5E7] dark:border-[#3F5E63] rounded-md shadow-lg p-4"
+                        >
+                          {/* Header with back button for time view */}
+                          <div className="flex justify-between items-center mb-2">
+                            <h4 className="text-[#2E4F54] dark:text-[#E0F4F5] font-medium">
+                              {currentView === 'date' ? 'Select Return Date' : 'Select Return Time'}
+                            </h4>
+                            {currentView === 'time' && (
+                              <button 
+                                type="button"
+                                onClick={() => setCurrentView('date')}
+                                className="text-[#3B5B63] dark:text-[#84CED3] hover:text-[#7CCFD0] flex items-center text-sm"
+                              >
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                                </svg>
+                                Back to dates
+                              </button>
+                            )}
+                          </div>
+                          
+                          {/* Date selection view */}
+                          {currentView === 'date' && (
+                            <div className="grid grid-cols-3 sm:grid-cols-4 gap-2 max-h-60 overflow-y-auto">
+                              {getDateOptions().map((date, index) => {
+                                const isToday = new Date().toDateString() === date.toDateString();
+                                const isSelected = selectedReturnDate && selectedReturnDate.toDateString() === date.toDateString();
+                                
+                                return (
+                                  <button
+                                    key={index}
+                                    type="button"
+                                    onClick={() => handleReturnDateSelect(date)}
+                                    className={`
+                                      p-2 rounded-md border text-center flex flex-col items-center
+                                      ${isSelected 
+                                        ? 'bg-[#7CCFD0]/20 border-[#7CCFD0] text-[#3B5B63] dark:text-[#E0F4F5]' 
+                                        : 'border-[#DDE5E7] dark:border-[#3F5E63] hover:bg-[#F8F9FA] dark:hover:bg-[#24393C]'}
+                                    `}
+                                  >
+                                    <span className="text-xs font-medium">{getDayName(date)}</span>
+                                    <span className={`text-sm ${isToday ? 'font-bold' : ''}`}>{formatMonthDay(date)}</span>
+                                    {isToday && <span className="text-xs text-[#7CCFD0] mt-1">Today</span>}
+                                  </button>
+                                );
+                              })}
+                            </div>
+                          )}
+                          
+                          {/* Time selection view */}
+                          {currentView === 'time' && selectedReturnDate && (
+                            <div>
+                              <div className="text-sm text-[#2E4F54]/70 dark:text-[#E0F4F5]/70 mb-2">
+                                {new Date(selectedReturnDate).toLocaleDateString('en-US', { 
+                                  weekday: 'long', 
+                                  month: 'long', 
+                                  day: 'numeric',
+                                  year: 'numeric'
+                                })}
+                              </div>
+                              
+                              <div className="grid grid-cols-3 sm:grid-cols-4 gap-2 max-h-60 overflow-y-auto">
+                                {availableTimeSlots.map((slot, index) => {
+                                  return (
+                                    <button
+                                      key={index}
+                                      type="button"
+                                      onClick={() => handleTimeSelect(slot, true)}
+                                      className="p-2 rounded-md border border-[#DDE5E7] dark:border-[#3F5E63] hover:bg-[#7CCFD0]/10 text-center"
+                                    >
+                                      {slot.label}
+                                    </button>
+                                  );
+                                })}
+                              </div>
+                              
+                              <div className="text-xs text-[#2E4F54]/60 dark:text-[#E0F4F5]/60 mt-2 italic">
+                                All times shown are in your local timezone
+                              </div>
+                            </div>
+                          )}
+                          
+                          {/* Optional hint */}
+                          <div className="mt-4 pt-2 border-t border-[#DDE5E7] dark:border-[#3F5E63] text-xs text-[#3B5B63] dark:text-[#84CED3]">
+                            <p>Select a date and then choose an available time slot for your return trip</p>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
 
               <div className="col-span-1 md:col-span-2 border-t border-[#DDE5E7] dark:border-[#3F5E63] pt-4">
                 <h3 className="text-md font-medium text-[#2E4F54] dark:text-[#E0F4F5] mb-2">Ride Details</h3>
@@ -832,6 +1244,25 @@ export default function BookingForm({ user }) {
                       <p className="font-medium text-[#2E4F54]/50 dark:text-[#E0F4F5]/50">Select a time</p>
                     )}
                   </div>
+                  
+                  {/* Return Pickup Time - Only show in summary if round trip is selected */}
+                  {formData.isRoundTrip && (
+                    <div>
+                      <p className="text-sm text-[#2E4F54]/70 dark:text-[#E0F4F5]/70">Return Pickup Time</p>
+                      {formData.returnPickupTime ? (
+                        <p className="font-medium text-[#2E4F54] dark:text-[#E0F4F5]">
+                          {new Date(formData.returnPickupTime).toLocaleDateString('en-US', { 
+                            weekday: 'short', 
+                            month: 'short', 
+                            day: 'numeric'
+                          })}, {formatTimeAmPm(formData.returnPickupTime)}
+                        </p>
+                      ) : (
+                        <p className="font-medium text-[#2E4F54]/50 dark:text-[#E0F4F5]/50">Select a time</p>
+                      )}
+                    </div>
+                  )}
+                  
                   <div>
                     <p className="text-sm text-[#2E4F54]/70 dark:text-[#E0F4F5]/70">Estimated Fare</p>
                     {pickupLocation && destinationLocation ? (
@@ -842,6 +1273,7 @@ export default function BookingForm({ user }) {
                       <p className="font-medium text-[#2E4F54]/50 dark:text-[#E0F4F5]/50">Enter addresses</p>
                     )}
                   </div>
+                  
                   <div>
                     <p className="text-sm text-[#2E4F54]/70 dark:text-[#E0F4F5]/70">Estimated Duration</p>
                     {pickupLocation && destinationLocation ? (
@@ -850,20 +1282,55 @@ export default function BookingForm({ user }) {
                       <p className="font-medium text-[#2E4F54]/50 dark:text-[#E0F4F5]/50">Enter addresses</p>
                     )}
                   </div>
+                  
                   <div>
                     <p className="text-sm text-[#2E4F54]/70 dark:text-[#E0F4F5]/70">Distance</p>
                     {pickupLocation && destinationLocation ? (
-                      <p className="font-medium text-[#2E4F54] dark:text-[#E0F4F5]">{distanceMiles > 0 ? `${distanceMiles.toFixed(1)} miles` : 'Calculating...'}</p>
+                      <p className="font-medium text-[#2E4F54] dark:text-[#E0F4F5]">
+                        {distanceMiles > 0 ? `${distanceMiles.toFixed(1)} miles${formData.isRoundTrip ? ' × 2' : ''}` : 'Calculating...'}
+                      </p>
                     ) : (
                       <p className="font-medium text-[#2E4F54]/50 dark:text-[#E0F4F5]/50">Enter addresses</p>
                     )}
                   </div>
+                  
+                  {/* For round trips, show wait time between pickup and return */}
+                  {formData.isRoundTrip && formData.pickupTime && formData.returnPickupTime && (
+                    <div>
+                      <p className="text-sm text-[#2E4F54]/70 dark:text-[#E0F4F5]/70">Wait Time</p>
+                      <p className="font-medium text-[#2E4F54] dark:text-[#E0F4F5]">
+                        {(() => {
+                          const pickupTime = new Date(formData.pickupTime);
+                          const returnTime = new Date(formData.returnPickupTime);
+                          const diffMs = returnTime - pickupTime;
+                          const diffHrs = Math.floor(diffMs / (1000 * 60 * 60));
+                          const diffMins = Math.round((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+                          
+                          if (diffHrs === 0) {
+                            return `${diffMins} minutes`;
+                          } else if (diffMins === 0) {
+                            return `${diffHrs} ${diffHrs === 1 ? 'hour' : 'hours'}`;
+                          } else {
+                            return `${diffHrs} ${diffHrs === 1 ? 'hour' : 'hours'}, ${diffMins} ${diffMins === 1 ? 'minute' : 'minutes'}`;
+                          }
+                        })()}
+                      </p>
+                    </div>
+                  )}
                 </div>
                 
                 <div className="bg-[#7CCFD0]/10 dark:bg-[#7CCFD0]/20 p-3 rounded-md text-sm mb-4">
                   <p className="text-[#2E4F54] dark:text-[#E0F4F5]">
                     <strong>Note:</strong> Your ride request will be reviewed and approved by a dispatcher. Once approved, it will be assigned to a compassionate driver who specializes in supportive transportation.
                   </p>
+                  <p className="text-[#2E4F54] dark:text-[#E0F4F5] mt-2">
+                    <strong>Discount:</strong> A 10% discount is automatically applied to all individual rides.
+                  </p>
+                  {formData.isRoundTrip && (
+                    <p className="text-[#2E4F54] dark:text-[#E0F4F5] mt-2">
+                      <strong>Round Trip:</strong> Your driver will wait at the destination and bring you back to your pickup location.
+                    </p>
+                  )}
                 </div>
               </div>
               

@@ -12,7 +12,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata = {
-  title: "Compassionate Rides - Booking",
+  title: "Compassionate Transportation - Booking",
   description: "Accessible transportation for everyone",
   icons: {
     icon: [

@@ -6,11 +6,13 @@
         "dev": "next dev --turbopack",
         "build": "next build",
         "start": "next start",
-        "lint": "next lint"
+        "lint": "next lint",
+        "test": "playwright test",
+        "test:ui": "playwright test --ui"
     },
     "dependencies": {
-        "@stripe/react-stripe-js": "^3.6.0",
-        "@stripe/stripe-js": "^7.1.0",
+        "@stripe/react-stripe-js": "^3.7.0",
+        "@stripe/stripe-js": "^7.3.0",
         "@supabase/auth-helpers-nextjs": "^0.10.0",
         "@supabase/ssr": "^0.6.1",
         "@supabase/supabase-js": "^2.49.4",
@@ -18,12 +20,13 @@
         "nodemailer": "^6.10.1",
         "react": "^19.1.0",
         "react-dom": "^19.1.0",
-        "stripe": "^18.0.0"
+        "stripe": "^18.1.0"
     },
     "devDependencies": {
-        "@tailwindcss/postcss": "^4.1.4",
-        "eslint": "^9.25.0",
-        "eslint-config-next": "^15.3.1",
-        "tailwindcss": "^4.1.4"
+        "@playwright/test": "^1.42.1",
+        "@tailwindcss/postcss": "^4.1.5",
+        "eslint": "^9.26.0",
+        "eslint-config-next": "^15.3.2",
+        "tailwindcss": "^4.1.5"
     }
 }

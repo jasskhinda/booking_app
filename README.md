@@ -1,4 +1,4 @@
-# Compassionate Rides Booking App
+# Compassionate Transportation Booking App
 
 A specialized transportation service for individuals with unique needs and medical requirements.
 
