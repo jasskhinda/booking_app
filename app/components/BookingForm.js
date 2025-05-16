@@ -185,6 +185,7 @@ export default function BookingForm({ user }) {
   const [estimatedDuration, setEstimatedDuration] = useState(null);
   const [distanceMiles, setDistanceMiles] = useState(0);
   const [distanceMeters, setDistanceMeters] = useState(0);
+  const [pricingBreakdown, setPricingBreakdown] = useState(null);
   
   // Function to calculate route between two points and update the map
   const calculateRoute = useCallback((origin, destination) => {
@@ -196,7 +197,7 @@ export default function BookingForm({ user }) {
       origin,
       destination,
       travelMode: window.google.maps.TravelMode.DRIVING,
-    }, (result, status) => {
+    }, async (result, status) => {
       if (status === window.google.maps.DirectionsStatus.OK) {
         directionsRenderer.setDirections(result);
         
@@ -217,29 +218,43 @@ export default function BookingForm({ user }) {
           setDistanceMiles(miles);
           setDistanceMeters(distanceValue);
           
+          console.log('Debug: Distance calculation', {
+            distanceValue,
+            miles,
+            formattedMiles,
+            isRoundTrip: formData.isRoundTrip
+          });
+          
           // Calculate price using base price logic
-          let basePrice = 50; // Base price
+          let basePrice = 50; // Base price for one-way trip
 
-          // Round trip adjustment
+          // Round trip adjustment (double the base price)
           if (formData.isRoundTrip) {
-            basePrice = 100;
-            // Double the miles for round trip
-            basePrice += (miles * 2) * 3; // Double miles at $3 per mile
-          } else {
-            // Regular mileage calculation for one-way trip ($3 per mile)
-            basePrice += miles * 3;
+            basePrice = 100; // Base price for round trip
           }
           
-          // Weekend adjustment
+          // Add mileage charge ($3 per mile, doubled for round trips)
+          const totalMiles = formData.isRoundTrip ? miles * 2 : miles;
+          basePrice += totalMiles * 3;
+          
+          console.log('Debug: Price calculation', {
+            basePrice: basePrice,
+            totalMiles,
+            mileageCharge: totalMiles * 3
+          });
+          
+          // Weekend and hour adjustments
           const pickupDate = new Date(formData.pickupTime);
           const day = pickupDate.getDay();
+          const hour = pickupDate.getHours();
+          
+          // Weekend adjustment ($40 for Saturday or Sunday)
           if (day === 0 || day === 6) { // Weekend (0 = Sunday, 6 = Saturday)
             basePrice += 40;
           }
           
-          // Extra hour adjustment (before 8am or after 8pm)
-          const hour = pickupDate.getHours();
-          if (hour <= 8 || hour >= 20) {
+          // Off-hours adjustment ($40 for before 8am or after 8pm)
+          if (hour < 8 || hour >= 20) {
             basePrice += 40;
           }
           
@@ -248,11 +263,60 @@ export default function BookingForm({ user }) {
             basePrice += 25;
           }
           
-          // Apply 10% discount for individual clients
-          basePrice = basePrice * 0.9;
+          // Check if user is a veteran for higher discount
+          const { data: profileData } = await supabase
+            .from('profiles')
+            .select('is_veteran')
+            .eq('id', user.id)
+            .single();
+            
+          // Apply 20% discount for veterans, 10% for regular individual clients
+          const priceBeforeDiscount = basePrice;
+          let discountPercentage = 0;
+          let discountAmount = 0;
           
-          // Set the price as an integer without the $ prefix
-          const finalPrice = Math.round(basePrice);
+          if (profileData?.is_veteran) {
+            discountPercentage = 20;
+            discountAmount = basePrice * 0.2;
+            basePrice = basePrice * 0.8; // 20% discount for veterans
+          } else {
+            discountPercentage = 10;
+            discountAmount = basePrice * 0.1;
+            basePrice = basePrice * 0.9; // 10% discount for non-veterans
+          }
+          
+          // Set the price rounded to the nearest cent
+          const finalPrice = Math.round(basePrice * 100) / 100;
+          
+          // Create pricing breakdown
+          const breakdown = {
+            baseRate: formData.isRoundTrip ? 100 : 50,
+            mileageRate: 3,
+            totalMiles: totalMiles,
+            mileageCharge: totalMiles * 3,
+            weekendAdjustment: (day === 0 || day === 6) ? 40 : 0,
+            offHoursAdjustment: (hour < 8 || hour >= 20) ? 40 : 0,
+            wheelchairAdjustment: formData.wheelchairType === 'wheelchair' ? 25 : 0,
+            subtotal: priceBeforeDiscount,
+            discountPercentage: discountPercentage,
+            discountAmount: discountAmount,
+            finalPrice: finalPrice,
+            isVeteran: profileData?.is_veteran || false
+          };
+          
+          console.log('Debug: Final price calculation', {
+            priceBeforeDiscount,
+            isVeteran: profileData?.is_veteran,
+            discountPercentage: `${discountPercentage}%`,
+            discountAmount: `$${discountAmount.toFixed(2)}`,
+            discountedPrice: basePrice,
+            finalPrice,
+            weekendAdj: (day === 0 || day === 6) ? 40 : 0,
+            offHoursAdj: (hour < 8 || hour >= 20) ? 40 : 0,
+            wheelchairAdj: formData.wheelchairType === 'wheelchair' ? 25 : 0
+          });
+          
+          setPricingBreakdown(breakdown);
           setEstimatedFare(finalPrice);
           setEstimatedDuration(duration);
         }
@@ -1263,12 +1327,61 @@ export default function BookingForm({ user }) {
                     </div>
                   )}
                   
-                  <div>
+                  <div className="col-span-2">
                     <p className="text-sm text-[#2E4F54]/70 dark:text-[#E0F4F5]/70">Estimated Fare</p>
                     {pickupLocation && destinationLocation ? (
-                      <p className="font-medium text-[#2E4F54] dark:text-[#E0F4F5]">
-                        {estimatedFare ? `$${estimatedFare}`.replace('$$', '$') : 'Calculating...'}
-                      </p>
+                      <div>
+                        <p className="font-medium text-[#2E4F54] dark:text-[#E0F4F5] text-lg">
+                          {estimatedFare ? `$${estimatedFare.toFixed(2)}` : 'Calculating...'}
+                        </p>
+                        
+                        {/* Pricing Breakdown */}
+                        {pricingBreakdown && (
+                          <div className="mt-3 p-3 bg-[#F8F9FA] dark:bg-[#1C2C2F] rounded-md border border-[#DDE5E7] dark:border-[#3F5E63]">
+                            <p className="text-xs font-medium text-[#2E4F54] dark:text-[#E0F4F5] mb-2">Pricing Breakdown:</p>
+                            <div className="space-y-1 text-xs">
+                              <div className="flex justify-between">
+                                <span className="text-[#2E4F54]/70 dark:text-[#E0F4F5]/70">Base fare ({formData.isRoundTrip ? 'round trip' : 'one-way'}):</span>
+                                <span className="text-[#2E4F54] dark:text-[#E0F4F5]">${pricingBreakdown.baseRate.toFixed(2)}</span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span className="text-[#2E4F54]/70 dark:text-[#E0F4F5]/70">Mileage ({pricingBreakdown.totalMiles.toFixed(1)} miles × ${pricingBreakdown.mileageRate}/mi):</span>
+                                <span className="text-[#2E4F54] dark:text-[#E0F4F5]">${pricingBreakdown.mileageCharge.toFixed(2)}</span>
+                              </div>
+                              {pricingBreakdown.weekendAdjustment > 0 && (
+                                <div className="flex justify-between">
+                                  <span className="text-[#2E4F54]/70 dark:text-[#E0F4F5]/70">Weekend premium:</span>
+                                  <span className="text-[#2E4F54] dark:text-[#E0F4F5]">+${pricingBreakdown.weekendAdjustment.toFixed(2)}</span>
+                                </div>
+                              )}
+                              {pricingBreakdown.offHoursAdjustment > 0 && (
+                                <div className="flex justify-between">
+                                  <span className="text-[#2E4F54]/70 dark:text-[#E0F4F5]/70">Off-hours premium:</span>
+                                  <span className="text-[#2E4F54] dark:text-[#E0F4F5]">+${pricingBreakdown.offHoursAdjustment.toFixed(2)}</span>
+                                </div>
+                              )}
+                              {pricingBreakdown.wheelchairAdjustment > 0 && (
+                                <div className="flex justify-between">
+                                  <span className="text-[#2E4F54]/70 dark:text-[#E0F4F5]/70">Wheelchair accessibility:</span>
+                                  <span className="text-[#2E4F54] dark:text-[#E0F4F5]">+${pricingBreakdown.wheelchairAdjustment.toFixed(2)}</span>
+                                </div>
+                              )}
+                              <div className="flex justify-between pt-1 mt-1 border-t border-[#DDE5E7] dark:border-[#3F5E63]">
+                                <span className="text-[#2E4F54]/70 dark:text-[#E0F4F5]/70">Subtotal:</span>
+                                <span className="text-[#2E4F54] dark:text-[#E0F4F5]">${pricingBreakdown.subtotal.toFixed(2)}</span>
+                              </div>
+                              <div className="flex justify-between text-[#7CCFD0]">
+                                <span>{pricingBreakdown.isVeteran ? 'Veteran' : 'Individual'} discount ({pricingBreakdown.discountPercentage}%):</span>
+                                <span>-${pricingBreakdown.discountAmount.toFixed(2)}</span>
+                              </div>
+                              <div className="flex justify-between pt-1 mt-1 border-t border-[#DDE5E7] dark:border-[#3F5E63] font-medium text-sm">
+                                <span className="text-[#2E4F54] dark:text-[#E0F4F5]">Total:</span>
+                                <span className="text-[#2E4F54] dark:text-[#E0F4F5]">${pricingBreakdown.finalPrice.toFixed(2)}</span>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                      </div>
                     ) : (
                       <p className="font-medium text-[#2E4F54]/50 dark:text-[#E0F4F5]/50">Enter addresses</p>
                     )}
@@ -1287,7 +1400,11 @@ export default function BookingForm({ user }) {
                     <p className="text-sm text-[#2E4F54]/70 dark:text-[#E0F4F5]/70">Distance</p>
                     {pickupLocation && destinationLocation ? (
                       <p className="font-medium text-[#2E4F54] dark:text-[#E0F4F5]">
-                        {distanceMiles > 0 ? `${distanceMiles.toFixed(1)} miles${formData.isRoundTrip ? ' × 2' : ''}` : 'Calculating...'}
+                        {distanceMiles > 0 ? (
+                          formData.isRoundTrip 
+                            ? `${(distanceMiles * 2).toFixed(1)} miles (${distanceMiles.toFixed(1)} each way)`
+                            : `${distanceMiles.toFixed(1)} miles`
+                        ) : 'Calculating...'}
                       </p>
                     ) : (
                       <p className="font-medium text-[#2E4F54]/50 dark:text-[#E0F4F5]/50">Enter addresses</p>
@@ -1324,7 +1441,10 @@ export default function BookingForm({ user }) {
                     <strong>Note:</strong> Your ride request will be reviewed and approved by a dispatcher. Once approved, it will be assigned to a compassionate driver who specializes in supportive transportation.
                   </p>
                   <p className="text-[#2E4F54] dark:text-[#E0F4F5] mt-2">
-                    <strong>Discount:</strong> A 10% discount is automatically applied to all individual rides.
+                    <strong>Discount:</strong> A 10% discount is automatically applied to all individual rides. Veterans receive a 20% discount.
+                  </p>
+                  <p className="text-[#2E4F54] dark:text-[#E0F4F5] mt-2">
+                    <strong>Cancellation Policy:</strong> You may cancel without penalty up until the day of the ride. Same-day cancellations will be charged the base fare only.
                   </p>
                   {formData.isRoundTrip && (
                     <p className="text-[#2E4F54] dark:text-[#E0F4F5] mt-2">

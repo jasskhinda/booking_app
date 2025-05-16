@@ -108,12 +108,40 @@ export default function TripDetailsPage() {
     
     setIsSubmitting(true);
     try {
+      // Check if cancellation is before the day of the ride
+      const pickupDate = new Date(trip.pickup_time);
+      pickupDate.setHours(0, 0, 0, 0); // start of pickup day
+      
+      const today = new Date();
+      today.setHours(0, 0, 0, 0); // start of today
+      
+      const cancelWithoutCharge = pickupDate > today;
+      
+      let refundStatus = 'Pending';
+      let refundAmount = null;
+      
+      // Free cancellation if it's before the day of the ride
+      if (cancelWithoutCharge) {
+        refundStatus = 'Full Refund Pending';
+        refundAmount = trip.price;
+      } else {
+        // Charge only base fare (one-way = $50, round-trip = $100) if canceled on the day of ride
+        refundStatus = 'Partial Refund Pending';
+        refundAmount = trip.is_round_trip ? trip.price - 100 : trip.price - 50;
+        // If computed refund amount is negative or zero, no refund
+        if (refundAmount <= 0) {
+          refundStatus = 'No Refund';
+          refundAmount = 0;
+        }
+      }
+      
       const { data, error } = await supabase
         .from('trips')
         .update({
           status: 'cancelled',
           cancellation_reason: cancelReason || 'Customer cancelled',
-          refund_status: 'Pending'
+          refund_status: refundStatus,
+          refund_amount: refundAmount
         })
         .eq('id', tripId)
         .select();
@@ -128,7 +156,8 @@ export default function TripDetailsPage() {
         ...trip,
         status: 'cancelled',
         cancellation_reason: cancelReason || 'Customer cancelled',
-        refund_status: 'Pending'
+        refund_status: refundStatus,
+        refund_amount: refundAmount
       });
       
       setCancellingTrip(false);
@@ -382,6 +411,11 @@ export default function TripDetailsPage() {
               <div className="mt-3">
                 <p className="text-sm font-medium text-[#2E4F54] dark:text-[#E0F4F5]">Refund Status</p>
                 <p className="text-sm text-[#2E4F54]/90 dark:text-[#E0F4F5]/90">{trip.refund_status}</p>
+                {trip.refund_amount > 0 && (
+                  <p className="text-sm text-[#2E4F54]/90 dark:text-[#E0F4F5]/90 mt-1">
+                    Refund Amount: ${trip.refund_amount?.toFixed(2)}
+                  </p>
+                )}
               </div>
             )}
           </div>
