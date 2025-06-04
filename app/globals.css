@@ -55,7 +55,9 @@ body {
   font-family: Arial, Helvetica, sans-serif;
 }
 
+
 /* Custom utility classes for the Compassionate Transportation color scheme */
+
 .btn-primary {
   @apply bg-[#7CCFD0] text-white hover:bg-[#60BFC0] focus:ring-[#7CCFD0]/50;
 }

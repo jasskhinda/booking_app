@@ -56,6 +56,7 @@ export default function LoginForm() {
           throw error;
         }
       }
+
       
       // Successfully logged in
       console.log('Login successful, session:', data.session ? 'exists' : 'none');
@@ -74,6 +75,7 @@ export default function LoginForm() {
         window.location.href = '/dashboard';
         return;
       }
+
       
       setError(error.message || 'Invalid email or password');
     } finally {
@@ -92,6 +94,8 @@ export default function LoginForm() {
           },
         },
       });
+
+      
       
       if (error) {
         throw error;
@@ -115,6 +119,9 @@ export default function LoginForm() {
           <label htmlFor="email" className="block text-sm font-medium text-[#2E4F54] dark:text-[#E0F4F5]">
             Email address
           </label>
+
+
+          
           <input
             id="email"
             name="email"

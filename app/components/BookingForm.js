@@ -118,22 +118,22 @@ export default function BookingForm({ user }) {
       if (!user?.id) return;
       
       try {
+        // Try to fetch from the favorite_addresses table instead of profiles
         const { data, error } = await supabase
-          .from('profiles')
-          .select('favorite_addresses')
-          .eq('id', user.id)
-          .single();
-          
+          .from('favorite_addresses')
+          .select('*')
+          .eq('user_id', user.id);
+
         if (error) {
-          console.error('Error fetching favorite addresses:', error);
+          console.error('Error fetching favorite addresses:', error.message || error);
+          setFavoriteAddresses([]);
           return;
         }
-        
-        if (data?.favorite_addresses) {
-          setFavoriteAddresses(data.favorite_addresses);
-        }
-      } catch (error) {
-        console.error('Failed to fetch favorite addresses:', error);
+
+        setFavoriteAddresses(data || []);
+      } catch (err) {
+        console.error('Unexpected error fetching favorite addresses:', err);
+        setFavoriteAddresses([]);
       }
     };
     
@@ -167,6 +167,7 @@ export default function BookingForm({ user }) {
         setShowFavoriteDestinationDropdown(false);
       }
     }
+    
     
     // Add event listener
     document.addEventListener("mousedown", handleClickOutside);

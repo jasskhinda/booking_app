@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { supabase } from '@/lib/supabase';
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { useRouter } from 'next/navigation';
 
 export default function UpdatePasswordForm() {
@@ -12,6 +12,7 @@ export default function UpdatePasswordForm() {
   const [error, setError] = useState('');
   const [hasSession, setHasSession] = useState(false);
   const router = useRouter();
+  const supabase = createClientComponentClient();
 
   useEffect(() => {
     const checkSession = async () => {
@@ -95,7 +96,7 @@ export default function UpdatePasswordForm() {
             required
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-900"
+            className="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500" style={{ backgroundColor: '#1b2c2f', color: '#fff' }}
           />
         </div>
         
@@ -111,7 +112,7 @@ export default function UpdatePasswordForm() {
             required
             value={confirmPassword}
             onChange={(e) => setConfirmPassword(e.target.value)}
-            className="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-900"
+            className="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500" style={{ backgroundColor: '#1b2c2f', color: '#fff' }}
           />
         </div>
       </div>
@@ -120,7 +121,7 @@ export default function UpdatePasswordForm() {
         <button
           type="submit"
           disabled={isLoading}
-          className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-[#7bcfd0] hover:bg-[#60BFC0] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#7bcfd0] disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {isLoading ? 'Updating...' : 'Update password'}
         </button>
@@ -128,7 +129,7 @@ export default function UpdatePasswordForm() {
         <div className="text-center">
           <a 
             href="/login" 
-            className="text-sm font-medium text-blue-600 hover:text-blue-500 dark:text-blue-400"
+            className="text-sm font-medium" style={{ color: '#7bcfd0' }}
           >
             Back to login
           </a>

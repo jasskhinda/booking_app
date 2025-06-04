@@ -24,6 +24,7 @@ export default async function PaymentMethods() {
       .select('*')
       .eq('id', session.user.id)
       .single();
+      
     
     if (error && error.code !== 'PGRST116') {
       console.error('Error fetching profile:', error);

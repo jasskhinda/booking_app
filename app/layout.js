@@ -26,6 +26,10 @@ export const metadata = {
   manifest: '/site.webmanifest',
 };
 
+
+
+
+
 export default function RootLayout({ children }) {
   // Current timestamp for cache-busting favicons
   const faviconVersion = Date.now();

@@ -92,6 +92,8 @@ function CardSetupForm({ clientSecret, onSuccess, onError, onCancel, profile, us
           },
         },
       });
+
+
       
       if (error) {
         throw new Error(error.message);
@@ -104,6 +106,8 @@ function CardSetupForm({ clientSecret, onSuccess, onError, onCancel, profile, us
       setProcessing(false);
     }
   };
+
+
   
   return (
     <form onSubmit={handleSubmit} className="space-y-4 p-4 border border-[#DDE5E7] dark:border-[#3F5E63] rounded-lg bg-white dark:bg-[#1C2C2F]">
@@ -123,6 +127,7 @@ function CardSetupForm({ clientSecret, onSuccess, onError, onCancel, profile, us
           Your card information is securely processed by Stripe.
         </p>
       </div>
+
       
       <div className="flex space-x-2">
         <button
@@ -204,8 +209,11 @@ export default function PaymentMethodsManager({ user, profile }) {
         headers: { 'Content-Type': 'application/json' },
       });
       
+
       const { clientSecret, error } = await response.json();
       
+
+
       if (error) {
         throw new Error(error);
       }
@@ -224,6 +232,8 @@ export default function PaymentMethodsManager({ user, profile }) {
       });
     }
   };
+
+
 
   const handleRemovePaymentMethod = async (paymentMethodId) => {
     if (!window.confirm('Are you sure you want to remove this payment method?')) {
@@ -265,10 +275,14 @@ export default function PaymentMethodsManager({ user, profile }) {
     }
   };
 
+
+
   const handleSetDefaultPaymentMethod = async (paymentMethodId) => {
     try {
       setDefaultPaymentMethod(paymentMethodId);
       await updateDefaultPaymentMethod(paymentMethodId);
+
+
       
       setMessage({
         text: 'Default payment method updated successfully!',
@@ -379,10 +393,12 @@ export default function PaymentMethodsManager({ user, profile }) {
         
         {isLoading ? (
           <div className="text-center py-8">
+
             <svg className="animate-spin h-8 w-8 text-[#7CCFD0] mx-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
               <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
               <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
             </svg>
+
             <p className="mt-2 text-[#2E4F54]/70 dark:text-[#E0F4F5]/70">Loading payment methods...</p>
           </div>
         ) : (
@@ -408,7 +424,7 @@ export default function PaymentMethodsManager({ user, profile }) {
                     </svg>
                     <h3 className="mt-2 text-sm font-medium text-[#2E4F54] dark:text-[#E0F4F5]">No payment methods</h3>
                     <p className="mt-1 text-sm text-[#2E4F54]/70 dark:text-[#E0F4F5]/70">
-                      You haven&apos;t added any payment methods yet.
+                      You haven't added any payment methods yet.
                     </p>
                   </div>
                 ) : (

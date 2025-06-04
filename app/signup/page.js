@@ -8,7 +8,7 @@ export default function Signup() {
           <h1 className="text-2xl font-bold">Create your account</h1>
           <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
             Already have an account?{' '}
-            <a href="/login" className="font-medium text-blue-600 hover:text-blue-500 dark:text-blue-400">
+            <a href="/login" className="font-medium" style={{ color: '#7bcfd0' }}>
               Sign in
             </a>
           </p>
