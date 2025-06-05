@@ -4,6 +4,7 @@ import { cookies } from 'next/headers';
 import Stripe from 'stripe';
 
 // Initialize Stripe with the secret key
+console.log('STRIPE_SECRET_KEY:', process.env.STRIPE_SECRET_KEY);
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || 'sk_test_51OlJ2zLkdIwU2RZE1z0zrUWvEJ3XbXxFGm7n8s');
 
 export async function POST() {
@@ -73,6 +74,16 @@ export async function POST() {
     return NextResponse.json({ clientSecret: setupIntent.client_secret });
   } catch (error) {
     console.error('Error creating setup intent:', error);
+    if (error.raw) {
+      // Stripe error details
+      console.error('Stripe error details:', error.raw);
+    }
+    if (error instanceof Error) {
+      return NextResponse.json(
+        { error: error.message || 'Failed to create setup intent' },
+        { status: 500 }
+      );
+    }
     return NextResponse.json(
       { error: 'Failed to create setup intent' },
       { status: 500 }

@@ -4,6 +4,7 @@ import { cookies } from 'next/headers';
 import Stripe from 'stripe';
 
 // Initialize Stripe with the secret key
+console.log('STRIPE_SECRET_KEY:', process.env.STRIPE_SECRET_KEY);
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || 'sk_test_51OlJ2zLkdIwU2RZE');
 
 // GET handler to retrieve payment methods
@@ -49,6 +50,16 @@ export async function GET() {
     return NextResponse.json({ paymentMethods: paymentMethods.data });
   } catch (error) {
     console.error('Error retrieving payment methods:', error);
+    if (error.raw) {
+      // Stripe error details
+      console.error('Stripe error details:', error.raw);
+    }
+    if (error instanceof Error) {
+      return NextResponse.json(
+        { error: error.message || 'Failed to retrieve payment methods' },
+        { status: 500 }
+      );
+    }
     return NextResponse.json(
       { error: 'Failed to retrieve payment methods' },
       { status: 500 }

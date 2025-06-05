@@ -174,3 +174,34 @@ ON trips FOR DELETE
 USING (
   (SELECT role FROM profiles WHERE id = auth.uid()) = 'dispatcher'
 );
+
+-- Create favorite_addresses table for user address book
+CREATE TABLE IF NOT EXISTS favorite_addresses (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  user_id UUID REFERENCES profiles(id) ON DELETE CASCADE NOT NULL,
+  name TEXT NOT NULL, -- e.g. "Home", "Work"
+  address TEXT NOT NULL,
+  type TEXT CHECK (type IN ('pickup', 'destination', 'both')) DEFAULT 'both',
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Index for fast lookup
+CREATE INDEX IF NOT EXISTS favorite_addresses_user_id_idx ON favorite_addresses(user_id);
+
+-- RLS for favorite_addresses
+ALTER TABLE favorite_addresses ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Users can view their own favorite addresses"
+  ON favorite_addresses FOR SELECT
+  USING (user_id = auth.uid());
+CREATE POLICY "Users can insert their own favorite addresses"
+  ON favorite_addresses FOR INSERT
+  WITH CHECK (user_id = auth.uid());
+CREATE POLICY "Users can update their own favorite addresses"
+  ON favorite_addresses FOR UPDATE
+  USING (user_id = auth.uid());
+CREATE POLICY "Users can delete their own favorite addresses"
+  ON favorite_addresses FOR DELETE
+  USING (user_id = auth.uid());
+
+-- NOTE: The app uses default_payment_method_id (Stripe payment method id, e.g. pm_xxx) for preferred card.
+-- The old preferred_payment_method column is deprecated and can be ignored.

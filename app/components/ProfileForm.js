@@ -16,6 +16,7 @@ export default function ProfileForm({ user, profile = {} }) {
     medical_requirements: '',
     emergency_contact: '',
     preferred_payment_method: '',
+    default_payment_method_id: '', // <-- add this field
     is_veteran: false,
     favorite_addresses: [],
   });
@@ -34,13 +35,11 @@ export default function ProfileForm({ user, profile = {} }) {
       // Splitting full name into first and last name if we have it but not individual fields
       let firstName = profile.first_name;
       let lastName = profile.last_name;
-      
       if ((!firstName || !lastName) && profile.full_name) {
         const nameParts = profile.full_name.split(' ');
         firstName = nameParts[0] || '';
         lastName = nameParts.slice(1).join(' ') || '';
       }
-      
       setFormData(prevData => ({
         ...prevData,
         first_name: firstName || '',
@@ -50,7 +49,8 @@ export default function ProfileForm({ user, profile = {} }) {
         accessibility_needs: profile.accessibility_needs || '',
         medical_requirements: profile.medical_requirements || '',
         emergency_contact: profile.emergency_contact || '',
-        preferred_payment_method: profile.preferred_payment_method || '',
+        preferred_payment_method: profile.default_payment_method_id || profile.preferred_payment_method || '', // sync with canonical field
+        default_payment_method_id: profile.default_payment_method_id || '', // ensure this is set
         is_veteran: profile.is_veteran || false,
         favorite_addresses: profile.favorite_addresses || [],
       }));
@@ -132,14 +132,12 @@ export default function ProfileForm({ user, profile = {} }) {
     try {
       // Debug log to see what data we're sending
       console.log('Updating profile with data:', {
-        id: user.id,
         ...formData,
-        updated_at: new Date().toISOString()
+        updated_at: new Date().toISOString(),
+        default_payment_method_id: formData.preferred_payment_method || null // Use Stripe payment method id
       });
-      
-      // Update profile in Supabase - only include fields that exist in the profiles table
+      // Only send fields that exist in the DB
       const profileData = {
-        id: user.id,
         first_name: formData.first_name,
         last_name: formData.last_name,
         phone_number: formData.phone_number,
@@ -147,73 +145,69 @@ export default function ProfileForm({ user, profile = {} }) {
         accessibility_needs: formData.accessibility_needs,
         medical_requirements: formData.medical_requirements,
         emergency_contact: formData.emergency_contact,
-        preferred_payment_method: formData.preferred_payment_method,
         is_veteran: formData.is_veteran,
-        favorite_addresses: formData.favorite_addresses,
-        updated_at: new Date().toISOString()
+        updated_at: new Date().toISOString(),
+        default_payment_method_id: formData.default_payment_method_id === '' ? null : formData.default_payment_method_id
       };
-      
-      console.log('Current user ID:', user.id);
-      
+      // Remove deprecated preferred_payment_method field
+      delete profileData.preferred_payment_method;
+
       // Try getting the profile first to see if we're updating or inserting
       const { data: existingProfile } = await supabase
         .from('profiles')
         .select('id')
         .eq('id', user.id)
         .single();
-      
+
       let error;
-      
+      let result;
       if (existingProfile) {
         console.log('Updating existing profile');
-        const result = await supabase
+        result = await supabase
           .from('profiles')
           .update(profileData)
           .eq('id', user.id);
-        
         error = result.error;
       } else {
         console.log('Inserting new profile');
-        const result = await supabase
+        result = await supabase
           .from('profiles')
           .insert(profileData);
-        
         error = result.error;
       }
 
       if (error) {
-        console.error('Supabase error details:', error);
+        // Log full error object for debugging
+        console.error('Supabase error details:', error, result);
         throw error;
       }
 
-      // Update user metadata with first name and last name
+      // Update user metadata with first name and last name if they differ
       const fullName = `${formData.first_name} ${formData.last_name}`.trim();
       if (fullName !== `${user?.user_metadata?.first_name || ''} ${user?.user_metadata?.last_name || ''}`.trim()) {
         const { error: metadataError } = await supabase.auth.updateUser({
-          data: { 
+          data: {
             first_name: formData.first_name,
             last_name: formData.last_name
           }
         });
-
         if (metadataError) {
           console.warn('Failed to update user metadata, but profile was saved:', metadataError);
         }
       }
 
-      setMessage({ 
-        text: 'Profile updated successfully!', 
-        type: 'success' 
+      setMessage({
+        text: 'Profile updated successfully!',
+        type: 'success'
       });
     } catch (error) {
       console.error('Error updating profile:', error);
-      setMessage({ 
-        text: error.message || 'Failed to update profile. Please try again.', 
-        type: 'error' 
+      setMessage({
+        text: error.message || 'Failed to update profile. Please try again.',
+        type: 'error'
       });
     } finally {
       setIsLoading(false);
-      
       // Clear success message after 3 seconds
       if (message.type === 'success') {
         setTimeout(() => {
@@ -485,21 +479,23 @@ export default function ProfileForm({ user, profile = {} }) {
               <div className="space-y-4">
                 <div>
                   <label htmlFor="preferred_payment_method" className="block text-sm font-medium text-[#2E4F54] dark:text-[#E0F4F5] mb-1">
-                    Preferred Payment Method Type
+                    Your Preferred Payment Method
                   </label>
                   <select
                     id="preferred_payment_method"
                     name="preferred_payment_method"
                     value={formData.preferred_payment_method}
-                    onChange={handleChange}
-                    className="w-full p-2 border border-[#DDE5E7] dark:border-[#3F5E63] rounded-md dark:bg-[#1C2C2F] text-[#2E4F54] dark:text-[#E0F4F5]"
+                    disabled
+                    className="w-full p-2 border border-[#DDE5E7] dark:border-[#3F5E63] rounded-md dark:bg-[#1C2C2F] text-[#2E4F54] dark:text-[#E0F4F5] bg-gray-100 dark:bg-[#24393C] cursor-not-allowed"
                   >
-                    <option value="">Select a payment method</option>
-                    {paymentMethods.map((method) => (
-                      <option key={method.id} value={method.id}>
-                        {`${method.card.brand.toUpperCase()} •••• ${method.card.last4} (${method.card.funding === 'debit' ? 'Debit' : 'Credit'})`}
-                      </option>
-                    ))}
+                    {/* Only show the default payment method as an option */}
+                    {paymentMethods
+                      .filter(method => method.id === formData.default_payment_method_id)
+                      .map((method) => (
+                        <option key={method.id} value={method.id}>
+                          {`${method.card.brand.toUpperCase()} •••• ${method.card.last4} (${method.card.funding === 'debit' ? 'Debit' : 'Credit'})`}
+                        </option>
+                      ))}
                   </select>
                 </div>
                 
@@ -536,7 +532,7 @@ export default function ProfileForm({ user, profile = {} }) {
       {/* Account Section */}
       <div className="bg-[#F8F9FA] dark:bg-[#24393C] rounded-lg shadow-md border border-[#DDE5E7] dark:border-[#3F5E63] p-6">
         <h3 className="text-lg font-medium text-[#2E4F54] dark:text-[#E0F4F5] mb-4">Account Information</h3>
-        <div className="mb-4">
+        <div className="mb-4"> 
           <div className="text-sm text-[#2E4F54]/70 dark:text-[#E0F4F5]/70">Email</div>
           <div className="font-medium text-[#2E4F54] dark:text-[#E0F4F5]">{user.email}</div>
         </div>
