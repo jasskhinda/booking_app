@@ -26,6 +26,7 @@ export default function ProfileForm({ user, profile = {} }) {
   });
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState({ text: '', type: '' });
+  const [paymentMethods, setPaymentMethods] = useState([]);
 
   // Initialize form data with profile data
   useEffect(() => {
@@ -55,6 +56,21 @@ export default function ProfileForm({ user, profile = {} }) {
       }));
     }
   }, [profile, user]);
+
+  useEffect(() => {
+    async function fetchPaymentMethods() {
+      try {
+        const response = await fetch('/api/stripe/payment-methods');
+        const data = await response.json();
+        if (response.ok) {
+          setPaymentMethods(data.paymentMethods || []);
+        }
+      } catch (err) {
+        // Optionally handle error
+      }
+    }
+    fetchPaymentMethods();
+  }, []);
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -479,7 +495,11 @@ export default function ProfileForm({ user, profile = {} }) {
                     className="w-full p-2 border border-[#DDE5E7] dark:border-[#3F5E63] rounded-md dark:bg-[#1C2C2F] text-[#2E4F54] dark:text-[#E0F4F5]"
                   >
                     <option value="">Select a payment method</option>
-                    <option value="credit_card">Credit Card</option>
+                    {paymentMethods.map((method) => (
+                      <option key={method.id} value={method.id}>
+                        {`${method.card.brand.toUpperCase()} •••• ${method.card.last4} (${method.card.funding === 'debit' ? 'Debit' : 'Credit'})`}
+                      </option>
+                    ))}
                   </select>
                 </div>
                 
