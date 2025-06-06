@@ -151,6 +151,10 @@ export default function ProfileForm({ user, profile = {} }) {
       };
       // Remove deprecated preferred_payment_method field
       delete profileData.preferred_payment_method;
+      // Remove favorite_addresses if present
+      delete profileData.favorite_addresses;
+      // Remove is_veteran if not in schema
+      delete profileData.is_veteran;
 
       // Try getting the profile first to see if we're updating or inserting
       const { data: existingProfile } = await supabase

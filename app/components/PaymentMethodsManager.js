@@ -232,9 +232,7 @@ export default function PaymentMethodsManager({ user, profile }) {
       });
     }
   };
-
-
-
+  // Handle removing a payment method
   const handleRemovePaymentMethod = async (paymentMethodId) => {
     if (!window.confirm('Are you sure you want to remove this payment method?')) {
       return;
@@ -321,8 +319,10 @@ export default function PaymentMethodsManager({ user, profile }) {
     return `•••• •••• •••• ${last4}`;
   };
 
+
   // Get card brand logo (simplified version)
   const getCardBrandLogo = (brand) => {
+
     switch (brand.toLowerCase()) {
       case 'visa':
         return '💳'; // In a real app, you'd use proper SVG logos
@@ -473,6 +473,7 @@ export default function PaymentMethodsManager({ user, profile }) {
                 )}
                 
                 <div className="mt-6">
+
                   <button
                     onClick={handleAddPaymentMethod}
                     disabled={isAddingMethod}
@@ -486,6 +487,7 @@ export default function PaymentMethodsManager({ user, profile }) {
                         </svg>
                         Processing...
                       </>
+
                     ) : (
                       <>
                         <svg className="-ml-1 mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

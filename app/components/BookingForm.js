@@ -195,6 +195,7 @@ export default function BookingForm({ user }) {
     const directionsService = new window.google.maps.DirectionsService();
     
     directionsService.route({
+
       origin,
       destination,
       travelMode: window.google.maps.TravelMode.DRIVING,
@@ -275,12 +276,16 @@ export default function BookingForm({ user }) {
           const priceBeforeDiscount = basePrice;
           let discountPercentage = 0;
           let discountAmount = 0;
+
           
           if (profileData?.is_veteran) {
             discountPercentage = 20;
             discountAmount = basePrice * 0.2;
             basePrice = basePrice * 0.8; // 20% discount for veterans
-          } else {
+          } 
+          
+          // For non-veterans, apply a 10% discount
+          else {
             discountPercentage = 10;
             discountAmount = basePrice * 0.1;
             basePrice = basePrice * 0.9; // 10% discount for non-veterans
@@ -320,10 +325,13 @@ export default function BookingForm({ user }) {
           setPricingBreakdown(breakdown);
           setEstimatedFare(finalPrice);
           setEstimatedDuration(duration);
+
+
         }
       } else {
         console.error('Error calculating route:', status);
       }
+      
     });
   }, [mapInstance, directionsRenderer, formData.isRoundTrip, formData.pickupTime]);
 
