@@ -7,6 +7,18 @@ import DashboardLayout from './DashboardLayout';
 import RatingForm from './RatingForm';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 
+// Card helpers for displaying payment info
+const formatCardNumber = (last4) => `•••• •••• •••• ${last4}`;
+const getCardBrandLogo = (brand) => {
+  switch ((brand || '').toLowerCase()) {
+    case 'visa': return '💳';
+    case 'mastercard': return '💳';
+    case 'amex': return '💳';
+    case 'discover': return '💳';
+    default: return '💳';
+  }
+};
+
 export default function TripsView({ user, trips: initialTrips = [], successMessage = null }) {
   const [filter, setFilter] = useState('all'); // all, upcoming, completed, cancelled
   const [cancellingTrip, setCancellingTrip] = useState(null);
@@ -284,6 +296,19 @@ export default function TripsView({ user, trips: initialTrips = [], successMessa
                          trip.status === 'completed' ? 'Completed' : 
                          trip.status === 'in_progress' ? 'In Progress' : 'Cancelled'}
                       </span>
+                      {/* Payment status badge */}
+                      {trip.payment_method_id && (
+                        <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300" title="Card on file">
+                          <span className="mr-1">{getCardBrandLogo(trip.card_brand)}</span>
+                          {formatCardNumber(trip.card_last4)}
+                        </span>
+                      )}
+                      {/* Optionally, show payment status if available (e.g., trip.payment_status) */}
+                      {trip.payment_status && (
+                        <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300" title="Payment Status">
+                          {trip.payment_status}
+                        </span>
+                      )}
                       <p className="mt-2 text-sm text-[#2E4F54]/70 dark:text-[#E0F4F5]/70">
                         {formatDate(trip.pickup_time)}
                       </p>
@@ -348,6 +373,7 @@ export default function TripsView({ user, trips: initialTrips = [], successMessa
                           <button
                             onClick={() => startCancellation(trip.id)}
                             className="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded text-red-700 bg-red-100 hover:bg-red-200 dark:bg-red-900/30 dark:text-red-300 dark:hover:bg-red-900/50"
+                            aria-label="Cancel trip"
                           >
                             Cancel
                           </button>
@@ -379,6 +405,7 @@ export default function TripsView({ user, trips: initialTrips = [], successMessa
                         <button
                           onClick={() => startCancellation(trip.id)}
                           className="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded text-red-700 bg-red-100 hover:bg-red-200 dark:bg-red-900/30 dark:text-red-300 dark:hover:bg-red-900/50"
+                          aria-label="Cancel trip"
                         >
                           Cancel
                         </button>
@@ -409,6 +436,7 @@ export default function TripsView({ user, trips: initialTrips = [], successMessa
                             onClick={() => handleRebookTrip(trip)}
                             disabled={isSubmitting && rebookingTrip === trip.id}
                             className="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded text-green-700 bg-green-100 hover:bg-green-200 dark:bg-green-900/30 dark:text-green-300 dark:hover:bg-green-900/50"
+                            aria-label="Rebook trip"
                           >
                             {isSubmitting && rebookingTrip === trip.id ? (
                               <>

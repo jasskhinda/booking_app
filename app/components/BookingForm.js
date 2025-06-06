@@ -5,6 +5,7 @@ import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { useRouter } from 'next/navigation';
 import DashboardLayout from './DashboardLayout';
 import Script from 'next/script';
+import PaymentMethodsManager, { CardSetupForm } from './PaymentMethodsManager';
 
 // Helper function to format date in AM/PM format
 function formatTimeAmPm(dateStr) {
@@ -55,7 +56,7 @@ function formatMonthDay(date) {
   });
 }
 
-export default function BookingForm({ user }) {
+export default function BookingForm({ user, profile }) {
   const [formData, setFormData] = useState({
     pickupAddress: '',
     destinationAddress: '',
@@ -63,6 +64,7 @@ export default function BookingForm({ user }) {
     returnPickupTime: '',
     wheelchairType: 'no_wheelchair',
     isRoundTrip: false,
+    
   });
   const [isLoading, setIsLoading] = useState(false);
   const [bookingStatus, setBookingStatus] = useState('idle'); // idle, loading, submitting, success, error
@@ -85,6 +87,14 @@ export default function BookingForm({ user }) {
 
   const router = useRouter();
   const supabase = createClientComponentClient();
+
+  // Payment state
+  const [paymentMethods, setPaymentMethods] = useState([]);
+  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState('');
+  const [isAddingCard, setIsAddingCard] = useState(false);
+  const [clientSecret, setClientSecret] = useState(null);
+  const [paymentLoading, setPaymentLoading] = useState(true);
+  const [paymentError, setPaymentError] = useState('');
 
   // Format datetime default value
   useEffect(() => {
@@ -140,6 +150,32 @@ export default function BookingForm({ user }) {
     fetchFavoriteAddresses();
   }, [user, supabase]);
   
+  // Fetch payment methods on mount
+  useEffect(() => {
+    async function fetchPaymentMethods() {
+      setPaymentLoading(true);
+      setPaymentError('');
+      try {
+        const response = await fetch('/api/stripe/payment-methods');
+        const data = await response.json();
+        if (response.ok) {
+          setPaymentMethods(data.paymentMethods || []);
+          if (data.paymentMethods && data.paymentMethods.length > 0) {
+            // Preselect default or first card
+            setSelectedPaymentMethod(profile?.default_payment_method_id || data.paymentMethods[0].id);
+          }
+        } else {
+          setPaymentError(data.error || 'Failed to load payment methods');
+        }
+      } catch (err) {
+        setPaymentError('Failed to load payment methods');
+      } finally {
+        setPaymentLoading(false);
+      }
+    }
+    fetchPaymentMethods();
+  }, [user]);
+
   // Handle click outside date picker and favorite address dropdowns to close them
   useEffect(() => {
     function handleClickOutside(event) {
@@ -536,7 +572,7 @@ export default function BookingForm({ user }) {
       }
       
       if (destinationAutocompleteRef.current) {
-        window.google?.maps?.event?.clearInstanceListeners(destinationAutocompleteRef.current);
+        window?.google?.maps?.event?.clearInstanceListeners(destinationAutocompleteRef.current);
         destinationAutocompleteRef.current = null;
       }
     };
@@ -668,6 +704,44 @@ export default function BookingForm({ user }) {
     setCurrentView('time'); // Switch to time selection after date is selected
   };
 
+  // Add card handler
+  const handleAddCard = async () => {
+    setPaymentError('');
+    setIsAddingCard(true);
+    try {
+      const response = await fetch('/api/stripe/setup-intent', { method: 'POST', headers: { 'Content-Type': 'application/json' } });
+      const { clientSecret, error } = await response.json();
+      if (error || !clientSecret) throw new Error(error || 'Failed to get setup intent');
+      setClientSecret(clientSecret);
+    } catch (err) {
+      setPaymentError(err.message || 'Failed to start card setup');
+      setIsAddingCard(false);
+    }
+  };
+
+  const handleCardSetupSuccess = async () => {
+    setIsAddingCard(false);
+    setClientSecret(null);
+    // Refresh payment methods
+    setPaymentLoading(true);
+    const response = await fetch('/api/stripe/payment-methods');
+    const data = await response.json();
+    setPaymentMethods(data.paymentMethods || []);
+    if (data.paymentMethods && data.paymentMethods.length > 0) {
+      setSelectedPaymentMethod(data.paymentMethods[0].id);
+    }
+    setPaymentLoading(false);
+  };
+  const handleCardSetupError = (err) => {
+    setPaymentError(err.message || 'Failed to add card');
+    setIsAddingCard(false);
+    setClientSecret(null);
+  };
+  const handleCardSetupCancel = () => {
+    setIsAddingCard(false);
+    setClientSecret(null);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
@@ -764,6 +838,7 @@ export default function BookingForm({ user }) {
           distance: distanceMiles > 0 
             ? Math.round((formData.isRoundTrip ? distanceMiles * 2 : distanceMiles) * 10) / 10 
             : null, // Save distance in miles, doubled for round trips, rounded to 1 decimal
+          payment_method_id: selectedPaymentMethod,
           created_at: new Date().toISOString(),
         }])
         .select();
@@ -1463,10 +1538,53 @@ export default function BookingForm({ user }) {
                 </div>
               </div>
               
+              {/* Payment Method Selection */}
+              <div className="col-span-1 md:col-span-2">
+                <label className="block text-sm font-medium text-[#2E4F54] dark:text-[#E0F4F5] mb-1">
+                  Payment Method
+                </label>
+                {paymentLoading ? (
+                  <div className="text-sm text-[#2E4F54]/70 dark:text-[#E0F4F5]/70">Loading payment methods...</div>
+                ) : paymentMethods.length === 0 ? (
+                  <div className="space-y-2">
+                    <div className="text-sm text-[#2E4F54]/70 dark:text-[#E0F4F5]/70">You must add a card before booking a ride.</div>
+                    {!isAddingCard && (
+                      <button type="button" onClick={handleAddCard} className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-[#7CCFD0] hover:bg-[#60BFC0] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#7CCFD0]">
+                        Add Card
+                      </button>
+                    )}
+                    {paymentError && <div className="text-red-600 text-xs mt-2">{paymentError}</div>}
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    <select
+                      className="w-full p-2 border border-[#DDE5E7] dark:border-[#3F5E63] rounded-md dark:bg-[#1C2C2F] text-[#2E4F54] dark:text-[#E0F4F5]"
+                      value={selectedPaymentMethod}
+                      onChange={e => setSelectedPaymentMethod(e.target.value)}
+                      required
+                    >
+                      {paymentMethods.map(method => (
+                        <option key={method.id} value={method.id}>
+                          {`${method.card.brand.toUpperCase()} •••• ${method.card.last4} (${method.card.funding === 'debit' ? 'Debit' : 'Credit'})`}
+                        </option>
+                      ))}
+                    </select>
+                    <button
+                      type="button"
+                      onClick={handleAddCard}
+                      className="inline-flex items-center px-3 py-1 border border-transparent rounded-md text-xs font-medium bg-[#7bcfd0] text-white hover:bg-[#60BFC0] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#7CCFD0]"
+                    >
+                      Add New Card
+                    </button>
+                    {paymentError && <div className="text-red-600 text-xs mt-2">{paymentError}</div>}
+                  </div>
+                )}
+              </div>
+
               <div>
                 <button
                   type="submit"
-                  disabled={isLoading}
+                  disabled={isLoading || paymentMethods.length === 0 || !selectedPaymentMethod}
                   className="w-full py-3 px-4 bg-[#7CCFD0] hover:bg-[#60BFC0] text-white dark:text-[#1C2C2F] font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#7CCFD0] disabled:opacity-50 disabled:cursor-not-allowed relative overflow-hidden"
                 >
                   {bookingStatus === 'loading' && (
@@ -1498,6 +1616,30 @@ export default function BookingForm({ user }) {
           )}
         </div>
       </DashboardLayout>
+      
+      {/* Card Setup Form - Rendered outside the main form to avoid nested <form> hydration error */}
+      {isAddingCard && clientSecret && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30">
+          <div className="bg-white dark:bg-[#1C2C2F] rounded-lg shadow-lg p-6 w-full max-w-md mx-2 relative">
+            <CardSetupForm
+              clientSecret={clientSecret}
+              onSuccess={handleCardSetupSuccess}
+              onError={handleCardSetupError}
+              onCancel={handleCardSetupCancel}
+              profile={profile}
+              user={user}
+            />
+            <button
+              type="button"
+              onClick={handleCardSetupCancel}
+              className="absolute top-2 right-2 text-[#2E4F54] dark:text-[#E0F4F5] hover:text-red-500"
+              aria-label="Close add card form"
+            >
+              ×
+            </button>
+          </div>
+        </div>
+      )}
     </>
   );
 }
