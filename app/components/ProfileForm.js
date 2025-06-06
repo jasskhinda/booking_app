@@ -153,8 +153,6 @@ export default function ProfileForm({ user, profile = {} }) {
       delete profileData.preferred_payment_method;
       // Remove favorite_addresses if present
       delete profileData.favorite_addresses;
-      // Remove is_veteran if not in schema
-      delete profileData.is_veteran;
 
       // Try getting the profile first to see if we're updating or inserting
       const { data: existingProfile } = await supabase
@@ -267,6 +265,7 @@ export default function ProfileForm({ user, profile = {} }) {
                     type="text"
                     required
                     value={formData.last_name}
+
                     onChange={handleChange}
                     className="w-full p-2 border border-[#DDE5E7] dark:border-[#3F5E63] rounded-md dark:bg-[#1C2C2F] text-[#2E4F54] dark:text-[#E0F4F5]"
                   />
@@ -298,6 +297,7 @@ export default function ProfileForm({ user, profile = {} }) {
                     onChange={handleChange}
                     className="w-full p-2 border border-[#DDE5E7] dark:border-[#3F5E63] rounded-md dark:bg-[#1C2C2F] text-[#2E4F54] dark:text-[#E0F4F5]"
                   />
+                  
                 </div>
                 
                 <div className="md:col-span-2">

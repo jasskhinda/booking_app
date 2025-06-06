@@ -70,6 +70,7 @@ CREATE TABLE profiles (
   preferred_payment_method TEXT,
   stripe_customer_id TEXT,
   default_payment_method_id TEXT,
+  is_veteran BOOLEAN DEFAULT FALSE,
   role TEXT DEFAULT 'client',
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
