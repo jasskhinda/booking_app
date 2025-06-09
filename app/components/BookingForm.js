@@ -821,30 +821,63 @@ export default function BookingForm({ user, profile }) {
       
       setBookingStatus('submitting');
       
+      // Debug: Log user and insert payload before insert
+      console.log('BookingForm DEBUG: user', user);
+      console.log('BookingForm DEBUG: insert payload', {
+        user_id: user.id,
+        pickup_address: pickupAddressValue,
+        destination_address: destinationAddressValue,
+        pickup_time: formData.pickupTime,
+        return_pickup_time: formData.isRoundTrip ? formData.returnPickupTime : null,
+        status: 'pending',
+        special_requirements: null,
+        wheelchair_type: formData.wheelchairType,
+        is_round_trip: formData.isRoundTrip,
+        price: calculatedPrice,
+        distance: distanceMiles > 0 
+          ? Math.round((formData.isRoundTrip ? distanceMiles * 2 : distanceMiles) * 10) / 10 
+          : null,
+        created_at: new Date().toISOString(),
+      });
+
       // Insert the trip into the database
       const { data, error: insertError } = await supabase
         .from('trips')
-        .insert([{
-          user_id: user.id,
-          pickup_address: pickupAddressValue,
-          destination_address: destinationAddressValue,
-          pickup_time: formData.pickupTime,
-          return_pickup_time: formData.isRoundTrip ? formData.returnPickupTime : null, // Save return pickup time only for round trips
-          status: 'pending', // Changed from 'upcoming' to 'pending'
-          special_requirements: null,
-          wheelchair_type: formData.wheelchairType,
-          is_round_trip: formData.isRoundTrip,
-          price: calculatedPrice, // Save estimated price
-          distance: distanceMiles > 0 
-            ? Math.round((formData.isRoundTrip ? distanceMiles * 2 : distanceMiles) * 10) / 10 
-            : null, // Save distance in miles, doubled for round trips, rounded to 1 decimal
-          payment_method_id: selectedPaymentMethod,
-          created_at: new Date().toISOString(),
-        }])
+        .insert([
+          {
+            user_id: user.id,
+            pickup_address: pickupAddressValue,
+            destination_address: destinationAddressValue,
+            pickup_time: formData.pickupTime,
+            return_pickup_time: formData.isRoundTrip ? formData.returnPickupTime : null, // Save return pickup time only for round trips
+            status: 'pending', // Changed from 'upcoming' to 'pending'
+            special_requirements: null,
+            wheelchair_type: formData.wheelchairType,
+            is_round_trip: formData.isRoundTrip,
+            price: calculatedPrice, // Save estimated price
+            distance: distanceMiles > 0 
+              ? Math.round((formData.isRoundTrip ? distanceMiles * 2 : distanceMiles) * 10) / 10 
+              : null, // Save distance in miles, doubled for round trips, rounded to 1 decimal
+            created_at: new Date().toISOString(),
+          }
+        ])
         .select();
 
+      // Debug: Log full Supabase response
+      console.log('BookingForm DEBUG: Supabase insert response', { data, insertError });
+
       if (insertError) {
-        throw insertError;
+        console.error('Supabase insert error:', insertError);
+        console.error('Supabase insert error details:', JSON.stringify(insertError));
+        setError(
+          insertError.message ||
+          insertError.details ||
+          JSON.stringify(insertError) ||
+          'Failed to book trip. Please try again.'
+        );
+        setBookingStatus('error');
+        setIsLoading(false);
+        return;
       }
 
       console.log('Trip booked successfully:', data);
@@ -1589,7 +1622,7 @@ export default function BookingForm({ user, profile }) {
                 >
                   {bookingStatus === 'loading' && (
                     <span className="absolute inset-0 flex items-center justify-center bg-[#7CCFD0]">
-                      <svg className="animate-spin h-5 w-5 text-white dark:text-[#1C2C2F]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <svg className="animate-spin h-5 w-5 text-white dark:text-[#1C2C2F]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24  24">
                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                         <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                       </svg>

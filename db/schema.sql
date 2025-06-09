@@ -169,6 +169,8 @@ USING (
   (SELECT role FROM profiles WHERE id = auth.uid()) = 'dispatcher'
 );
 
+
+
 -- Policy to allow dispatchers to delete trips
 CREATE POLICY "Dispatchers can delete trips" 
 ON trips FOR DELETE 
