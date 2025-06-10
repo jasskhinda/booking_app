@@ -424,7 +424,7 @@ export default function PaymentMethodsManager({ user, profile }) {
                     </svg>
                     <h3 className="mt-2 text-sm font-medium text-[#2E4F54] dark:text-[#E0F4F5]">No payment methods</h3>
                     <p className="mt-1 text-sm text-[#2E4F54]/70 dark:text-[#E0F4F5]/70">
-                      You haven't added any payment methods yet.
+                      You haven&apos;t added any payment methods yet.
                     </p>
                   </div>
                 ) : (
