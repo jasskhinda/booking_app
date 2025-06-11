@@ -33,7 +33,7 @@ function LoginContent() {
           <h1 className="text-2xl font-bold">Sign in to your account</h1>
           <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
             Or{' '}
-            <a href="/signup" className="font-medium text-blue-600 hover:text-blue-500 dark:text-blue-400">
+            <a href="/signup" className="font-medium" style={{ color: '#7ccfd0', transition: 'color 0.2s' }} onMouseOver={e => e.currentTarget.style.color = '#60BFC0'} onMouseOut={e => e.currentTarget.style.color = '#7ccfd0'}>
               create an account
             </a>
           </p>
