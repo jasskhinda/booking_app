@@ -559,6 +559,22 @@ export default function BookingForm({ user, profile }) {
         // Update the form state without causing a re-render
         formData.destinationAddress = e.target.value;
       });
+      
+      // Geocode and set location on blur
+      pickupInput.onblur = () => {
+        if (!pickupLocation || pickupInput.value !== formData.pickupAddress) {
+          geocodeAddress(pickupInput.value, (location) => {
+            if (location) setPickupLocation(location);
+          });
+        }
+      };
+      destinationInput.onblur = () => {
+        if (!destinationLocation || destinationInput.value !== formData.destinationAddress) {
+          geocodeAddress(destinationInput.value, (location) => {
+            if (location) setDestinationLocation(location);
+          });
+        }
+      };
     } catch (error) {
       console.error('Error initializing Places Autocomplete:', error);
     }
