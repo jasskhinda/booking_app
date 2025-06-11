@@ -203,6 +203,13 @@ export default function LoginForm() {
           Google
         </button>
       </div>
+
+      <p className="mt-4 text-center text-sm text-[#6B7280]">
+        Don&apos;t have an account?{' '}
+        <a href="/signup" style={{ color: '#7ccfd0' }} className="font-medium hover:text-blue-500 dark:text-blue-400">
+          create an account
+        </a>
+      </p>
     </form>
   );
 }
