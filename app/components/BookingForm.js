@@ -223,15 +223,22 @@ export default function BookingForm({ user, profile }) {
   const [distanceMiles, setDistanceMiles] = useState(0);
   const [distanceMeters, setDistanceMeters] = useState(0);
   const [pricingBreakdown, setPricingBreakdown] = useState(null);
+  const [fareError, setFareError] = useState('');
   
   // Function to calculate route between two points and update the map
   const calculateRoute = useCallback((origin, destination) => {
-    if (!origin || !destination || !mapInstance || !directionsRenderer) return;
-    
+    setFareError('');
+    if (!origin || !destination || !mapInstance || !directionsRenderer) {
+      console.warn('[DEBUG] calculateRoute: Missing required map objects or locations', { origin, destination, mapInstance, directionsRenderer });
+      setEstimatedFare(null);
+      setEstimatedDuration(null);
+      setDistanceMiles(0);
+      setPricingBreakdown(null);
+      setFareError('Missing map or address information.');
+      return;
+    }
     const directionsService = new window.google.maps.DirectionsService();
-    
     directionsService.route({
-
       origin,
       destination,
       travelMode: window.google.maps.TravelMode.DRIVING,
@@ -361,8 +368,14 @@ export default function BookingForm({ user, profile }) {
           setPricingBreakdown(breakdown);
           setEstimatedFare(finalPrice);
           setEstimatedDuration(duration);
-
-
+          setFareError('');
+        } else {
+          console.error('Error calculating route:', status, result);
+          setEstimatedFare(null);
+          setEstimatedDuration(null);
+          setDistanceMiles(0);
+          setPricingBreakdown(null);
+          setFareError('Unable to calculate route. Please check your addresses.');
         }
       } else {
         console.error('Error calculating route:', status);
@@ -377,19 +390,17 @@ export default function BookingForm({ user, profile }) {
   
   // Initialize Google Maps
   useEffect(() => {
+    console.log('[DEBUG] isGoogleLoaded:', isGoogleLoaded);
+    console.log('[DEBUG] mapRef.current:', mapRef.current);
     if (!isGoogleLoaded || !mapRef.current) return;
-    
-    // If we already have a map instance, clean it up first
     if (mapInstance) {
-      // Clean up the previous map instance
+      console.log('[DEBUG] Cleaning up previous map instance');
       setMapInstance(null);
     }
-    
     if (directionsRenderer) {
       directionsRenderer.setMap(null);
       setDirectionsRenderer(null);
     }
-
     try {
       // Initialize Map
       const map = new window.google.maps.Map(mapRef.current, {
@@ -413,8 +424,9 @@ export default function BookingForm({ user, profile }) {
       });
       
       setDirectionsRenderer(renderer);
+      console.log('[DEBUG] Map and DirectionsRenderer initialized');
     } catch (error) {
-      console.error('Error initializing Google Maps:', error);
+      console.error('[DEBUG] Error initializing Google Maps:', error);
     }
     
     // Clean up function
@@ -596,9 +608,14 @@ export default function BookingForm({ user, profile }) {
   
   // Effect to calculate route when both locations are available
   useEffect(() => {
+    console.log('[DEBUG] pickupLocation:', pickupLocation);
+    console.log('[DEBUG] destinationLocation:', destinationLocation);
+    console.log('[DEBUG] mapInstance:', mapInstance);
+    console.log('[DEBUG] directionsRenderer:', directionsRenderer);
     if (pickupLocation && destinationLocation && mapInstance && directionsRenderer) {
       // Small timeout to ensure the map is fully initialized
       const timer = setTimeout(() => {
+        console.log('[DEBUG] Triggering calculateRoute');
         calculateRoute(pickupLocation, destinationLocation);
       }, 100);
       
@@ -1628,7 +1645,7 @@ export default function BookingForm({ user, profile }) {
                       onChange={e => setSelectedPaymentMethod(e.target.value)}
                       required
                     >
-                      {paymentMethods.map(method => (
+                                           {paymentMethods.map(method => (
                         <option key={method.id} value={method.id}>
                           {`${method.card.brand.toUpperCase()} •••• ${method.card.last4} (${method.card.funding === 'debit' ? 'Debit' : 'Credit'})`}
                         </option>
