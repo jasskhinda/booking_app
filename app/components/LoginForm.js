@@ -206,7 +206,7 @@ export default function LoginForm() {
 
       <p className="mt-4 text-center text-sm text-[#6B7280]">
         Don&apos;t have an account?{' '}
-        <a href="/signup" style={{ color: '#7ccfd0' }} className="font-medium hover:text-blue-500 dark:text-blue-400">
+        <a href="/signup" style={{ color: '#7ccfd0', transition: 'color 0.2s' }} className="font-medium hover:text-[#60BFC0] focus:text-[#60BFC0]">
           create an account
         </a>
       </p>
