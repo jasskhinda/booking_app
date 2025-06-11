@@ -605,35 +605,44 @@ export default function BookingForm({ user, profile }) {
     });
   };
   
+  const geocodeAddress = async (address, callback) => {
+    if (!window.google || !window.google.maps) return;
+    const geocoder = new window.google.maps.Geocoder();
+    geocoder.geocode({ address }, (results, status) => {
+      if (status === 'OK' && results[0]) {
+        const location = results[0].geometry.location;
+        callback({ lat: location.lat(), lng: location.lng() });
+      } else {
+        callback(null);
+      }
+    });
+  };
+
   const handleSelectFavoritePickup = (address) => {
-    // Update pickup address with the selected favorite
     setFormData(prev => ({
       ...prev,
       pickupAddress: address.address
     }));
-    
-    // If using Google places autocomplete, manually update the input field
     if (pickupAutocompleteContainerRef.current?.firstChild) {
       pickupAutocompleteContainerRef.current.firstChild.value = address.address;
     }
-    
-    // Close the dropdown
+    geocodeAddress(address.address, (location) => {
+      if (location) setPickupLocation(location);
+    });
     setShowFavoritePickupDropdown(false);
   };
   
   const handleSelectFavoriteDestination = (address) => {
-    // Update destination address with the selected favorite
     setFormData(prev => ({
       ...prev,
       destinationAddress: address.address
     }));
-    
-    // If using Google places autocomplete, manually update the input field
     if (destinationAutocompleteContainerRef.current?.firstChild) {
       destinationAutocompleteContainerRef.current.firstChild.value = address.address;
     }
-    
-    // Close the dropdown
+    geocodeAddress(address.address, (location) => {
+      if (location) setDestinationLocation(location);
+    });
     setShowFavoriteDestinationDropdown(false);
   };
   
