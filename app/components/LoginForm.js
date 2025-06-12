@@ -89,14 +89,9 @@ export default function LoginForm() {
         provider: 'google',
         options: {
           redirectTo: `${window.location.origin}/auth/callback`,
-          data: {
-            role: 'client', // Ensure role is set even on login
-          },
+          // Do NOT send any extra data or role here, let Supabase handle new/existing users
         },
       });
-
-      
-      
       if (error) {
         throw error;
       }
