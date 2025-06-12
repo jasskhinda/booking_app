@@ -73,3 +73,19 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator {
   opacity: 0.9;
   cursor: pointer;
 }
+
+@media (prefers-color-scheme: dark) {
+    .dark\:bg-\[\#1C2C2F\] {
+        background-color: #ffffff;
+    }
+    .dark\:to-\[\#1C2C2F\] {
+        --tw-gradient-to: #ffffff;
+        --tw-gradient-stops: var(--tw-gradient-via-stops, var(--tw-gradient-position), #ffffff var(--tw-gradient-from-position), var(--tw-gradient-to) var(--tw-gradient-to-position));
+    }
+    .dark\:text-\[\#E0F4F5\] {
+        color: #000000;
+    }
+    .dark\:text-\[\#E0F4F5\]\/80 {
+        color: oklab(0 0 0 / 0.8);
+    }
+}
