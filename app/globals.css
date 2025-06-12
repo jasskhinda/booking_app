@@ -1,82 +1,70 @@
 @import "tailwindcss";
 
 :root {
-  /* Original Colors - For Reference */
-  /* --background: #ffffff;
-  --foreground: #171717; */
-  
-  /* Compassionate Transportation Color Palette - Light Mode */
-  --background: #FFFFFF;
+  --background: #ffffff;
   --foreground: #111111;
-  --accent: #7BCFD0;
-  --button: #7BCFD0;
-  --button-text: #FFFFFF;
-  --card-background: #FFFFFF;
-  --border-color: #E5E7EB;
+  --accent: #7bcfd0;
+  --button: #7bcfd0;
+  --button-text: #ffffff;
+  --card-background: #ffffff;
+  --border-color: #e5e7eb;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
+body, html {
+  background: #ffffff !important;
+  color: #111111 !important;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    /* Original Colors - For Reference */
-    /* --background: #0a0a0a;
-    --foreground: #ededed; */
-    
-    /* Compassionate Transportation Color Palette - Dark Mode */
-    --background: #FFFFFF;
-    --foreground: #111111;
-    --accent: #7BCFD0;
-    --button: #7BCFD0;
-    --button-text: #FFFFFF;
-    --card-background: #FFFFFF;
-    --border-color: #E5E7EB;
-  }
-}
-
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
-}
-
-
-/* Custom utility classes for the Compassionate Transportation color scheme */
+/* Remove all @apply and @theme rules, and dark mode overrides. Use only white backgrounds and black text. */
 
 .btn-primary {
-  @apply bg-[#7BCFD0] text-white hover:bg-[#60BFC0] focus:ring-[#7CCFD0]/50;
+  background: #7bcfd0;
+  color: #fff;
+  transition: background 0.2s;
+}
+.btn-primary:hover,
+.btn-primary:focus {
+  background: #60bfc0;
 }
 
 .btn-secondary {
-  @apply bg-transparent border border-[#7BCFD0] text-[#7BCFD0] hover:bg-[#7CCFD0]/10 focus:ring-[#7CCFD0]/50;
+  background: transparent;
+  border: 1px solid #7bcfd0;
+  color: #7bcfd0;
+  transition: background 0.2s, color 0.2s;
+}
+.btn-secondary:hover,
+.btn-secondary:focus {
+  background: #e6f8f8;
+  color: #60bfc0;
 }
 
 .card {
-  @apply bg-[#FFFFFF] dark:bg-[#FFFFFF] border border-[#E5E7EB] dark:border-[#E5E7EB] rounded-lg shadow-sm;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.5rem;
+  box-shadow: 0 1px 2px 0 rgba(16, 24, 40, 0.05);
 }
 
-/* Status colors */
 .status-pending {
-  @apply bg-[#7CCFD0]/20 text-[#7CCFD0] dark:bg-[#7CCFD0]/30 dark:text-[#E0F4F5];
+  background: #e6f8f8;
+  color: #7bcfd0;
 }
-
 .status-upcoming {
-  @apply bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300;
+  background: #e0f2fe;
+  color: #0284c7;
 }
-
 .status-completed {
-  @apply bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300;
+  background: #e6f8f8;
+  color: #7bcfd0;
 }
-
 .status-cancelled {
-  @apply bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300;
+  background: #fee2e2;
+  color: #b91c1c;
 }
-
 .status-in-progress {
-  @apply bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300;
+  background: #fef9c3;
+  color: #b45309;
 }
 
 /* Custom datetime-local input styling */
@@ -84,12 +72,4 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator {
   filter: invert(74%) sepia(34%) saturate(438%) hue-rotate(142deg) brightness(87%) contrast(85%);
   opacity: 0.9;
   cursor: pointer;
-}
-
-/* Dark mode calendar icon */
-@media (prefers-color-scheme: dark) {
-  input[type="datetime-local"]::-webkit-calendar-picker-indicator {
-    filter: invert(95%) sepia(12%) saturate(529%) hue-rotate(167deg) brightness(103%) contrast(96%);
-    opacity: 0.9;
-  }
 }

@@ -107,7 +107,7 @@ export default function SignupForm() {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="mt-8 space-y-6">
+    <form onSubmit={handleSubmit} className="mt-8 space-y-6 bg-black text-white p-8 rounded-lg shadow-lg">
       {error && (
         <div className="p-3 text-sm text-red-600 bg-red-100 dark:bg-red-900/30 dark:text-red-400 rounded border border-red-200 dark:border-red-800">
           {error}
@@ -133,7 +133,7 @@ export default function SignupForm() {
               required
               value={formData.firstName}
               onChange={handleChange}
-              className="mt-1 block w-full px-3 py-2 border border-border rounded-md shadow-sm focus:outline-none focus:ring-accent focus:border-accent bg-background text-primary"
+              className="mt-1 block w-full px-3 py-2 border border-border rounded-md shadow-sm focus:outline-none focus:ring-accent focus:border-accent bg-white text-black placeholder-black"
             />
           </div>
           <div>
@@ -148,7 +148,7 @@ export default function SignupForm() {
               required
               value={formData.lastName}
               onChange={handleChange}
-              className="mt-1 block w-full px-3 py-2 border border-border rounded-md shadow-sm focus:outline-none focus:ring-accent focus:border-accent bg-background text-primary"
+              className="mt-1 block w-full px-3 py-2 border border-border rounded-md shadow-sm focus:outline-none focus:ring-accent focus:border-accent bg-white text-black placeholder-black"
             />
           </div>
         </div>
@@ -165,7 +165,7 @@ export default function SignupForm() {
             required
             value={formData.email}
             onChange={handleChange}
-            className="mt-1 block w-full px-3 py-2 border border-border rounded-md shadow-sm focus:outline-none focus:ring-accent focus:border-accent bg-background text-primary"
+            className="mt-1 block w-full px-3 py-2 border border-border rounded-md shadow-sm focus:outline-none focus:ring-accent focus:border-accent bg-white text-black placeholder-black"
           />
         </div>
         
@@ -181,7 +181,7 @@ export default function SignupForm() {
             required
             value={formData.password}
             onChange={handleChange}
-            className="mt-1 block w-full px-3 py-2 border border-border rounded-md shadow-sm focus:outline-none focus:ring-accent focus:border-accent bg-background text-primary"
+            className="mt-1 block w-full px-3 py-2 border border-border rounded-md shadow-sm focus:outline-none focus:ring-accent focus:border-accent bg-white text-black placeholder-black"
           />
         </div>
         
@@ -197,7 +197,7 @@ export default function SignupForm() {
             required
             value={formData.confirmPassword}
             onChange={handleChange}
-            className="mt-1 block w-full px-3 py-2 border border-border rounded-md shadow-sm focus:outline-none focus:ring-accent focus:border-accent bg-background text-primary"
+            className="mt-1 block w-full px-3 py-2 border border-border rounded-md shadow-sm focus:outline-none focus:ring-accent focus:border-accent bg-white text-black placeholder-black"
           />
         </div>
         
@@ -212,7 +212,7 @@ export default function SignupForm() {
             required
             value={formData.birthdate}
             onChange={handleChange}
-            className="mt-1 block w-full px-3 py-2 border border-border rounded-md shadow-sm focus:outline-none focus:ring-accent focus:border-accent bg-background text-primary"
+            className="mt-1 block w-full px-3 py-2 border border-border rounded-md shadow-sm focus:outline-none focus:ring-accent focus:border-accent bg-white text-black placeholder-black"
           />
         </div>
         
