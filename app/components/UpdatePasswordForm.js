@@ -78,14 +78,14 @@ export default function UpdatePasswordForm() {
       )}
       
       {message && (
-        <div className="p-3 text-sm text-green-600 bg-green-100 dark:bg-green-900/30 dark:text-green-400 rounded">
+        <div className="p-3 text-sm text-accent bg-accent/10 border border-accent rounded text-primary" style={{color: '#7bcfd0', background: '#e6f8f8', borderColor: '#7bcfd0'}}>
           {message}
         </div>
       )}
       
       <div className="space-y-4">
         <div>
-          <label htmlFor="password" className="block text-sm font-medium">
+          <label htmlFor="password" className="block text-sm font-medium text-primary">
             New password
           </label>
           <input
@@ -96,12 +96,12 @@ export default function UpdatePasswordForm() {
             required
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500" style={{ backgroundColor: '#1b2c2f', color: '#fff' }}
+            className="mt-1 block w-full px-3 py-2 border border-border rounded-md shadow-sm focus:outline-none focus:ring-accent focus:border-accent bg-background text-primary"
           />
         </div>
         
         <div>
-          <label htmlFor="confirmPassword" className="block text-sm font-medium">
+          <label htmlFor="confirmPassword" className="block text-sm font-medium text-primary">
             Confirm new password
           </label>
           <input
@@ -112,7 +112,7 @@ export default function UpdatePasswordForm() {
             required
             value={confirmPassword}
             onChange={(e) => setConfirmPassword(e.target.value)}
-            className="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500" style={{ backgroundColor: '#1b2c2f', color: '#fff' }}
+            className="mt-1 block w-full px-3 py-2 border border-border rounded-md shadow-sm focus:outline-none focus:ring-accent focus:border-accent bg-background text-primary"
           />
         </div>
       </div>
@@ -121,7 +121,7 @@ export default function UpdatePasswordForm() {
         <button
           type="submit"
           disabled={isLoading}
-          className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-[#7bcfd0] hover:bg-[#60BFC0] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#7bcfd0] disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-button-text bg-button hover:bg-accent focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-accent disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {isLoading ? 'Updating...' : 'Update password'}
         </button>

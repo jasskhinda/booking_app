@@ -7,24 +7,17 @@
   
   /* Compassionate Transportation Color Palette - Light Mode */
   --background: #FFFFFF;
-  --foreground: #2E4F54;
-  --accent: #7CCFD0;
+  --foreground: #111111;
+  --accent: #7BCFD0;
+  --button: #7BCFD0;
   --button-text: #FFFFFF;
-  --card-background: #F8F9FA;
-  --border-color: #DDE5E7;
-  
-  /* Tailwind CSS custom colors */
-  --primary: #2E4F54;
-  --primary-hover: #1A3438;
-  --secondary: #7CCFD0;
-  --secondary-hover: #60BFC0;
+  --card-background: #FFFFFF;
+  --border-color: #E5E7EB;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -34,18 +27,13 @@
     --foreground: #ededed; */
     
     /* Compassionate Transportation Color Palette - Dark Mode */
-    --background: #1C2C2F;
-    --foreground: #E0F4F5;
-    --accent: #7CCFD0;
-    --button-text: #1C2C2F;
-    --card-background: #24393C;
-    --border-color: #3F5E63;
-    
-    /* Tailwind CSS custom colors */
-    --primary: #E0F4F5;
-    --primary-hover: #C0E4E5;
-    --secondary: #7CCFD0;
-    --secondary-hover: #60BFC0;
+    --background: #FFFFFF;
+    --foreground: #111111;
+    --accent: #7BCFD0;
+    --button: #7BCFD0;
+    --button-text: #FFFFFF;
+    --card-background: #FFFFFF;
+    --border-color: #E5E7EB;
   }
 }
 
@@ -59,15 +47,15 @@ body {
 /* Custom utility classes for the Compassionate Transportation color scheme */
 
 .btn-primary {
-  @apply bg-[#7CCFD0] text-white hover:bg-[#60BFC0] focus:ring-[#7CCFD0]/50;
+  @apply bg-[#7BCFD0] text-white hover:bg-[#60BFC0] focus:ring-[#7CCFD0]/50;
 }
 
 .btn-secondary {
-  @apply bg-transparent border border-[#7CCFD0] text-[#7CCFD0] hover:bg-[#7CCFD0]/10 focus:ring-[#7CCFD0]/50;
+  @apply bg-transparent border border-[#7BCFD0] text-[#7BCFD0] hover:bg-[#7CCFD0]/10 focus:ring-[#7CCFD0]/50;
 }
 
 .card {
-  @apply bg-[#F8F9FA] dark:bg-[#24393C] border border-[#DDE5E7] dark:border-[#3F5E63] rounded-lg shadow-sm;
+  @apply bg-[#FFFFFF] dark:bg-[#FFFFFF] border border-[#E5E7EB] dark:border-[#E5E7EB] rounded-lg shadow-sm;
 }
 
 /* Status colors */

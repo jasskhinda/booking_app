@@ -8,18 +8,14 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        // Light mode
-        'cr-primary': '#2E4F54',
-        'cr-accent': '#7CCFD0',
-        'cr-button-text': '#FFFFFF',
-        'cr-card-bg': '#F8F9FA',
-        'cr-border': '#DDE5E7',
-        
-        // Dark mode variants
-        'cr-dark-bg': '#1C2C2F',
-        'cr-dark-text': '#E0F4F5',
-        'cr-dark-card-bg': '#24393C',
-        'cr-dark-border': '#3F5E63',
+        // White & Teal Theme
+        'primary': '#111111', // Black for headings/body
+        'accent': '#7bcfd0', // Teal
+        'button': '#7bcfd0', // Teal for buttons
+        'button-text': '#ffffff', // White text on buttons
+        'background': '#ffffff', // White background
+        'card-bg': '#ffffff', // White cards
+        'border': '#e5e7eb', // Light gray border
       },
     },
   },

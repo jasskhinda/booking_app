@@ -145,7 +145,7 @@ export default function TripsPage() {
   if (loading) {
     return (
       <div className="min-h-screen flex justify-center items-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#7CCFD0]"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-accent"></div>
       </div>
     );
   }
@@ -155,14 +155,14 @@ export default function TripsPage() {
     return (
       <div className="min-h-screen p-4">
         <div className="bg-[#F8F9FA] dark:bg-[#24393C] rounded-lg shadow-md border border-[#DDE5E7] dark:border-[#3F5E63] p-6 mb-6">
-          <h2 className="text-xl font-semibold text-[#2E4F54] dark:text-[#E0F4F5] mb-4">Your Trips</h2>
+          <h2 className="text-xl font-semibold text-primary mb-4">Your Trips</h2>
           <div className="p-4 bg-red-100 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-md">
             <p className="text-red-600 dark:text-red-400">
               {error || 'There was an error loading your trips. Please try again later.'}
             </p>
             <button 
               onClick={() => window.location.reload()} 
-              className="mt-3 px-4 py-2 bg-[#7CCFD0] text-white rounded-md hover:bg-[#60BFC0]"
+              className="mt-3 px-4 py-2 bg-button text-button-text rounded-md hover:bg-accent"
             >
               Try Again
             </button>

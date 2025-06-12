@@ -298,7 +298,7 @@ export default function TripsView({ user, trips: initialTrips = [], successMessa
                       </span>
                       {/* Payment status badge */}
                       {trip.payment_method_id && (
-                        <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300" title="Card on file">
+                        <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-accent/10 text-accent" style={{background: '#e6f8f8', color: '#7bcfd0'}} title="Card on file">
                           <span className="mr-1">{getCardBrandLogo(trip.card_brand)}</span>
                           {formatCardNumber(trip.card_last4)}
                         </span>
@@ -435,7 +435,8 @@ export default function TripsView({ user, trips: initialTrips = [], successMessa
                           <button
                             onClick={() => handleRebookTrip(trip)}
                             disabled={isSubmitting && rebookingTrip === trip.id}
-                            className="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded text-green-700 bg-green-100 hover:bg-green-200 dark:bg-green-900/30 dark:text-green-300 dark:hover:bg-green-900/50"
+                            className="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded text-button-text bg-button hover:bg-accent/80 focus:ring-accent/50"
+                            style={{background: '#7bcfd0', color: '#fff'}}
                             aria-label="Rebook trip"
                           >
                             {isSubmitting && rebookingTrip === trip.id ? (
@@ -505,7 +506,8 @@ export default function TripsView({ user, trips: initialTrips = [], successMessa
                         </Link>
                         <Link
                           href={`/dashboard/track/${trip.id}`}
-                          className="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded text-green-700 bg-green-100 hover:bg-green-200 dark:bg-green-900/30 dark:text-green-300 dark:hover:bg-green-900/50"
+                          className="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded text-button-text bg-button hover:bg-accent/80 focus:ring-accent/50"
+                          style={{background: '#7bcfd0', color: '#fff'}}
                         >
                           <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
