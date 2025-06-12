@@ -17,6 +17,7 @@ export default function SignupForm() {
   });
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  const [message, setMessage] = useState('');
   const router = useRouter();
 
   const handleChange = (e) => {
@@ -31,6 +32,7 @@ export default function SignupForm() {
     e.preventDefault();
     setIsLoading(true);
     setError('');
+    setMessage('');
     
     // Basic validation
     if (formData.password !== formData.confirmPassword) {
@@ -40,7 +42,6 @@ export default function SignupForm() {
     }
     
     try {
-      // Sign up with Supabase - email confirmation is now disabled in settings
       const { data, error } = await supabase.auth.signUp({
         email: formData.email,
         password: formData.password,
@@ -57,34 +58,9 @@ export default function SignupForm() {
       
       if (error) throw error;
       
-      console.log('Signup successful', data);
-      
-      // With email confirmation disabled, we should now have a session
-      if (data?.session) {
-        // Redirect to dashboard
-        router.push('/dashboard');
-      } else {
-        // If for some reason we don't have a session yet, try signing in explicitly
-        try {
-          const { error: signInError } = await supabase.auth.signInWithPassword({
-            email: formData.email,
-            password: formData.password,
-          });
-          
-          if (signInError && !signInError.message.includes('Refresh Token Not Found')) {
-            throw signInError;
-          }
-          
-          // Redirect even if there was a refresh token error, since the user is likely still authenticated
-          router.push('/dashboard');
-        } catch (signInError) {
-          console.error('Signin after signup error:', signInError);
-          throw signInError;
-        }
-      }
-      
-
-      
+      setMessage('A confirmation email has been sent. Please check your inbox and click the link to activate your account.');
+      // Do NOT try to log in or redirect yet
+      return;
     } catch (error) {
       console.error('Signup error:', error);
       
@@ -135,6 +111,11 @@ export default function SignupForm() {
       {error && (
         <div className="p-3 text-sm text-red-600 bg-red-100 dark:bg-red-900/30 dark:text-red-400 rounded border border-red-200 dark:border-red-800">
           {error}
+        </div>
+      )}
+      {message && (
+        <div className="p-3 text-sm text-green-700 bg-green-100 dark:bg-green-900/30 dark:text-green-400 rounded border border-green-200 dark:border-green-800">
+          {message}
         </div>
       )}
       
