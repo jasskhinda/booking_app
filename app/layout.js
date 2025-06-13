@@ -80,14 +80,14 @@ export default function RootLayout({ children }) {
           </div>
         </header>
         <main>{children}</main>
-        <footer className="bg-[#222c2f] py-8 border-t border-[#DDE5E7] dark:border-[#3F5E63]">
+        <footer className="bg-[#7bcfd0] py-8 border-t border-[#DDE5E7] dark:border-[#3F5E63]">
           <div className="container mx-auto px-4">
             <div className="flex flex-col md:flex-row justify-between items-center">
-              <p className="text-white/80 mb-4 md:mb-0 text-sm">&copy; 2025 Compassionate Care Transportation. All rights reserved.</p>
+              <p className="text-white mb-4 md:mb-0 text-sm">&copy; 2025 Compassionate Care Transportation. All rights reserved.</p>
               <div className="flex space-x-6">
-                <a href="#" className="text-white/70 hover:text-[#69c8cd] transition">Terms</a>
-                <a href="#" className="text-white/70 hover:text-[#69c8cd] transition">Privacy</a>
-                <a href="#" className="text-white/70 hover:text-[#69c8cd] transition">Contact</a>
+                <a href="#" className="text-white hover:text-white transition">Terms</a>
+                <a href="#" className="text-white hover:text-white transition">Privacy</a>
+                <a href="#" className="text-white hover:text-white transition">Contact</a>
               </div>
             </div>
           </div>

@@ -14,6 +14,7 @@ function HeroSection() {
         backgroundImage: "url('/Transportation-near-me-scaled.jpg')",
         backgroundPosition: "center center",
         backgroundSize: "cover",
+        backgroundAttachment: "fixed",
         marginTop: "-123px",
         padding: "167px 2px"
       }}
