@@ -102,21 +102,17 @@ export default function LoginForm() {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="mt-8 space-y-6 bg-black text-white p-8 rounded-lg shadow-lg">
+    <form onSubmit={handleSubmit} className="mt-8 space-y-6">
       {error && (
         <div className="p-3 text-sm text-red-600 bg-red-100 dark:bg-red-900/30 dark:text-red-400 rounded border border-red-200 dark:border-red-800">
           {error}
         </div>
       )}
-      
       <div className="space-y-4">
         <div>
           <label htmlFor="email" className="block text-sm font-medium text-primary">
             Email address
           </label>
-
-
-          
           <input
             id="email"
             name="email"
@@ -128,7 +124,6 @@ export default function LoginForm() {
             className="mt-1 block w-full px-3 py-2 border border-border rounded-md shadow-sm focus:outline-none focus:ring-accent focus:border-accent bg-white text-black placeholder-black"
           />
         </div>
-        
         <div>
           <div className="flex justify-between">
             <label htmlFor="password" className="block text-sm font-medium text-primary">
@@ -149,33 +144,30 @@ export default function LoginForm() {
             required
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="mt-1 block w-full px-3 py-2 border border-[#DDE5E7] dark:border-[#3F5E63] rounded-md shadow-sm focus:outline-none focus:ring-[#7CCFD0] focus:border-[#7CCFD0] bg-white dark:bg-[#24393C] text-[#2E4F54] dark:text-[#E0F4F5]"
+            className="mt-1 block w-full px-3 py-2 border border-[#DDE5E7] dark:border-[#3F5E63] rounded-md shadow-sm focus:outline-none focus:ring-[#7CCFD0] focus:border-[#7CCFD0] bg-white text-black placeholder-black"
           />
         </div>
       </div>
-
       <div className="space-y-3">
         <button
           type="submit"
           disabled={isLoading}
-          className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-button-text bg-button hover:bg-accent focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-accent disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-bold text-black bg-white hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-accent disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {isLoading ? 'Signing in...' : 'Sign in'}
         </button>
-        
         <div className="relative">
           <div className="absolute inset-0 flex items-center">
             <div className="w-full border-t border-[#DDE5E7] dark:border-[#3F5E63]"></div>
           </div>
           <div className="relative flex justify-center text-sm">
-            <span className="px-2 bg-white dark:bg-[#1C2C2F] text-[#7CCFD0]">Or continue with</span>
+            <span className="px-2 bg-white dark:bg-[#1C2C2F] text-black font-bold">Or continue with</span>
           </div>
         </div>
-        
         <button
           type="button"
           onClick={handleSignInWithGoogle}
-          className="w-full flex justify-center items-center gap-3 py-2 px-4 border border-[#DDE5E7] dark:border-[#3F5E63] rounded-md shadow-sm text-sm font-medium text-[#2E4F54] dark:text-[#E0F4F5] hover:bg-[#F8F9FA] dark:hover:bg-[#24393C] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#7CCFD0]"
+          className="w-full flex justify-center items-center gap-3 py-2 px-4 border border-[#DDE5E7] dark:border-[#3F5E63] rounded-md shadow-sm text-sm font-bold text-black bg-white hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#7CCFD0]"
         >
           <svg className="h-5 w-5" viewBox="0 0 24 24">
             <path
@@ -198,10 +190,9 @@ export default function LoginForm() {
           Google
         </button>
       </div>
-
-      <p className="mt-4 text-center text-sm text-[#6B7280]">
+      <p className="mt-4 text-center text-sm text-black font-bold">
         Don&apos;t have an account?{' '}
-        <a href="/signup" className="font-medium text-accent hover:text-accent/80 focus:text-accent/80">
+        <a href="/signup" className="font-extrabold uppercase text-black" style={{ transition: 'color 0.2s' }}>
           create an account
         </a>
       </p>

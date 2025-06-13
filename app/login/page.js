@@ -41,12 +41,12 @@ function LoginContent() {
       {/* Overlay */}
       <div className="absolute inset-0 pointer-events-none" style={{background: "#00000052"}} />
       {/* Content */}
-      <div className="relative z-10 w-full max-w-md p-8 space-y-8 bg-white dark:bg-black rounded-xl shadow-md">
+      <div className="relative z-10 w-full max-w-md p-8 rounded-xl shadow-md" style={{ background: '#69c8cd' }}>
         <div className="text-center">
-          <h1 className="text-2xl font-bold">Sign in to your account</h1>
-          <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
+          <h1 className="text-2xl font-bold" style={{ color: '#fff' }}>Sign in to your account</h1>
+          <p className="mt-2 text-sm" style={{ color: '#fff', fontWeight: 700 }}>
             Or{' '}
-            <a href="/signup" className="font-medium" style={{ color: '#7ccfd0', transition: 'color 0.2s' }} onMouseOver={e => e.currentTarget.style.color = '#60BFC0'} onMouseOut={e => e.currentTarget.style.color = '#7ccfd0'}>
+            <a href="/signup" className="font-extrabold uppercase" style={{ color: '#000', transition: 'color 0.2s' }}>
               create an account
             </a>
           </p>
