@@ -1,5 +1,7 @@
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import Link from "next/link";
+import Image from "next/image";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -52,7 +54,7 @@ export default function RootLayout({ children }) {
           <div className="container mx-auto flex justify-between items-center">
             <div className="flex items-center space-x-2">
               <h1 className="text-xl font-bold text-[#2E4F54] dark:text-[#E0F4F5]">
-                <img src="/CCTVector-01-2048x1583.png" alt="Compassionate Care Transportation Logo" style={{ width: '120px', height: 'auto' }} className="inline-block align-middle" />
+                <Image src="/CCTVector-01-2048x1583.png" alt="Compassionate Care Transportation Logo" width={120} height={50} style={{ width: '120px', height: 'auto' }} className="inline-block align-middle" />
               </h1>
             </div>
             <nav>
