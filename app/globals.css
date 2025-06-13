@@ -96,3 +96,13 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator {
         background-color: #7bcfd0 !important;
     }
 }
+
+#how-it-works span {
+  color: #ffffff;
+}
+#how-it-works h3 {
+  color: #000;
+}
+#how-it-works p {
+  color: #000;
+}
