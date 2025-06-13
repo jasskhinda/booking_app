@@ -2,9 +2,8 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import Link from "next/link";
 import Image from "next/image";
-import { FaUser, FaUserPlus, FaPhoneAlt, FaSignOutAlt } from "react-icons/fa";
 import HeaderUserArea from "@/app/components/HeaderUserArea";
-import { useState, useEffect } from "react";
+import HeaderNav from "@/app/components/HeaderNav";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -30,43 +29,6 @@ export const metadata = {
   },
   manifest: '/site.webmanifest',
 };
-
-function DashboardNav() {
-  return (
-    <ul className="flex space-x-8">
-      <li><a href="/dashboard/book" className="font-bold text-black uppercase tracking-wide hover:text-[#69c8cd] transition">Book Now</a></li>
-      <li><a href="/dashboard/trips" className="font-bold text-black uppercase tracking-wide hover:text-[#69c8cd] transition">View Trips</a></li>
-      <li><a href="/dashboard/settings" className="font-bold text-black uppercase tracking-wide hover:text-[#69c8cd] transition">Settings</a></li>
-    </ul>
-  );
-}
-
-function PublicNav() {
-  return (
-    <ul className="flex space-x-8">
-      <li><a href="https://book.compassionatecaretransportation.com/" target="_blank" rel="noopener noreferrer" className="font-bold text-black uppercase tracking-wide hover:text-[#69c8cd] transition">HOME</a></li>
-      <li><a href="https://compassionatecaretransportation.com/about-us/" target="_blank" rel="noopener noreferrer" className="font-bold text-black uppercase tracking-wide hover:text-[#69c8cd] transition">ABOUT</a></li>
-      <li><a href="https://compassionatecaretransportation.com/services/" target="_blank" rel="noopener noreferrer" className="font-bold text-black uppercase tracking-wide hover:text-[#69c8cd] transition">SERVICES</a></li>
-      <li><a href="https://compassionatecaretransportation.com/contact-us/" target="_blank" rel="noopener noreferrer" className="font-bold text-black uppercase tracking-wide hover:text-[#69c8cd] transition">CONTACT US</a></li>
-    </ul>
-  );
-}
-
-function HeaderNav() {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  useEffect(() => {
-    // Check for user session in localStorage or via Supabase
-    const user = window?.localStorage?.getItem('supabase.auth.token') || null;
-    setIsLoggedIn(!!user);
-  }, []);
-  // The HeaderUserArea component will show the correct login/logout buttons
-  // This just controls the nav links
-  return (
-    <nav className="hidden md:flex flex-1 justify-center">
-      {isLoggedIn ? <DashboardNav /> : <PublicNav />}
-    </nav>
-  );
-}
 
 export default function RootLayout({ children }) {
   // Current timestamp for cache-busting favicons
