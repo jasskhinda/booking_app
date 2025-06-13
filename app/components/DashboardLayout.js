@@ -52,7 +52,7 @@ export default function DashboardLayout({ user, activeTab = 'dashboard', childre
             <div className="flex">
               <div className="flex-shrink-0 flex items-center">
                 <Link href="/" className="text-xl font-bold text-[#2E4F54] dark:text-[#E0F4F5]">
-                  <img src="/CCTVector-01-2048x1583.png" alt="Compassionate Care Transportation Logo" className="h-8 inline-block align-middle" />
+                  <img src="/CCTVector-01-2048x1583.png" alt="Compassionate Care Transportation Logo" style={{ width: '120px', height: 'auto' }} className="inline-block align-middle" />
                 </Link>
               </div>
             </div>

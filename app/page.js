@@ -23,24 +23,29 @@ function HomeContent() {
   }, [searchParams, supabase.auth]);
   return (
     <div className="min-h-screen flex flex-col">
-      <header className="p-4 bg-[#F8F9FA] dark:bg-[#1C2C2F] shadow border-b border-[#DDE5E7] dark:border-[#3F5E63]">
+      <header className="p-4" style={{ backgroundColor: '#ffffff8a' }}>
         <div className="container mx-auto flex justify-between items-center">
           <div className="flex items-center space-x-2">
             <h1 className="text-xl font-bold text-[#2E4F54] dark:text-[#E0F4F5]">
-              <img src="/CCTVector-01-2048x1583.png" alt="Compassionate Care Transportation Logo" className="h-8 inline-block align-middle" />
+              <img src="/CCTVector-01-2048x1583.png" alt="Compassionate Care Transportation Logo" style={{ width: '120px', height: 'auto' }} className="inline-block align-middle" />
             </h1>
           </div>
           <nav>
             <ul className="flex space-x-6">
               <li>
-                <Link href="/login" className="text-[#7CCFD0] hover:text-[#60BFC0]">
-                  Login
-                </Link>
+                <a href="https://compassionatecaretransportation.com/about-us/" target="_blank" rel="noopener noreferrer" className="font-bold text-black uppercase">ABOUT US</a>
               </li>
               <li>
-                <Link href="/signup" className="bg-[#7CCFD0] text-white px-4 py-2 rounded hover:bg-[#60BFC0]">
-                  Sign up
-                </Link>
+                <a href="https://compassionatecaretransportation.com/contact-us/" target="_blank" rel="noopener noreferrer" className="font-bold text-black uppercase">CONTACT US</a>
+              </li>
+              <li>
+                <a href="https://compassionatecaretransportation.com/services/" target="_blank" rel="noopener noreferrer" className="font-bold text-black uppercase">OUR SERVICES</a>
+              </li>
+              <li>
+                <Link href="/login" className="bg-[#7bcfd0] text-white px-4 py-2 rounded hover:bg-[#60BFC0] transition-colors font-bold uppercase">LOGIN</Link>
+              </li>
+              <li>
+                <Link href="/signup" className="bg-[#7CCFD0] text-white px-4 py-2 rounded hover:bg-[#60BFC0] transition-colors font-bold uppercase">SIGN UP</Link>
               </li>
             </ul>
           </nav>
