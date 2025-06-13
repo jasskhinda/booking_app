@@ -14,10 +14,12 @@ function HeroSection() {
         backgroundImage: "url('/Transportation-near-me-scaled.jpg')",
         backgroundPosition: "center center",
         backgroundSize: "cover",
+        marginTop: "-123px",
+        padding: "167px 2px"
       }}
     >
-      {/* Gradient Overlay (no solid dark overlay) */}
-      <div className="absolute inset-0 pointer-events-none" style={{background: "linear-gradient(180deg, rgba(0,0,0,0.25) 0%, rgba(0,0,0,0.10) 60%, rgba(0,0,0,0) 100%)"}} />
+      {/* Overlay */}
+      <div className="absolute inset-0 pointer-events-none" style={{background: "#00000052"}} />
       {/* Content */}
       <div className="relative z-10 flex flex-col items-center justify-center text-center px-4 py-24 w-full">
         <h1 className="text-4xl md:text-6xl font-extrabold text-white mb-6 drop-shadow-lg">

@@ -49,7 +49,7 @@ export default function RootLayout({ children }) {
         />
       </head>
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased bg-[#f8f9fa]`}> 
-        <header className="sticky top-0 z-50 w-full" style={{ background: "transparent", backdropFilter: "blur(4px)" }}>
+        <header className="sticky top-0 z-50 w-full" style={{ background: "#ffffffc2" }}>
           <div className="max-w-7xl mx-auto flex items-center justify-between py-3 px-4 md:px-8">
             {/* Left: Logo */}
             <div className="flex items-center min-w-[160px]">
