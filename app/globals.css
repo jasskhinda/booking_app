@@ -106,3 +106,7 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator {
 #how-it-works p {
   color: #000;
 }
+
+footer p {
+  color: #000;
+}
