@@ -46,8 +46,10 @@ export default function DashboardLayout({ user, activeTab = 'dashboard', childre
   return (
     <div className="min-h-screen flex flex-col">
       {/* Main content */}
-      <main className="flex-grow container mx-auto px-4 py-8">
-        {children}
+      <main className="flex-grow w-full" style={{ paddingBlock: 0, paddingInline: 0 }}>
+        <div className="container" style={{ maxWidth: '100%' }}>
+          {children}
+        </div>
       </main>
     </div>
   );
