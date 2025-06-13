@@ -43,20 +43,20 @@ export default function DashboardView({ user }) {
   return (
     <DashboardLayout user={user} activeTab="dashboard">
       <section
-        className="relative w-full min-h-[60vh] flex items-center justify-center bg-center bg-cover px-4"
+        className="relative w-full min-h-[60vh] flex items-center justify-center bg-center bg-cover px-0"
         style={{
           backgroundImage: "url('/Transportation-near-me-scaled.jpg')",
           backgroundPosition: "center center",
           backgroundSize: "cover",
           backgroundAttachment: "fixed",
           marginTop: "-123px",
-          padding: "167px 2px"
+          padding: "167px 0"
         }}
       >
         {/* Overlay */}
-        <div className="absolute inset-0 pointer-events-none" style={{background: "#00000052"}} />
+        <div className="absolute inset-0 w-full h-full pointer-events-none" style={{background: "#00000052"}} />
         {/* Hero Card Content */}
-        <div className="relative z-10 w-full max-w-3xl rounded-lg shadow-md p-8" style={{ background: '#69c8cd' }}>
+        <div className="relative z-10 w-full max-w-4xl mx-auto rounded-lg shadow-md p-8" style={{ background: '#69c8cd' }}>
           <h2 className="text-3xl font-bold mb-4 text-white">Welcome to your dashboard!</h2>
           <p className="text-white opacity-90 mb-6 text-lg">
             This is your personal dashboard where you can manage your rides and account settings.
