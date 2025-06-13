@@ -174,7 +174,7 @@ export default function BookingForm({ user, profile }) {
       }
     }
     fetchPaymentMethods();
-  }, [user]);
+  }, [user, profile?.default_payment_method_id]);
 
   // Handle click outside date picker and favorite address dropdowns to close them
   useEffect(() => {
@@ -382,7 +382,7 @@ export default function BookingForm({ user, profile }) {
       }
       
     });
-  }, [mapInstance, directionsRenderer, formData.isRoundTrip, formData.pickupTime, formData.wheelchairType]);
+  }, [mapInstance, directionsRenderer, formData.isRoundTrip, formData.pickupTime, formData.wheelchairType, supabase, user?.id]);
 
   // References to PlaceAutocompleteElement containers
   const pickupAutocompleteContainerRef = useRef(null);
@@ -435,7 +435,7 @@ export default function BookingForm({ user, profile }) {
         directionsRenderer.setMap(null);
       }
     };
-  }, [isGoogleLoaded]);
+  }, [isGoogleLoaded, directionsRenderer, mapInstance]);
   
   // References for autocomplete instances
   const pickupAutocompleteRef = useRef(null);
@@ -538,7 +538,7 @@ export default function BookingForm({ user, profile }) {
         destinationAutocompleteRef.current = null;
       }
     };
-  }, [isGoogleLoaded, mapInstance, formData.pickupAddress, formData.destinationAddress]);
+  }, [isGoogleLoaded, mapInstance, formData.pickupAddress, formData.destinationAddress, destinationLocation, pickupLocation]);
   
   // Effect to calculate route when both locations are available
   useEffect(() => {
@@ -555,7 +555,7 @@ export default function BookingForm({ user, profile }) {
       
       return () => clearTimeout(timer);
     }
-  }, [pickupLocation, destinationLocation, mapInstance, directionsRenderer, formData.isRoundTrip, formData.pickupTime, formData.wheelchairType]);
+  }, [pickupLocation, destinationLocation, mapInstance, directionsRenderer, formData.isRoundTrip, formData.pickupTime, formData.wheelchairType, calculateRoute]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -1263,7 +1263,7 @@ export default function BookingForm({ user, profile }) {
       {isGoogleLoaded && (
         <>
           <Script src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY&libraries=places" />
-          <Script>
+          <Script id="google-maps-loader">
             {`
               function initMap() {
                 const map = new google.maps.Map(document.getElementById('map'), {
