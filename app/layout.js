@@ -49,7 +49,7 @@ export default function RootLayout({ children }) {
         />
       </head>
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased bg-[#f8f9fa]`}> 
-        <header className="sticky top-0 z-50 w-full" style={{ background: "rgba(0,0,0,0.35)", backdropFilter: "blur(4px)" }}>
+        <header className="sticky top-0 z-50 w-full" style={{ background: "rgb(183 183 183 / 35%)", backdropFilter: "blur(4px)" }}>
           <div className="max-w-7xl mx-auto flex items-center justify-between py-3 px-4 md:px-8">
             {/* Left: Logo */}
             <div className="flex items-center min-w-[160px]">
@@ -60,20 +60,20 @@ export default function RootLayout({ children }) {
             {/* Center: Nav */}
             <nav className="hidden md:flex flex-1 justify-center">
               <ul className="flex space-x-8">
-                <li><a href="https://book.compassionatecaretransportation.com/" target="_blank" rel="noopener noreferrer" className="font-bold text-white uppercase tracking-wide hover:text-[#69c8cd] transition">HOME</a></li>
-                <li><a href="https://compassionatecaretransportation.com/about-us/" target="_blank" rel="noopener noreferrer" className="font-bold text-white uppercase tracking-wide hover:text-[#69c8cd] transition">ABOUT</a></li>
-                <li><a href="https://compassionatecaretransportation.com/services/" target="_blank" rel="noopener noreferrer" className="font-bold text-white uppercase tracking-wide hover:text-[#69c8cd] transition">SERVICES</a></li>
-                <li><a href="https://compassionatecaretransportation.com/contact-us/" target="_blank" rel="noopener noreferrer" className="font-bold text-white uppercase tracking-wide hover:text-[#69c8cd] transition">CONTACT US</a></li>
+                <li><a href="https://book.compassionatecaretransportation.com/" target="_blank" rel="noopener noreferrer" className="font-bold text-black uppercase tracking-wide hover:text-[#69c8cd] transition">HOME</a></li>
+                <li><a href="https://compassionatecaretransportation.com/about-us/" target="_blank" rel="noopener noreferrer" className="font-bold text-black uppercase tracking-wide hover:text-[#69c8cd] transition">ABOUT</a></li>
+                <li><a href="https://compassionatecaretransportation.com/services/" target="_blank" rel="noopener noreferrer" className="font-bold text-black uppercase tracking-wide hover:text-[#69c8cd] transition">SERVICES</a></li>
+                <li><a href="https://compassionatecaretransportation.com/contact-us/" target="_blank" rel="noopener noreferrer" className="font-bold text-black uppercase tracking-wide hover:text-[#69c8cd] transition">CONTACT US</a></li>
               </ul>
             </nav>
             {/* Right: Call and Buttons */}
             <div className="flex items-center space-x-4">
-              <div className="hidden md:flex items-center space-x-2 text-white font-bold text-base">
+              <div className="hidden md:flex items-center space-x-2 font-bold text-base text-black">
                 <FaPhoneAlt className="inline-block mr-1 text-[#69c8cd]" />
                 <span>Call Us:</span>
                 <span className="font-bold tracking-wide">614-967-9887</span>
               </div>
-              <span className="hidden md:block h-6 w-px bg-white/40 mx-2" />
+              <span className="hidden md:block h-6 w-px bg-black/40 mx-2" />
               <Link href="/login" className="flex items-center gap-2 px-5 py-2 rounded-full font-bold bg-[#69c8cd] text-white hover:bg-[#3ea7b2] transition-all text-base shadow-sm"><FaUser /> Login</Link>
               <Link href="/signup" className="flex items-center gap-2 px-5 py-2 rounded-full font-bold bg-[#69c8cd] text-white hover:bg-[#3ea7b2] transition-all text-base shadow-sm"><FaUserPlus /> Sign Up</Link>
             </div>

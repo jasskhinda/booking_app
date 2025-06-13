@@ -6,6 +6,46 @@ import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import Image from "next/image";
 import Link from "next/link";
 
+function HeroSection() {
+  return (
+    <section
+      className="relative w-full min-h-[70vh] flex items-center justify-center bg-center bg-cover"
+      style={{
+        backgroundImage: "url('/Transportation-near-me-scaled.jpg')",
+        backgroundPosition: "center center",
+        backgroundSize: "cover",
+      }}
+    >
+      {/* Overlay */}
+      <div className="absolute inset-0" style={{ background: "#00000091" }} />
+      {/* Content */}
+      <div className="relative z-10 flex flex-col items-center justify-center text-center px-4 py-24 w-full">
+        <h1 className="text-4xl md:text-6xl font-extrabold text-white mb-6 drop-shadow-lg">
+          Caring Transportation for Everyone
+        </h1>
+        <hr className="w-24 border-t-4 border-white mx-auto mb-6" />
+        <p className="text-white text-lg md:text-2xl font-medium mb-8 max-w-2xl mx-auto drop-shadow">
+          Book rides with compassionate drivers who understand your unique needs and challenges. We specialize in transportation for medical appointments, accessibility needs, and more.
+        </p>
+        <div className="flex flex-col sm:flex-row gap-4 justify-center">
+          <Link
+            href="/signup"
+            className="px-8 py-3 rounded-full font-bold bg-[#69c8cd] text-white hover:bg-[#3ea7b2] transition-all text-lg shadow text-center"
+          >
+            BOOK A RIDE &rarr;
+          </Link>
+          <Link
+            href="#how-it-works"
+            className="px-8 py-3 rounded-full font-bold bg-[#69c8cd] text-white hover:bg-[#3ea7b2] transition-all text-lg shadow text-center"
+          >
+            LEARN MORE
+          </Link>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 function HomeContent() {
   const searchParams = useSearchParams();
   const supabase = createClientComponentClient();
@@ -24,24 +64,7 @@ function HomeContent() {
   return (
     <div className="min-h-screen flex flex-col">
       <main className="flex-grow">
-        <section className="py-16 px-4 bg-gradient-to-b from-[#7CCFD0]/10 to-white dark:from-[#24393C] dark:to-[#1C2C2F]">
-          <div className="container mx-auto text-center">
-            <h2 className="text-4xl font-bold mb-6 text-[#2E4F54] dark:text-[#E0F4F5]">Caring Transportation for Everyone</h2>
-            <p className="text-xl mb-10 max-w-3xl mx-auto text-[#2E4F54]/80 dark:text-[#E0F4F5]/80">
-              Book rides with compassionate drivers who understand your unique needs and challenges.  
-              We specialize in transportation for medical appointments, accessibility needs, and more.
-            </p>
-            <div className="flex justify-center gap-4">
-              <Link href="/signup" className="bg-[#7CCFD0] text-white px-6 py-3 rounded-lg hover:bg-[#60BFC0] font-medium">
-                Book Your First Ride
-              </Link>
-              <Link href="#how-it-works" className="border border-[#DDE5E7] dark:border-[#3F5E63] px-6 py-3 rounded-lg hover:bg-[#F8F9FA] dark:hover:bg-[#24393C] font-medium text-[#2E4F54] dark:text-[#E0F4F5]">
-                Learn More
-              </Link>
-            </div>
-          </div>
-        </section>
-
+        <HeroSection />
         <section id="how-it-works" className="py-16 px-4">
           <div className="container mx-auto">
             <h2 className="text-3xl font-bold text-center mb-12 text-[#2E4F54] dark:text-[#E0F4F5]">How It Works</h2>
