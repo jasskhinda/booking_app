@@ -93,6 +93,6 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator {
       background-color: #7bcfd0 !important;
     }
     .dark\:bg-\[\#7CCFD0\]\/30:not(.how-it-works-bg) {
-      background-color: #ffffff !important;
+        background-color: #7bcfd0 !important;
     }
 }
