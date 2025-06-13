@@ -52,7 +52,7 @@ export default function DashboardLayout({ user, activeTab = 'dashboard', childre
             <div className="flex">
               <div className="flex-shrink-0 flex items-center">
                 <Link href="/" className="text-xl font-bold text-[#2E4F54] dark:text-[#E0F4F5]">
-                  Compassionate Transportation
+                  <img src="/CCTVector-01-2048x1583.png" alt="Compassionate Care Transportation Logo" className="h-8 inline-block align-middle" />
                 </Link>
               </div>
             </div>
@@ -161,7 +161,7 @@ export default function DashboardLayout({ user, activeTab = 'dashboard', childre
         <div className="container mx-auto px-4">
           <div className="flex flex-col md:flex-row justify-between items-center">
             <p className="text-[#2E4F54] dark:text-[#E0F4F5] opacity-80 text-sm">
-              &copy; 2025 Compassionate Transportation. All rights reserved.
+              &copy; 2025 Compassionate Care Transportation. All rights reserved.
             </p>
             <div className="flex space-x-4 mt-4 md:mt-0">
               <Link 

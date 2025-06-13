@@ -1,4 +1,4 @@
-# Compassionate Transportation Booking App
+# ![Compassionate Care Transportation Logo](app/CCTVector-01-2048x1583.png)
 
 A specialized transportation service for individuals with unique needs and medical requirements.
 
@@ -105,4 +105,3 @@ This project is built with [Next.js](https://nextjs.org) and uses:
 ## License
 
 MIT
-updated
