@@ -85,6 +85,9 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator {
     .dark\:text-\[\#E0F4F5\] {
         color: #000000;
     }
+    .dark\:text-\[\#E0F4F5\]\/70 {
+        color: #000;
+    }
     .dark\:text-\[\#E0F4F5\]\/80 {
         color: oklab(0 0 0 / 0.8);
     }
