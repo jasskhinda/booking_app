@@ -111,5 +111,11 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator {
 }
 
 footer p {
-  color: #000;
+  color: #fff !important;
+}
+footer a {
+  color: #fff !important;
+}
+footer a:hover {
+  color: #fff !important;
 }
