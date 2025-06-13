@@ -27,8 +27,21 @@ function LoginContent() {
   }, [searchParams, supabase.auth]);
   
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-background">
-      <div className="w-full max-w-md p-8 space-y-8 bg-white dark:bg-black rounded-xl shadow-md">
+    <section
+      className="relative w-full min-h-screen flex items-center justify-center bg-center bg-cover"
+      style={{
+        backgroundImage: "url('/login.webp')",
+        backgroundPosition: "center center",
+        backgroundSize: "cover",
+        backgroundAttachment: "fixed",
+        marginTop: "-123px",
+        padding: "167px 2px"
+      }}
+    >
+      {/* Overlay */}
+      <div className="absolute inset-0 pointer-events-none" style={{background: "#00000052"}} />
+      {/* Content */}
+      <div className="relative z-10 w-full max-w-md p-8 space-y-8 bg-white dark:bg-black rounded-xl shadow-md">
         <div className="text-center">
           <h1 className="text-2xl font-bold">Sign in to your account</h1>
           <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
@@ -40,7 +53,7 @@ function LoginContent() {
         </div>
         <LoginForm />
       </div>
-    </div>
+    </section>
   );
 }
 
