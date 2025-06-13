@@ -23,6 +23,9 @@ export default function HeaderUserArea() {
     return (
       <div className="flex items-center gap-4">
         <span className="font-bold text-black">{name}</span>
+        <a href="/dashboard" className="flex items-center gap-2 px-5 py-2 rounded-full font-bold bg-[#69c8cd] text-white hover:bg-[#3ea7b2] transition-all text-base shadow-sm">
+          Dashboard
+        </a>
         <button onClick={handleLogout} className="flex items-center gap-2 px-5 py-2 rounded-full font-bold bg-[#69c8cd] text-white hover:bg-[#3ea7b2] transition-all text-base shadow-sm">
           <FaSignOutAlt /> LOGOUT
         </button>

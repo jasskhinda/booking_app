@@ -441,170 +441,104 @@ export default function BookingForm({ user, profile }) {
   const pickupAutocompleteRef = useRef(null);
   const destinationAutocompleteRef = useRef(null);
   
-  // Initialize traditional Places Autocomplete for input fields
+  // Initialize Places Autocomplete on the React input fields
   useEffect(() => {
-    if (!isGoogleLoaded || 
-        !window.google?.maps?.places?.Autocomplete ||
-        !pickupAutocompleteContainerRef.current || 
-        !destinationAutocompleteContainerRef.current) return;
+    if (!isGoogleLoaded) return;
+    if (!pickupAutocompleteContainerRef.current || !destinationAutocompleteContainerRef.current) return;
+    if (!window.google?.maps?.places?.Autocomplete) return;
 
-    try {
-      // Perform cleanup first to ensure we start fresh
-      const cleanupAutocomplete = () => {
-        // Clean up existing autocomplete instances
-        if (pickupAutocompleteRef.current) {
-          window.google.maps.event.clearInstanceListeners(pickupAutocompleteRef.current);
-          pickupAutocompleteRef.current = null;
-        }
-        
-        if (destinationAutocompleteRef.current) {
-          window.google.maps.event.clearInstanceListeners(destinationAutocompleteRef.current);
-          destinationAutocompleteRef.current = null;
-        }
-        
-        // Remove existing input elements to create fresh ones
-        if (pickupAutocompleteContainerRef.current) {
-          while (pickupAutocompleteContainerRef.current.firstChild) {
-            pickupAutocompleteContainerRef.current.removeChild(
-              pickupAutocompleteContainerRef.current.firstChild
-            );
-          }
-        }
-        
-        if (destinationAutocompleteContainerRef.current) {
-          while (destinationAutocompleteContainerRef.current.firstChild) {
-            destinationAutocompleteContainerRef.current.removeChild(
-              destinationAutocompleteContainerRef.current.firstChild
-            );
-          }
-        }
-      };
-      
-      // Clean up existing elements first
-      cleanupAutocomplete();
-
-      // Create traditional input fields for autocomplete
-      const pickupInput = document.createElement('input');
-      pickupInput.className = 'w-full px-3 py-2 border border-[#DDE5E7] dark:border-[#3F5E63] rounded-md shadow-sm focus:outline-none focus:ring-[#7CCFD0] focus:border-[#7CCFD0] dark:bg-[#1C2C2F]';
-      pickupInput.placeholder = 'Enter your pickup location';
-      pickupInput.value = formData.pickupAddress || '';
-      pickupInput.id = 'pickup-autocomplete-input';
-      
-      const destinationInput = document.createElement('input');
-      destinationInput.className = 'w-full px-3 py-2 border border-[#DDE5E7] dark:border-[#3F5E63] rounded-md shadow-sm focus:outline-none focus:ring-[#7CCFD0] focus:border-[#7CCFD0] dark:bg-[#1C2C2F]';
-      destinationInput.placeholder = 'Enter your destination';
-      destinationInput.value = formData.destinationAddress || '';
-      destinationInput.id = 'destination-autocomplete-input';
-      
-      // Append inputs to container
-      pickupAutocompleteContainerRef.current.appendChild(pickupInput);
-      destinationAutocompleteContainerRef.current.appendChild(destinationInput);
-      
-      // Initialize traditional Google Places Autocomplete
-      const pickupAutocomplete = new window.google.maps.places.Autocomplete(pickupInput, {
-        fields: ['formatted_address', 'geometry', 'name', 'place_id', 'address_components'],
-        componentRestrictions: { country: 'us' }
-      });
-      
-      // Set bias to Ohio region for better results
-      const ohioBounds = new window.google.maps.LatLngBounds(
-        new window.google.maps.LatLng(38.4031, -84.8204), // SW corner of Ohio
-        new window.google.maps.LatLng(42.3270, -80.5183)  // NE corner of Ohio
-      );
-      pickupAutocomplete.setBounds(ohioBounds);
-      
-      const destinationAutocomplete = new window.google.maps.places.Autocomplete(destinationInput, {
-        fields: ['formatted_address', 'geometry', 'name', 'place_id', 'address_components'],
-        componentRestrictions: { country: 'us' }
-      });
-      
-      // Also set bias for destination
-      destinationAutocomplete.setBounds(ohioBounds);
-      
-      // Store references to autocomplete instances
-      pickupAutocompleteRef.current = pickupAutocomplete;
-      destinationAutocompleteRef.current = destinationAutocomplete;
-      
-      // Add event listeners
-      pickupAutocomplete.addListener('place_changed', () => {
-        const place = pickupAutocomplete.getPlace();
-        if (!place.geometry) return;
-        
-        const address = place.formatted_address || place.name || '';
-        setFormData(prev => ({ ...prev, pickupAddress: address }));
-        
-        const location = {
-          lat: place.geometry.location.lat(),
-          lng: place.geometry.location.lng()
-        };
-        
-        setPickupLocation(location);
-        
-        if (mapInstance) {
-          mapInstance.setCenter(location);
-          mapInstance.setZoom(15);
-        }
-      });
-      
-      destinationAutocomplete.addListener('place_changed', () => {
-        const place = destinationAutocomplete.getPlace();
-        if (!place.geometry) return;
-        
-        const address = place.formatted_address || place.name || '';
-        setFormData(prev => ({ ...prev, destinationAddress: address }));
-        
-        const location = {
-          lat: place.geometry.location.lat(),
-          lng: place.geometry.location.lng()
-        };
-        
-        setDestinationLocation(location);
-      });
-      
-      // Manual input change handlers (two-way binding without re-rendering)
-      pickupInput.addEventListener('input', (e) => {
-        // Update the form state without causing a re-render
-        formData.pickupAddress = e.target.value;
-      });
-      
-      destinationInput.addEventListener('input', (e) => {
-        // Update the form state without causing a re-render
-        formData.destinationAddress = e.target.value;
-      });
-      
-      // Geocode and set location on blur
-      pickupInput.onblur = () => {
-        if (!pickupLocation || pickupInput.value !== formData.pickupAddress) {
-          geocodeAddress(pickupInput.value, (location) => {
-            if (location) setPickupLocation(location);
-          });
-        }
-      };
-      destinationInput.onblur = () => {
-        if (!destinationLocation || destinationInput.value !== formData.destinationAddress) {
-          geocodeAddress(destinationInput.value, (location) => {
-            if (location) setDestinationLocation(location);
-          });
-        }
-      };
-    } catch (error) {
-      console.error('Error initializing Places Autocomplete:', error);
+    // Clean up previous autocomplete instances
+    if (pickupAutocompleteRef.current) {
+      window.google.maps.event.clearInstanceListeners(pickupAutocompleteRef.current);
+      pickupAutocompleteRef.current = null;
     }
-    
-    // Cleanup function
+    if (destinationAutocompleteRef.current) {
+      window.google.maps.event.clearInstanceListeners(destinationAutocompleteRef.current);
+      destinationAutocompleteRef.current = null;
+    }
+
+    // Attach Google Places Autocomplete to the React input fields
+    const pickupInput = pickupAutocompleteContainerRef.current;
+    const destinationInput = destinationAutocompleteContainerRef.current;
+
+    if (!pickupInput || !destinationInput) return;
+
+    const pickupAutocomplete = new window.google.maps.places.Autocomplete(pickupInput, {
+      fields: ['formatted_address', 'geometry', 'name', 'place_id', 'address_components'],
+      componentRestrictions: { country: 'us' }
+    });
+    const destinationAutocomplete = new window.google.maps.places.Autocomplete(destinationInput, {
+      fields: ['formatted_address', 'geometry', 'name', 'place_id', 'address_components'],
+      componentRestrictions: { country: 'us' }
+    });
+
+    // Set bias to Ohio region for better results
+    const ohioBounds = new window.google.maps.LatLngBounds(
+      new window.google.maps.LatLng(38.4031, -84.8204),
+      new window.google.maps.LatLng(42.3270, -80.5183)
+    );
+    pickupAutocomplete.setBounds(ohioBounds);
+    destinationAutocomplete.setBounds(ohioBounds);
+
+    pickupAutocompleteRef.current = pickupAutocomplete;
+    destinationAutocompleteRef.current = destinationAutocomplete;
+
+    pickupAutocomplete.addListener('place_changed', () => {
+      const place = pickupAutocomplete.getPlace();
+      if (!place.geometry) return;
+      const address = place.formatted_address || place.name || '';
+      setFormData(prev => ({ ...prev, pickupAddress: address }));
+      const location = {
+        lat: place.geometry.location.lat(),
+        lng: place.geometry.location.lng()
+      };
+      setPickupLocation(location);
+      if (mapInstance) {
+        mapInstance.setCenter(location);
+        mapInstance.setZoom(15);
+      }
+    });
+
+    destinationAutocomplete.addListener('place_changed', () => {
+      const place = destinationAutocomplete.getPlace();
+      if (!place.geometry) return;
+      const address = place.formatted_address || place.name || '';
+      setFormData(prev => ({ ...prev, destinationAddress: address }));
+      const location = {
+        lat: place.geometry.location.lat(),
+        lng: place.geometry.location.lng()
+      };
+      setDestinationLocation(location);
+    });
+
+    // Geocode and set location on blur
+    pickupInput.onblur = () => {
+      if (!pickupLocation || pickupInput.value !== formData.pickupAddress) {
+        geocodeAddress(pickupInput.value, (location) => {
+          if (location) setPickupLocation(location);
+        });
+      }
+    };
+    destinationInput.onblur = () => {
+      if (!destinationLocation || destinationInput.value !== formData.destinationAddress) {
+        geocodeAddress(destinationInput.value, (location) => {
+          if (location) setDestinationLocation(location);
+        });
+      }
+    };
+
+    // Cleanup
     return () => {
-      // Clean up autocomplete instances and event listeners on unmount
       if (pickupAutocompleteRef.current) {
         window.google?.maps?.event?.clearInstanceListeners(pickupAutocompleteRef.current);
         pickupAutocompleteRef.current = null;
       }
-      
       if (destinationAutocompleteRef.current) {
         window?.google?.maps?.event?.clearInstanceListeners(destinationAutocompleteRef.current);
         destinationAutocompleteRef.current = null;
       }
     };
-  }, [isGoogleLoaded, formData.pickupAddress, formData.destinationAddress]);
+  }, [isGoogleLoaded, mapInstance, formData.pickupAddress, formData.destinationAddress]);
   
   // Effect to calculate route when both locations are available
   useEffect(() => {
@@ -1011,7 +945,6 @@ export default function BookingForm({ user, profile }) {
         <DashboardLayout user={user} activeTab="book">
           <div className="bg-[#F8F9FA] dark:bg-[#24393C] rounded-lg shadow-md border border-[#DDE5E7] dark:border-[#3F5E63] p-6 mb-6">
             <h2 className="text-xl font-semibold text-[#2E4F54] dark:text-[#E0F4F5] mb-4">Book a Ride</h2>
-            
             {success ? (
               <div className="bg-[#7CCFD0]/20 dark:bg-[#7CCFD0]/30 text-[#2E4F54] dark:text-[#E0F4F5] p-4 rounded mb-6">
                 <div className="flex items-center">
@@ -1028,7 +961,6 @@ export default function BookingForm({ user, profile }) {
                     {error}
                   </div>
                 )}
-                
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {/* Pickup Address */}
                   <div className="col-span-1 md:col-span-2">
@@ -1051,47 +983,38 @@ export default function BookingForm({ user, profile }) {
                     </div>
                     
                     <div className="relative">
-                      <div 
-                        ref={pickupAutocompleteContainerRef} 
-                        className="w-full"
-                        aria-label="Pickup location input"
-                      >
-                        {/* Autocomplete input will be inserted here */}
-                      </div>
-                      <input 
-                        type="hidden" 
-                        name="pickupAddress" 
-                        value={formData.pickupAddress} 
+                      {/* Always render a visible input for pickup address */}
+                      <input
+                        ref={pickupAutocompleteContainerRef}
+                        type="text"
+                        id="pickupAddress"
+                        name="pickupAddress"
+                        className="w-full px-3 py-2 border border-[#DDE5E7] dark:border-[#3F5E63] rounded-md shadow-sm focus:outline-none focus:ring-[#7CCFD0] focus:border-[#7CCFD0] dark:bg-[#1C2C2F] text-[#2E4F54] dark:text-[#E0F4F5]"
+                        placeholder="Enter pickup address"
+                        value={formData.pickupAddress}
+                        onChange={handleChange}
+                        autoComplete="off"
                         required
                       />
-                      
                       {/* Favorite Addresses Dropdown for Pickup */}
                       {showFavoritePickupDropdown && favoriteAddresses.length > 0 && (
-                        <div className="absolute z-40 mt-1 w-full bg-white dark:bg-[#1C2C2F] border border-[#DDE5E7] dark:border-[#3F5E63] rounded-md shadow-lg max-h-60 overflow-y-auto favorite-pickup-dropdown">
-                          <ul className="py-1">
-                            {favoriteAddresses
-                              .filter(addr => addr.type === 'pickup' || addr.type === 'both')
-                              .map((address) => (
-                                <li 
-                                  key={address.id}
-                                  className="px-3 py-2 hover:bg-[#7CCFD0]/10 cursor-pointer"
-                                  onClick={() => handleSelectFavoritePickup(address)}
-                                >
-                                  <div className="font-medium text-[#2E4F54] dark:text-[#E0F4F5]">
-                                    {address.name}
-                                  </div>
-                                  <div className="text-sm text-[#2E4F54]/70 dark:text-[#E0F4F5]/70">
-                                    {address.address}
-                                  </div>
-                                </li>
-                              ))
-                            }
-                          </ul>
+                        <div className="absolute z-10 w-full bg-white dark:bg-[#1C2C2F] rounded-md shadow-lg max-h-60 overflow-auto border border-[#DDE5E7] dark:border-[#3F5E63] favorite-pickup-dropdown">
+                          {favoriteAddresses.filter(addr => addr.type === 'pickup' || addr.type === 'both').map((address) => (
+                            <button
+                              key={address.id}
+                              onClick={() => handleSelectFavoritePickup(address)}
+                              className="flex items-center w-full px-4 py-2 text-left text-[#2E4F54] dark:text-[#E0F4F5] hover:bg-[#F1F1F1] dark:hover:bg-[#2C3E50] rounded-md"
+                            >
+                              <svg className="w-5 h-5 mr-3 text-[#7CCFD0]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
+                              </svg>
+                              <span className="text-sm">{address.address}</span>
+                            </button>
+                          ))}
                         </div>
                       )}
                     </div>
                   </div>
-                  
                   {/* Destination Address */}
                   <div className="col-span-1 md:col-span-2">
                     <div className="flex justify-between items-center mb-1">
@@ -1111,619 +1034,262 @@ export default function BookingForm({ user, profile }) {
                         </button>
                       )}
                     </div>
-                    
                     <div className="relative">
-                      <div 
-                        ref={destinationAutocompleteContainerRef} 
-                        className="w-full"
-                        aria-label="Destination location input"
-                      >
-                        {/* Autocomplete input will be inserted here */}
-                      </div>
-                      <input 
-                        type="hidden" 
-                        name="destinationAddress" 
-                        value={formData.destinationAddress} 
+                      {/* Always render a visible input for destination address */}
+                      <input
+                        ref={destinationAutocompleteContainerRef}
+                        type="text"
+                        id="destinationAddress"
+                        name="destinationAddress"
+                        className="w-full px-3 py-2 border border-[#DDE5E7] dark:border-[#3F5E63] rounded-md shadow-sm focus:outline-none focus:ring-[#7CCFD0] focus:border-[#7CCFD0] dark:bg-[#1C2C2F] text-[#2E4F54] dark:text-[#E0F4F5]"
+                        placeholder="Enter destination address"
+                        value={formData.destinationAddress}
+                        onChange={handleChange}
+                        autoComplete="off"
                         required
                       />
-                      
                       {/* Favorite Addresses Dropdown for Destination */}
                       {showFavoriteDestinationDropdown && favoriteAddresses.length > 0 && (
-                        <div className="absolute z-40 mt-1 w-full bg-white dark:bg-[#1C2C2F] border border-[#DDE5E7] dark:border-[#3F5E63] rounded-md shadow-lg max-h-60 overflow-y-auto favorite-destination-dropdown">
-                          <ul className="py-1">
-                            {favoriteAddresses
-                              .filter(addr => addr.type === 'destination' || addr.type === 'both')
-                              .map((address) => (
-                                <li 
-                                  key={address.id}
-                                  className="px-3 py-2 hover:bg-[#7CCFD0]/10 cursor-pointer"
-                                  onClick={() => handleSelectFavoriteDestination(address)}
-                                >
-                                  <div className="font-medium text-[#2E4F54] dark:text-[#E0F4F5]">
-                                    {address.name}
-                                  </div>
-                                  <div className="text-sm text-[#2E4F54]/70 dark:text-[#E0F4F5]/70">
-                                    {address.address}
-                                  </div>
-                                </li>
-                              ))
-                            }
-                          </ul>
+                        <div className="absolute z-10 w-full bg-white dark:bg-[#1C2C2F] rounded-md shadow-lg max-h-60 overflow-auto border border-[#DDE5E7] dark:border-[#3F5E63] favorite-destination-dropdown">
+                          {favoriteAddresses.filter(addr => addr.type === 'destination' || addr.type === 'both').map((address) => (
+                            <button
+                              key={address.id}
+                              onClick={() => handleSelectFavoriteDestination(address)}
+                              className="flex items-center w-full px-4 py-2 text-left text-[#2E4F54] dark:text-[#E0F4F5] hover:bg-[#F1F1F1] dark:hover:bg-[#2C3E50] rounded-md"
+                            >
+                              <svg className="w-5 h-5 mr-3 text-[#7CCFD0]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
+                              </svg>
+                              <span className="text-sm">{address.address}</span>
+                            </button>
+                          ))}
                         </div>
                       )}
                     </div>
                   </div>
-                  
-                  {/* Pickup Date and Time - Popup Picker */}
-                  <div className="space-y-4">
-                    <div>
-                      <label htmlFor="pickupDateTime" className="block text-sm font-medium text-[#2E4F54] dark:text-[#E0F4F5] mb-1">
-                        Pickup Date & Time
+                </div>
+                
+                {/* Date and Time Pickers */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Pickup Date/Time */}
+                  <div className="col-span-1">
+                    <label className="block text-sm font-medium text-[#2E4F54] dark:text-[#E0F4F5] mb-1">
+                      Pickup Date & Time
+                    </label>
+                    <div className="flex space-x-2">
+                      <button
+                        type="button"
+                        onClick={openDatePicker}
+                        className="flex-1 px-3 py-2 border border-[#DDE5E7] dark:border-[#3F5E63] rounded-md shadow-sm bg-white dark:bg-[#1C2C2F] text-[#2E4F54] dark:text-[#E0F4F5] hover:bg-[#F9FAFB] dark:hover:bg-[#2C3E50] focus:outline-none focus:ring-[#7CCFD0] focus:border-[#7CCFD0] text-left"
+                      >
+                        {selectedDate ? `${getDayName(selectedDate)}, ${formatMonthDay(selectedDate)}` : 'Select Date'}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={openDatePicker}
+                        className="flex-1 px-3 py-2 border border-[#DDE5E7] dark:border-[#3F5E63] rounded-md shadow-sm bg-white dark:bg-[#1C2C2F] text-[#2E4F54] dark:text-[#E0F4F5] hover:bg-[#F9FAFB] dark:hover:bg-[#2C3E50] focus:outline-none focus:ring-[#7CCFD0] focus:border-[#7CCFD0] text-left"
+                      >
+                        {formData.pickupTime ? formatTimeAmPm(formData.pickupTime) : 'Select Time'}
+                      </button>
+                    </div>
+                  </div>
+                  {/* Return Date/Time (for round trips) */}
+                  {formData.isRoundTrip && (
+                    <div className="col-span-1">
+                      <label className="block text-sm font-medium text-[#2E4F54] dark:text-[#E0F4F5] mb-1">
+                        Return Date & Time
                       </label>
-                      <div className="relative">
+                      <div className="flex space-x-2">
                         <button
                           type="button"
-                          id="pickupDateTime"
-                          onClick={openDatePicker}
-                          className="w-full px-3 py-2 border border-[#DDE5E7] dark:border-[#3F5E63] rounded-md shadow-sm focus:outline-none focus:ring-[#7CCFD0] focus:border-[#7CCFD0] dark:bg-[#1C2C2F] text-left flex justify-between items-center"
+                          onClick={openReturnDatePicker}
+                          className="flex-1 px-3 py-2 border border-[#DDE5E7] dark:border-[#3F5E63] rounded-md shadow-sm bg-white dark:bg-[#1C2C2F] text-[#2E4F54] dark:text-[#E0F4F5] hover:bg-[#F9FAFB] dark:hover:bg-[#2C3E50] focus:outline-none focus:ring-[#7CCFD0] focus:border-[#7CCFD0] text-left"
                         >
-                          <span className={formData.pickupTime ? "text-[#2E4F54] dark:text-[#E0F4F5]" : "text-[#2E4F54]/50 dark:text-[#E0F4F5]/50"}>
-                            {formData.pickupTime 
-                              ? `${formatMonthDay(formData.pickupTime)}, ${getDayName(formData.pickupTime)} - ${formatTimeAmPm(formData.pickupTime)}`
-                              : "Select pickup date and time"}
-                          </span>
-                          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-[#3B5B63] dark:text-[#84CED3]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                          </svg>
+                          {selectedReturnDate ? `${getDayName(selectedReturnDate)}, ${formatMonthDay(selectedReturnDate)}` : 'Select Date'}
                         </button>
-                        
-                        {/* Date and Time Picker Popup */}
-                        {isDatePickerOpen && (
-                          <div 
-                            ref={datePickerRef}
-                            className="absolute z-50 mt-2 w-full bg-white dark:bg-[#1C2C2F] border border-[#DDE5E7] dark:border-[#3F5E63] rounded-md shadow-lg p-4"
-                          >
-                            {/* Header with back button for time view */}
-                            <div className="flex justify-between items-center mb-2">
-                              <h4 className="text-[#2E4F54] dark:text-[#E0F4F5] font-medium">
-                                {currentView === 'date' ? 'Select Date' : 'Select Time'}
-                              </h4>
-                              {currentView === 'time' && (
-                                <button 
-                                  type="button"
-                                  onClick={() => setCurrentView('date')}
-                                  className="text-[#3B5B63] dark:text-[#84CED3] hover:text-[#7CCFD0] flex items-center text-sm"
-                                >
-                                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                                  </svg>
-                                  Back to dates
-                                </button>
-                              )}
-                            </div>
-                            
-                            {/* Date selection view */}
-                            {currentView === 'date' && (
-                              <div className="grid grid-cols-3 sm:grid-cols-4 gap-2 max-h-60 overflow-y-auto">
-                                {getDateOptions().map((date, index) => {
-                                  const isToday = new Date().toDateString() === date.toDateString();
-                                  const isSelected = selectedDate && selectedDate.toDateString() === date.toDateString();
-                                  
-                                  return (
-                                    <button
-                                      key={index}
-                                      type="button"
-                                      onClick={() => handleDateSelect(date)}
-                                      className={`
-                                        p-2 rounded-md border text-center flex flex-col items-center
-                                        ${isSelected 
-                                          ? 'bg-[#7CCFD0]/20 border-[#7CCFD0] text-[#3B5B63] dark:text-[#E0F4F5]' 
-                                          : 'border-[#DDE5E7] dark:border-[#3F5E63] hover:bg-[#F8F9FA] dark:hover:bg-[#24393C]'}
-                                      `}
-                                    >
-                                      <span className="text-xs font-medium">{getDayName(date)}</span>
-                                      <span className={`text-sm ${isToday ? 'font-bold' : ''}`}>{formatMonthDay(date)}</span>
-                                      {isToday && <span className="text-xs text-[#7CCFD0] mt-1">Today</span>}
-                                    </button>
-                                  );
-                                })}
-                              </div>
-                            )}
-                            
-                            {/* Time selection view */}
-                            {currentView === 'time' && selectedDate && (
-                              <div>
-                                <div className="text-sm text-[#2E4F54]/70 dark:text-[#E0F4F5]/70 mb-2">
-                                  {new Date(selectedDate).toLocaleDateString('en-US', { 
-                                    weekday: 'long', 
-                                    month: 'long', 
-                                    day: 'numeric',
-                                    year: 'numeric'
-                                  })}
-                                </div>
-                                
-                                <div className="grid grid-cols-3 sm:grid-cols-4 gap-2 max-h-60 overflow-y-auto">
-                                  {availableTimeSlots.map((slot, index) => {
-                                    // In the future, we could mark some slots as unavailable
-                                    // For now, all slots are available
-                                    
-                                    return (
-                                      <button
-                                        key={index}
-                                        type="button"
-                                        onClick={() => handleTimeSelect(slot)}
-                                        className="p-2 rounded-md border border-[#DDE5E7] dark:border-[#3F5E63] hover:bg-[#7CCFD0]/10 text-center"
-                                      >
-                                        {slot.label}
-                                      </button>
-                                    );
-                                  })}
-                                </div>
-                                
-                                <div className="text-xs text-[#2E4F54]/60 dark:text-[#E0F4F5]/60 mt-2 italic">
-                                  All times shown are in your local timezone
-                                </div>
-                              </div>
-                            )}
-                            
-                            {/* Optional hint for future availability feature */}
-                            <div className="mt-4 pt-2 border-t border-[#DDE5E7] dark:border-[#3F5E63] text-xs text-[#3B5B63] dark:text-[#84CED3]">
-                              <p>Select a date and then choose an available time slot</p>
-                            </div>
-                          </div>
-                        )}
+                        <button
+                          type="button"
+                          onClick={openReturnDatePicker}
+                          className="flex-1 px-3 py-2 border border-[#DDE5E7] dark:border-[#3F5E63] rounded-md shadow-sm bg-white dark:bg-[#1C2C2F] text-[#2E4F54] dark:text-[#E0F4F5] hover:bg-[#F9FAFB] dark:hover:bg-[#2C3E50] focus:outline-none focus:ring-[#7CCFD0] focus:border-[#7CCFD0] text-left"
+                        >
+                          {formData.returnPickupTime ? formatTimeAmPm(formData.returnPickupTime) : 'Select Time'}
+                        </button>
                       </div>
                     </div>
-                  </div>
-                  
-                  {/* Wheelchair Type */}
-                  <div>
-                    <label htmlFor="wheelchairType" className="block text-sm font-medium text-[#2E4F54] dark:text-[#E0F4F5] mb-1">
-                      Wheelchair Requirements
-                    </label>
-                    <div className="relative">
-                      <select
-                        id="wheelchairType"
-                        name="wheelchairType"
-                        value={formData.wheelchairType}
-                        onChange={handleChange}
-                        className="w-full appearance-none px-3 py-2 border border-[#DDE5E7] dark:border-[#3F5E63] rounded-md shadow-sm focus:outline-none focus:ring-[#7CCFD0] focus:border-[#7CCFD0] dark:bg-[#1C2C2F] text-[#2E4F54] dark:text-[#E0F4F5] pr-10"
-                      >
-                        <option value="no_wheelchair">No Wheelchair</option>
-                        <option value="wheelchair">Wheelchair (+$25)</option>
-                      </select>
-                      <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-[#2E4F54] dark:text-[#E0F4F5]">
-                        <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
-                          <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" />
-                        </svg>
-                      </div>
-                    </div>
-                  </div>
-                  
-                </div>
-                
-                {/* Map display */}
-                <div className="col-span-1 md:col-span-2 mt-4">
-                  <div 
-                    ref={mapRef} 
-                    className="w-full h-[300px] rounded-md border border-[#DDE5E7] dark:border-[#3F5E63]"
-                  ></div>
-                </div>
-                
-                {/* Round trip toggle */}
-                <div className="col-span-1 md:col-span-2 flex items-center">
-                  <div className="relative inline-block w-10 mr-2 align-middle select-none">
-                    <input
-                      type="checkbox"
-                      name="isRoundTrip"
-                      id="isRoundTrip"
-                      checked={formData.isRoundTrip}
-                      onChange={(e) => setFormData({...formData, isRoundTrip: e.target.checked})}
-                      className="absolute block w-6 h-6 rounded-full bg-white border-4 border-[#DDE5E7] appearance-none cursor-pointer checked:right-0 checked:border-[#7CCFD0] transition-all duration-200 focus:outline-none"
-                    />
-                    <label 
-                      htmlFor="isRoundTrip"
-                      className={`block overflow-hidden h-6 rounded-full bg-[#DDE5E7] cursor-pointer ${formData.isRoundTrip ? 'bg-[#7CCFD0]' : ''}`}
-                    ></label>
-                  </div>
-                  <label htmlFor="isRoundTrip" className="text-sm font-medium cursor-pointer">
-                    Round Trip
-                  </label>
-                  {formData.isRoundTrip && (
-                    <span className="ml-2 text-xs text-[#2E4F54] dark:text-[#7CCFD0]">
-                      The vehicle will wait for you and take you back to your pickup location.
-                    </span>
                   )}
                 </div>
                 
-                {/* Return Pickup Time - Only visible for round trips */}
-                {formData.isRoundTrip && (
-                  <div className="col-span-1 md:col-span-2 pt-4 border-t border-[#DDE5E7] dark:border-[#3F5E63] mt-4">
-                    <div>
-                      <label htmlFor="returnPickupTime" className="block text-sm font-medium text-[#2E4F54] dark:text-[#E0F4F5] mb-1">
-                        Return Pickup Time
-                      </label>
-                      <div className="relative">
-                        <button
-                          type="button"
-                          id="returnPickupTime"
-                          onClick={openReturnDatePicker}
-                          className="w-full px-3 py-2 border border-[#DDE5E7] dark:border-[#3F5E63] rounded-md shadow-sm focus:outline-none focus:ring-[#7CCFD0] focus:border-[#7CCFD0] dark:bg-[#1C2C2F] text-left flex justify-between items-center"
-                        >
-                          <span className={formData.returnPickupTime ? "text-[#2E4F54] dark:text-[#E0F4F5]" : "text-[#2E4F54]/50 dark:text-[#E0F4F5]/50"}>
-                            {formData.returnPickupTime 
-                              ? `${formatMonthDay(formData.returnPickupTime)}, ${getDayName(formData.returnPickupTime)} - ${formatTimeAmPm(formData.returnPickupTime)}`
-                              : "Select return pickup time"}
-                          </span>
-                          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-[#3B5B63] dark:text-[#84CED3]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                          </svg>
-                        </button>
-                        
-                        {/* Return Date and Time Picker Popup */}
-                        {isReturnDatePickerOpen && (
-                          <div 
-                            ref={returnDatePickerRef}
-                            className="absolute z-50 mt-2 w-full bg-white dark:bg-[#1C2C2F] border border-[#DDE5E7] dark:border-[#3F5E63] rounded-md shadow-lg p-4"
-                          >
-                            {/* Header with back button for time view */}
-                            <div className="flex justify-between items-center mb-2">
-                              <h4 className="text-[#2E4F54] dark:text-[#E0F4F5] font-medium">
-                                {currentView === 'date' ? 'Select Return Date' : 'Select Return Time'}
-                              </h4>
-                              {currentView === 'time' && (
-                                <button 
-                                  type="button"
-                                  onClick={() => setCurrentView('date')}
-                                  className="text-[#3B5B63] dark:text-[#84CED3] hover:text-[#7CCFD0] flex items-center text-sm"
-                                >
-                                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                                  </svg>
-                                  Back to dates
-                                </button>
-                              )}
-                            </div>
-                            
-                            {/* Date selection view */}
-                            {currentView === 'date' && (
-                              <div className="grid grid-cols-3 sm:grid-cols-4 gap-2 max-h-60 overflow-y-auto">
-                                {getDateOptions().map((date, index) => {
-                                  const isToday = new Date().toDateString() === date.toDateString();
-                                  const isSelected = selectedReturnDate && selectedReturnDate.toDateString() === date.toDateString();
-                                  
-                                  return (
-                                    <button
-                                      key={index}
-                                      type="button"
-                                      onClick={() => handleReturnDateSelect(date)}
-                                      className={`
-                                        p-2 rounded-md border text-center flex flex-col items-center
-                                        ${isSelected 
-                                          ? 'bg-[#7CCFD0]/20 border-[#7CCFD0] text-[#3B5B63] dark:text-[#E0F4F5]' 
-                                          : 'border-[#DDE5E7] dark:border-[#3F5E63] hover:bg-[#F8F9FA] dark:hover:bg-[#24393C]'}
-                                      `}
-                                    >
-                                      <span className="text-xs font-medium">{getDayName(date)}</span>
-                                      <span className={`text-sm ${isToday ? 'font-bold' : ''}`}>{formatMonthDay(date)}</span>
-                                      {isToday && <span className="text-xs text-[#7CCFD0] mt-1">Today</span>}
-                                    </button>
-                                  );
-                                })}
-                              </div>
-                            )}
-                            
-                            {/* Time selection view */}
-                            {currentView === 'time' && selectedReturnDate && (
-                              <div>
-                                <div className="text-sm text-[#2E4F54]/70 dark:text-[#E0F4F5]/70 mb-2">
-                                  {new Date(selectedReturnDate).toLocaleDateString('en-US', { 
-                                    weekday: 'long', 
-                                    month: 'long', 
-                                    day: 'numeric',
-                                    year: 'numeric'
-                                  })}
-                                </div>
-                                
-                                <div className="grid grid-cols-3 sm:grid-cols-4 gap-2 max-h-60 overflow-y-auto">
-                                  {availableTimeSlots.map((slot, index) => {
-                                    return (
-                                      <button
-                                        key={index}
-                                        type="button"
-                                        onClick={() => handleTimeSelect(slot, true)}
-                                        className="p-2 rounded-md border border-[#DDE5E7] dark:border-[#3F5E63] hover:bg-[#7CCFD0]/10 text-center"
-                                      >
-                                        {slot.label}
-                                      </button>
-                                    );
-                                  })}
-                                </div>
-                                
-                                <div className="text-xs text-[#2E4F54]/60 dark:text-[#E0F4F5]/60 mt-2 italic">
-                                  All times shown are in your local timezone
-                                </div>
-                              </div>
-                            )}
-                            
-                            {/* Optional hint */}
-                            <div className="mt-4 pt-2 border-t border-[#DDE5E7] dark:border-[#3F5E63] text-xs text-[#3B5B63] dark:text-[#84CED3]">
-                              <p>Select a date and then choose an available time slot for your return trip</p>
-                            </div>
-                          </div>
-                        )}
+                {/* Wheelchair Accessibility */}
+                <div>
+                  <label className="block text-sm font-medium text-[#2E4F54] dark:text-[#E0F4F5] mb-1">
+                    Wheelchair Accessibility
+                  </label>
+                  <select
+                    name="wheelchairType"
+                    value={formData.wheelchairType}
+                    onChange={handleChange}
+                    className="block w-full px-3 py-2 border border-[#DDE5E7] dark:border-[#3F5E63] rounded-md shadow-sm focus:outline-none focus:ring-[#7CCFD0] focus:border-[#7CCFD0] dark:bg-[#1C2C2F] text-[#2E4F54] dark:text-[#E0F4F5]"
+                  >
+                    <option value="no_wheelchair">No Wheelchair Needed</option>
+                    <option value="wheelchair">Wheelchair Accessible</option>
+                  </select>
+                </div>
+                
+                {/* Round Trip Option */}
+                <div className="flex items-center">
+                  <input
+                    type="checkbox"
+                    id="isRoundTrip"
+                    name="isRoundTrip"
+                    checked={formData.isRoundTrip}
+                    onChange={(e) => setFormData(prev => ({ ...prev, isRoundTrip: e.target.checked }))}
+                    className="h-4 w-4 text-[#7CCFD0] border border-[#DDE5E7] rounded focus:ring-[#7CCFD0] dark:bg-[#1C2C2F] dark:border-[#3F5E63] focus:outline-none"
+                  />
+                  <label htmlFor="isRoundTrip" className="ml-2 block text-sm font-medium text-[#2E4F54] dark:text-[#E0F4F5]">
+                    Round Trip
+                  </label>
+                </div>
+                
+                {/* Pricing Breakdown (Debug Info) */}
+                {pricingBreakdown && (
+                  <div className="mt-4 p-4 bg-[#F1F8F9] dark:bg-[#2C3E50] rounded-md shadow-sm">
+                    <h3 className="text-sm font-semibold text-[#2E4F54] dark:text-[#E0F4F5] mb-2">Pricing Breakdown</h3>
+                    <div className="grid grid-cols-2 gap-2 text-sm">
+                      <div className="flex justify-between">
+                        <span className="text-[#6B7280] dark:text-[#9CA3AF]">Base Rate:</span>
+                        <span className="text-[#2E4F54] dark:text-[#E0F4F5]">${pricingBreakdown.baseRate}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-[#6B7280] dark:text-[#9CA3AF]">Mileage Charge:</span>
+                        <span className="text-[#2E4F54] dark:text-[#E0F4F5]">${pricingBreakdown.mileageCharge}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-[#6B7280] dark:text-[#9CA3AF]">Weekend Adjustment:</span>
+                        <span className="text-[#2E4F54] dark:text-[#E0F4F5]">${pricingBreakdown.weekendAdjustment}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-[#6B7280] dark:text-[#9CA3AF]">Off-Hours Adjustment:</span>
+                        <span className="text-[#2E4F54] dark:text-[#E0F4F5]">${pricingBreakdown.offHoursAdjustment}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-[#6B7280] dark:text-[#9CA3AF]">Wheelchair Adjustment:</span>
+                        <span className="text-[#2E4F54] dark:text-[#E0F4F5]">${pricingBreakdown.wheelchairAdjustment}</span>
+                      </div>
+                      <div className="flex justify-between border-t border-[#DDE5E7] dark:border-[#3F5E63] pt-2 mt-2">
+                        <span className="font-semibold text-[#2E4F54] dark:text-[#E0F4F5]">Estimated Total:</span>
+                        <span className="font-semibold text-[#2E4F54] dark:text-[#E0F4F5]">${pricingBreakdown.finalPrice}</span>
                       </div>
                     </div>
                   </div>
                 )}
-
-                <div className="col-span-1 md:col-span-2 border-t border-[#DDE5E7] dark:border-[#3F5E63] pt-4">
-                  <h3 className="text-md font-medium text-[#2E4F54] dark:text-[#E0F4F5] mb-2">Ride Details</h3>
-                  
-                  <div className="grid grid-cols-2 gap-4 mb-4">
-                    <div>
-                      <p className="text-sm text-[#2E4F54]/70 dark:text-[#E0F4F5]/70">Pickup Time</p>
-                      {formData.pickupTime ? (
-                        <p className="font-medium text-[#2E4F54] dark:text-[#E0F4F5]">
-                          {new Date(formData.pickupTime).toLocaleDateString('en-US', { 
-                            weekday: 'short', 
-                            month: 'short', 
-                            day: 'numeric'
-                          })}, {formatTimeAmPm(formData.pickupTime)}
-                        </p>
-                      ) : (
-                        <p className="font-medium text-[#2E4F54]/50 dark:text-[#E0F4F5]/50">Select a time</p>
-                      )}
-                    </div>
-                    
-                    {/* Return Pickup Time - Only show in summary if round trip is selected */}
-                    {formData.isRoundTrip && (
-                      <div>
-                        <p className="text-sm text-[#2E4F54]/70 dark:text-[#E0F4F5]/70">Return Pickup Time</p>
-                        {formData.returnPickupTime ? (
-                          <p className="font-medium text-[#2E4F54] dark:text-[#E0F4F5]">
-                            {new Date(formData.returnPickupTime).toLocaleDateString('en-US', { 
-                              weekday: 'short', 
-                              month: 'short', 
-                              day: 'numeric'
-                            })}, {formatTimeAmPm(formData.returnPickupTime)}
-                          </p>
-                        ) : (
-                          <p className="font-medium text-[#2E4F54]/50 dark:text-[#E0F4F5]/50">Select a time</p>
-                        )}
+                
+                {/* Payment Method Selection */}
+                <div>
+                  <label className="block text-sm font-medium text-[#2E4F54] dark:text-[#E0F4F5] mb-1">
+                    Payment Method
+                  </label>
+                  <div className="space-y-2">
+                    {paymentMethods.map((method) => (
+                      <div key={method.id} className="flex items-center">
+                        <input
+                          type="radio"
+                          id={`payment-method-${method.id}`}
+                          name="paymentMethod"
+                          value={method.id}
+                          checked={selectedPaymentMethod === method.id}
+                          onChange={() => setSelectedPaymentMethod(method.id)}
+                          className="h-4 w-4 text-[#7CCFD0] border border-[#DDE5E7] rounded focus:ring-[#7CCFD0] dark:bg-[#1C2C2F] dark:border-[#3F5E63] focus:outline-none"
+                        />
+                        <label htmlFor={`payment-method-${method.id}`} className="ml-2 block text-sm font-medium text-[#2E4F54] dark:text-[#E0F4F5]">
+                          {method.card?.brand} **** {method.card?.last4} ({method.card?.exp_month}/{method.card?.exp_year})
+                        </label>
                       </div>
-                    )}
-                    
-                    <div className="col-span-2">
-                      <p className="text-sm text-[#2E4F54]/70 dark:text-[#E0F4F5]/70">Estimated Fare</p>
-                      {pickupLocation && destinationLocation ? (
-                        <div>
-                          <p className="font-medium text-[#2E4F54] dark:text-[#E0F4F5] text-lg">
-                            {estimatedFare ? `$${estimatedFare.toFixed(2)}` : 'Calculating...'}
-                          </p>
-                          
-                          {/* Pricing Breakdown */}
-                          {pricingBreakdown && (
-                            <div className="mt-3 p-3 bg-[#F8F9FA] dark:bg-[#1C2C2F] rounded-md border border-[#DDE5E7] dark:border-[#3F5E63]">
-                              <p className="text-xs font-medium text-[#2E4F54] dark:text-[#E0F4F5] mb-2">Pricing Breakdown:</p>
-                              <div className="space-y-1 text-xs">
-                                <div className="flex justify-between">
-                                  <span className="text-[#2E4F54]/70 dark:text-[#E0F4F5]/70">Base fare ({formData.isRoundTrip ? 'round trip' : 'one-way'}):</span>
-                                  <span className="text-[#2E4F54] dark:text-[#E0F4F5]">${pricingBreakdown.baseRate.toFixed(2)}</span>
-                                </div>
-                                <div className="flex justify-between">
-                                  <span className="text-[#2E4F54]/70 dark:text-[#E0F4F5]/70">Mileage ({pricingBreakdown.totalMiles.toFixed(1)} miles × ${pricingBreakdown.mileageRate}/mi):</span>
-                                  <span className="text-[#2E4F54] dark:text-[#E0F4F5]">${pricingBreakdown.mileageCharge.toFixed(2)}</span>
-                                </div>
-                                {pricingBreakdown.weekendAdjustment > 0 && (
-                                  <div className="flex justify-between">
-                                    <span className="text-[#2E4F54]/70 dark:text-[#E0F4F5]/70">Weekend premium:</span>
-                                    <span className="text-[#2E4F54] dark:text-[#E0F4F5]">+${pricingBreakdown.weekendAdjustment.toFixed(2)}</span>
-                                  </div>
-                                )}
-                                {pricingBreakdown.offHoursAdjustment > 0 && (
-                                  <div className="flex justify-between">
-                                    <span className="text-[#2E4F54]/70 dark:text-[#E0F4F5]/70">Off-hours premium:</span>
-                                    <span className="text-[#2E4F54] dark:text-[#E0F4F5]">+${pricingBreakdown.offHoursAdjustment.toFixed(2)}</span>
-                                  </div>
-                                )}
-                                {pricingBreakdown.wheelchairAdjustment > 0 && (
-                                  <div className="flex justify-between">
-                                    <span className="text-[#2E4F54]/70 dark:text-[#E0F4F5]/70">Wheelchair accessibility:</span>
-                                    <span className="text-[#2E4F54] dark:text-[#E0F4F5]">+${pricingBreakdown.wheelchairAdjustment.toFixed(2)}</span>
-                                  </div>
-                                )}
-                                <div className="flex justify-between pt-1 mt-1 border-t border-[#DDE5E7] dark:border-[#3F5E63]">
-                                  <span className="text-[#2E4F54]/70 dark:text-[#E0F4F5]/70">Subtotal:</span>
-                                  <span className="text-[#2E4F54] dark:text-[#E0F4F5]">${pricingBreakdown.subtotal.toFixed(2)}</span>
-                                </div>
-                                <div className="flex justify-between text-[#7CCFD0]">
-                                  <span>{pricingBreakdown.isVeteran ? 'Veteran' : 'Individual'} discount ({pricingBreakdown.discountPercentage}%):</span>
-                                  <span>-${pricingBreakdown.discountAmount.toFixed(2)}</span>
-                                </div>
-                                <div className="flex justify-between pt-1 mt-1 border-t border-[#DDE5E7] dark:border-[#3F5E63] font-medium text-sm">
-                                  <span className="text-[#2E4F54] dark:text-[#E0F4F5]">Total:</span>
-                                  <span className="text-[#2E4F54] dark:text-[#E0F4F5]">${pricingBreakdown.finalPrice.toFixed(2)}</span>
-                                </div>
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                      ) : (
-                        <p className="font-medium text-[#2E4F54]/50 dark:text-[#E0F4F5]/50">Enter addresses</p>
-                      )}
-                    </div>
-                    
-                    <div>
-                      <p className="text-sm text-[#2E4F54]/70 dark:text-[#E0F4F5]/70">Estimated Duration</p>
-                      {pickupLocation && destinationLocation ? (
-                        <p className="font-medium text-[#2E4F54] dark:text-[#E0F4F5]">{formData.isRoundTrip ? `${estimatedDuration} × 2` : estimatedDuration}</p>
-                      ) : (
-                        <p className="font-medium text-[#2E4F54]/50 dark:text-[#E0F4F5]/50">Enter addresses</p>
-                      )}
-                    </div>
-                    
-                    <div>
-                      <p className="text-sm text-[#2E4F54]/70 dark:text-[#E0F4F5]/70">Distance</p>
-                      {pickupLocation && destinationLocation ? (
-                        <p className="font-medium text-[#2E4F54] dark:text-[#E0F4F5]">
-                          {distanceMiles > 0 ? (
-                            formData.isRoundTrip 
-                              ? `${(distanceMiles * 2).toFixed(1)} miles (${distanceMiles.toFixed(1)} each way)`
-                              : `${distanceMiles.toFixed(1)} miles`
-                          ) : 'Calculating...'}
-                        </p>
-                      ) : (
-                        <p className="font-medium text-[#2E4F54]/50 dark:text-[#E0F4F5]/50">Enter addresses</p>
-                      )}
-                    </div>
-                    
-                    {/* For round trips, show wait time between pickup and return */}
-                    {formData.isRoundTrip && formData.pickupTime && formData.returnPickupTime && (
-                      <div>
-                        <p className="text-sm text-[#2E4F54]/70 dark:text-[#E0F4F5]/70">Wait Time</p>
-                        <p className="font-medium text-[#2E4F54] dark:text-[#E0F4F5]">
-                          {(() => {
-                            const pickupTime = new Date(formData.pickupTime);
-                            const returnTime = new Date(formData.returnPickupTime);
-                            const diffMs = returnTime - pickupTime;
-                            const diffHrs = Math.floor(diffMs / (1000 * 60 * 60));
-                            const diffMins = Math.round((diffMs % (1000 * 60 * 60)) / (1000 * 60));
-                            
-                            if (diffHrs === 0) {
-                              return `${diffMins} minutes`;
-                            } else if (diffMins === 0) {
-                              return `${diffHrs} ${diffHrs === 1 ? 'hour' : 'hours'}`;
-                            } else {
-                              return `${diffHrs} ${diffHrs === 1 ? 'hour' : 'hours'}, ${diffMins} ${diffMins === 1 ? 'minute' : 'minutes'}`;
-                            }
-                          })()}
-                        </p>
-                      </div>
-                    )}
+                    ))}
                   </div>
-                  
-                  <div className="bg-[#7CCFD0]/10 dark:bg-[#7CCFD0]/20 p-3 rounded-md text-sm mb-4">
-                    <p className="text-[#2E4F54] dark:text-[#E0F4F5]">
-                      <strong>Note:</strong> Your ride request will be reviewed and approved by a dispatcher. Once approved, it will be assigned to a compassionate driver who specializes in supportive transportation.
-                    </p>
-                    <p className="text-[#2E4F54] dark:text-[#E0F4F5] mt-2">
-                      <strong>Discount:</strong> A 10% discount is automatically applied to all individual rides. Veterans receive a 20% discount.
-                    </p>
-                    <p className="text-[#2E4F54] dark:text-[#E0F4F5] mt-2">
-                      <strong>Cancellation Policy:</strong> You may cancel without penalty up until the day of the ride. Same-day cancellations will be charged the base fare only.
-                    </p>
-                    {formData.isRoundTrip && (
-                      <p className="text-[#2E4F54] dark:text-[#E0F4F5] mt-2">
-                        <strong>Round Trip:</strong> Your driver will wait at the destination and bring you back to your pickup location.
-                      </p>
+                  {/* Add New Card Button */}
+                  <div className="mt-4">
+                    <button
+                      type="button"
+                      onClick={handleAddCard}
+                      className="w-full inline-flex items-center justify-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-[#7CCFD0] hover:bg-[#60BFC0] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#7CCFD0]"
+                    >
+                      {isAddingCard ? (
+                        <>
+                          <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+                          </svg>
+                          Processing...
+                        </>
+                      ) : (
+                        'Add New Card'
+                      )}
+                    </button>
+                    {/* Error message for payment */}
+                    {paymentError && (
+                      <div className="mt-2 text-sm text-red-600 dark:text-red-400">
+                        {paymentError}
+                      </div>
                     )}
                   </div>
                 </div>
                 
-                {/* Payment Method Selection */}
-                <div className="col-span-1 md:col-span-2">
-                  <label className="block text-sm font-medium text-[#2E4F54] dark:text-[#E0F4F5] mb-1">
-                    Payment Method
-                  </label>
-                  {paymentLoading ? (
-                    <div className="text-sm text-[#2E4F54]/70 dark:text-[#E0F4F5]/70">Loading payment methods...</div>
-                  ) : paymentMethods.length === 0 ? (
-                    <div className="space-y-2">
-                      <div className="text-sm text-[#2E4F54]/70 dark:text-[#E0F4F5]/70">You must add a card before booking a ride.</div>
-                      {!isAddingCard && (
-                        <button type="button" onClick={handleAddCard} className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-[#7CCFD0] hover:bg-[#60BFC0] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#7CCFD0]">
-                          Add Card
-                        </button>
-                      )}
-                      {paymentError && <div className="text-red-600 text-xs mt-2">{paymentError}</div>}
-                    </div>
-                  ) : (
-                    <div className="space-y-2">
-                      <select
-                        className="w-full p-2 border border-[#DDE5E7] dark:border-[#3F5E63] rounded-md dark:bg-[#1C2C2F] text-[#2E4F54] dark:text-[#E0F4F5]"
-                        value={selectedPaymentMethod}
-                        onChange={e => setSelectedPaymentMethod(e.target.value)}
-                        required
-                      >
-                                             {paymentMethods.map(method => (
-                          <option key={method.id} value={method.id}>
-                            {`${method.card.brand.toUpperCase()} •••• ${method.card.last4} (${method.card.funding === 'debit' ? 'Debit' : 'Credit'})`}
-                          </option>
-                        ))}
-                      </select>
-                      <button
-                        type="button"
-                        onClick={handleAddCard}
-                        className="inline-flex items-center px-3 py-1 border border-transparent rounded-md text-xs font-medium bg-[#7bcfd0] text-white hover:bg-[#60BFC0] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#7CCFD0]"
-                      >
-                        Add New Card
-                      </button>
-                      {paymentError && <div className="text-red-600 text-xs mt-2">{paymentError}</div>}
-                    </div>
-                  )}
-                </div>
-
+                {/* Submit Button */}
                 <div>
                   <button
                     type="submit"
-                    disabled={isLoading || paymentMethods.length === 0 || !selectedPaymentMethod}
-                    className="w-full py-3 px-4 bg-[#7CCFD0] hover:bg-[#60BFC0] text-white dark:text-[#1C2C2F] font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#7CCFD0] disabled:opacity-50 disabled:cursor-not-allowed relative overflow-hidden"
+                    disabled={isLoading}
+                    className="w-full inline-flex items-center justify-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-[#7CCFD0] hover:bg-[#60BFC0] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#7CCFD0]"
                   >
-                    {bookingStatus === 'loading' && (
-                      <span className="absolute inset-0 flex items-center justify-center bg-[#7CCFD0]">
-                       
-                        <svg className="animate-spin h-5 w-5 text-white dark:text-[#1C2C2F]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24  24">
-                                                                                           <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                      </svg>
-                    </span>
-                  )}
-                  {bookingStatus === 'submitting' && (
-                    <span className="absolute inset-0 flex items-center justify-center bg-[#7CCFD0]">
-                      <div className="flex items-center space-x-2">
-                        <svg className="animate-spin h-5 w-5 text-white dark:text-[#1C2C2F]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    {isLoading ? (
+                      <>
+                        <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                           <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
                         </svg>
-                        <span className="text-white dark:text-[#1C2C2F]">Booking your trip...</span>
-                      </div>
-                    </span>
-                  )}
-                  
-                  <span className={bookingStatus === 'loading' || bookingStatus === 'submitting' ? 'invisible' : ''}>
-                    {isLoading ? 'Submitting...' : 'Request Ride'}
-                  </span>
-                </button>
-              </div>
-            </form>
-          )}
-        </div>
-      </DashboardLayout>
-      </div>
-      
-      {/* Card Setup Form - Rendered outside the main form to avoid nested <form> hydration error */}
-      {isAddingCard && clientSecret && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30">
-          <div className="bg-white dark:bg-[#1C2C2F] rounded-lg shadow-lg p-6 w-full max-w-md mx-2 relative">
-            <CardSetupForm
-              clientSecret={clientSecret}
-              onSuccess={handleCardSetupSuccess}
-              onError={handleCardSetupError}
-              onCancel={handleCardSetupCancel}
-              profile={profile}
-              user={user}
-            />
-            <button
-              type="button"
-              onClick={handleCardSetupCancel}
-              className="absolute top-2 right-2 text-[#2E4F54] dark:text-[#E0F4F5] hover:text-red-500"
-              aria-label="Close add card form"
-            >
-              ×
-            </button>
+                        Booking...
+                      </>
+                    ) : (
+                      'Book Now'
+                    )}
+                  </button>
+                </div>
+              </form>
+            )}
           </div>
-        </div>
+        </DashboardLayout>
+      </div>
+      {/* Google Maps and Place Autocomplete Scripts */}
+      {isGoogleLoaded && (
+        <>
+          <Script src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY&libraries=places" />
+          <Script>
+            {`
+              function initMap() {
+                const map = new google.maps.Map(document.getElementById('map'), {
+                  center: { lat: 40.4173, lng: -82.9071 },
+                  zoom: 7,
+                  mapTypeControl: false,
+                  streetViewControl: false,
+                  fullscreenControl: false
+                });
+                
+                const directionsRenderer = new google.maps.DirectionsRenderer({
+                  map: map,
+                  suppressMarkers: true,
+                  polylineOptions: {
+                    strokeColor: '#4285F4',
+                    strokeWeight: 5
+                  }
+                });
+                
+                // Store map and directions renderer in React state
+                window.mapInstance = map;
+                window.directionsRenderer = directionsRenderer;
+              }
+            `}
+          </Script>
+        </>
       )}
     </section>
   );
