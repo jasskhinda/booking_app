@@ -42,53 +42,65 @@ export default function DashboardView({ user }) {
 
   return (
     <DashboardLayout user={user} activeTab="dashboard">
-      <div className="bg-[#F8F9FA] dark:bg-[#24393C] rounded-lg shadow-md border border-[#DDE5E7] dark:border-[#3F5E63] p-6 mb-6">
-        <h2 className="text-xl font-semibold mb-4 text-[#2E4F54] dark:text-[#E0F4F5]">Welcome to your dashboard!</h2>
-        <p className="text-[#2E4F54] dark:text-[#E0F4F5] opacity-80 mb-3">
-          This is your personal dashboard where you can manage your rides and account settings.
-        </p>
-        
-        <div className="mt-6 grid grid-cols-1 gap-6 md:grid-cols-3">
-          <div className="bg-white dark:bg-[#1C2C2F] p-6 rounded-lg border border-[#DDE5E7] dark:border-[#3F5E63]">
-            <h3 className="font-medium mb-2 text-[#2E4F54] dark:text-[#E0F4F5]">Book a Ride</h3>
-            <p className="text-sm text-[#2E4F54]/80 dark:text-[#E0F4F5]/80 mb-4">
-              Schedule a new ride with one of our compassionate drivers.
-            </p>
-            <Link 
-              href="/dashboard/book" 
-              className="inline-block bg-[#7CCFD0] text-white px-4 py-2 rounded text-sm hover:bg-[#60BFC0]"
-            >
-              Book Now
-            </Link>
-          </div>
-          
-          <div className="bg-white dark:bg-[#1C2C2F] p-6 rounded-lg border border-[#DDE5E7] dark:border-[#3F5E63]">
-            <h3 className="font-medium mb-2 text-[#2E4F54] dark:text-[#E0F4F5]">My Trips</h3>
-            <p className="text-sm text-[#2E4F54]/80 dark:text-[#E0F4F5]/80 mb-4">
-              View and manage your completed and upcoming trips.
-            </p>
-            <Link 
-              href="/dashboard/trips" 
-              className="inline-block bg-[#7CCFD0] text-white px-4 py-2 rounded text-sm hover:bg-[#60BFC0]"
-            >
-              View Trips
-            </Link>
-          </div>
-          
-          <div className="bg-white dark:bg-[#1C2C2F] p-6 rounded-lg border border-[#DDE5E7] dark:border-[#3F5E63]">
-            <h3 className="font-medium mb-2 text-[#2E4F54] dark:text-[#E0F4F5]">Account Settings</h3>
-            <p className="text-sm text-[#2E4F54]/80 dark:text-[#E0F4F5]/80 mb-4">
-              Update your profile and preferences.
-            </p>
-            <Link 
-              href="/dashboard/settings" 
-              className="inline-block bg-[#7CCFD0] text-white px-4 py-2 rounded text-sm hover:bg-[#60BFC0]"
-            >
-              Settings
-            </Link>
+      <section
+        className="relative w-full min-h-[60vh] flex items-center justify-center bg-center bg-cover px-4"
+        style={{
+          backgroundImage: "url('/Transportation-near-me-scaled.jpg')",
+          backgroundPosition: "center center",
+          backgroundSize: "cover",
+          backgroundAttachment: "fixed",
+          marginTop: "-123px",
+          padding: "167px 2px"
+        }}
+      >
+        {/* Overlay */}
+        <div className="absolute inset-0 pointer-events-none" style={{background: "#00000052"}} />
+        {/* Hero Card Content */}
+        <div className="relative z-10 w-full max-w-3xl rounded-lg shadow-md p-8" style={{ background: '#69c8cd' }}>
+          <h2 className="text-3xl font-bold mb-4 text-white">Welcome to your dashboard!</h2>
+          <p className="text-white opacity-90 mb-6 text-lg">
+            This is your personal dashboard where you can manage your rides and account settings.
+          </p>
+          <div className="mt-6 grid grid-cols-1 gap-6 md:grid-cols-3">
+            <div className="bg-white p-6 rounded-lg border border-[#DDE5E7]">
+              <h3 className="font-medium mb-2 text-[#2E4F54]">Book a Ride</h3>
+              <p className="text-sm text-[#2E4F54]/80 mb-4">
+                Schedule a new ride with one of our compassionate drivers.
+              </p>
+              <Link 
+                href="/dashboard/book" 
+                className="inline-block bg-[#7CCFD0] text-white px-4 py-2 rounded text-sm hover:bg-[#60BFC0]"
+              >
+                Book Now
+              </Link>
+            </div>
+            <div className="bg-white p-6 rounded-lg border border-[#DDE5E7]">
+              <h3 className="font-medium mb-2 text-[#2E4F54]">My Trips</h3>
+              <p className="text-sm text-[#2E4F54]/80 mb-4">
+                View and manage your completed and upcoming trips.
+              </p>
+              <Link 
+                href="/dashboard/trips" 
+                className="inline-block bg-[#7CCFD0] text-white px-4 py-2 rounded text-sm hover:bg-[#60BFC0]"
+              >
+                View Trips
+              </Link>
+            </div>
+            <div className="bg-white p-6 rounded-lg border border-[#DDE5E7]">
+              <h3 className="font-medium mb-2 text-[#2E4F54]">Account Settings</h3>
+              <p className="text-sm text-[#2E4F54]/80 mb-4">
+                Update your profile and preferences.
+              </p>
+              <Link 
+                href="/dashboard/settings" 
+                className="inline-block bg-[#7CCFD0] text-white px-4 py-2 rounded text-sm hover:bg-[#60BFC0]"
+              >
+                Settings
+              </Link>
+            </div>
           </div>
         </div>
-      </div>
+      </section>
     </DashboardLayout>
   );
 }
