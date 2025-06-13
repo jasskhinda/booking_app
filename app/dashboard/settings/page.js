@@ -31,7 +31,26 @@ export default async function Settings() {
     
     // Even if there's an error, we'll render the component
     // The client component will handle the empty state
-    return <ProfileForm user={session.user} profile={profile || {}} />;
+    return (
+      <section
+        className="relative w-full min-h-[60vh] flex items-center justify-center bg-center bg-cover px-0"
+        style={{
+          backgroundImage: "url('/Transportation-near-me-scaled.jpg')",
+          backgroundPosition: "center center",
+          backgroundSize: "cover",
+          backgroundAttachment: "fixed",
+          marginTop: "-123px",
+          padding: "167px 0"
+        }}
+      >
+        {/* Overlay */}
+        <div className="absolute inset-0 w-full h-full pointer-events-none" style={{background: "#00000052"}} />
+        {/* Hero Card Content */}
+        <div className="relative z-10 w-full max-w-4xl mx-auto rounded-lg shadow-md p-8" style={{ background: '#69c8cd' }}>
+          <ProfileForm user={session.user} profile={profile || {}} />
+        </div>
+      </section>
+    );
   } catch (error) {
     console.error('Error in settings page:', error);
     redirect('/login?error=server_error');
