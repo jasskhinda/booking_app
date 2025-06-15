@@ -1275,6 +1275,16 @@ export default function BookingForm({ user, profile }) {
                   </div>
                 </div>
                 
+                {/* Map display - only show when both locations are set */}
+                {pickupLocation && destinationLocation && (
+                  <div className="col-span-1 md:col-span-2 mt-4">
+                    <div 
+                      ref={mapRef} 
+                      className="w-full h-[300px] rounded-md border border-[#DDE5E7] dark:border-[#3F5E63]"
+                    ></div>
+                  </div>
+                )}
+                
                 {/* Wheelchair Type */}
                 <div>
                   <label htmlFor="wheelchairType" className="block text-sm font-medium text-[#2E4F54] dark:text-[#E0F4F5] mb-1">
@@ -1300,351 +1310,492 @@ export default function BookingForm({ user, profile }) {
                 </div>
                 
               </div>
-              
-              {/* Map display */}
-              <div className="col-span-1 md:col-span-2 mt-4">
-                <div 
-                  ref={mapRef} 
-                  className="w-full h-[300px] rounded-md border border-[#DDE5E7] dark:border-[#3F5E63]"
-                ></div>
-              </div>
-              
+
               {/* Round trip toggle */}
-              <div className="col-span-1 md:col-span-2 flex items-center">
-                <div className="relative inline-block w-10 mr-2 align-middle select-none">
-                  <input
-                    type="checkbox"
+              <div className="col-span-1 md:col-span-2">
+                <div className="flex items-center mb-4">
+                  <input 
+                    type="checkbox" 
+                    id="isRoundTrip" 
                     name="isRoundTrip"
-                    id="isRoundTrip"
                     checked={formData.isRoundTrip}
-                    onChange={(e) => setFormData({...formData, isRoundTrip: e.target.checked})}
-                    className="absolute block w-6 h-6 rounded-full bg-white border-4 border-[#DDE5E7] appearance-none cursor-pointer checked:right-0 checked:border-[#7CCFD0] transition-all duration-200 focus:outline-none"
+                    onChange={handleChange}
+                    className="h-4 w-4 text-[#7CCFD0] border border-[#DDE5E7] dark:border-[#3F5E63] rounded-md focus:ring-[#7CCFD0] focus:outline-none"
                   />
-                  <label 
-                    htmlFor="isRoundTrip"
-                    className={`block overflow-hidden h-6 rounded-full bg-[#DDE5E7] cursor-pointer ${formData.isRoundTrip ? 'bg-[#7CCFD0]' : ''}`}
-                  ></label>
+                  <label htmlFor="isRoundTrip" className="ml-3 block text-sm font-medium text-[#2E4F54] dark:text-[#E0F4F5]">
+                    Round Trip
+                  </label>
                 </div>
-                <label htmlFor="isRoundTrip" className="text-sm font-medium cursor-pointer">
-                  Round Trip
-                </label>
+                
                 {formData.isRoundTrip && (
-                  <span className="ml-2 text-xs text-[#2E4F54] dark:text-[#7CCFD0]">
-                    The vehicle will wait for you and take you back to your pickup location.
-                  </span>
-                )}
-              </div>
-              
-              {/* Return Pickup Time - Only visible for round trips */}
-              {formData.isRoundTrip && (
-                <div className="col-span-1 md:col-span-2 pt-4 border-t border-[#DDE5E7] dark:border-[#3F5E63] mt-4">
-                  <div>
-                    <label htmlFor="returnPickupTime" className="block text-sm font-medium text-[#2E4F54] dark:text-[#E0F4F5] mb-1">
-                      Return Pickup Time
-                    </label>
-                    <div className="relative">
-                      <button
-                        type="button"
-                        id="returnPickupTime"
-                        onClick={openReturnDatePicker}
-                        className="w-full px-3 py-2 border border-[#DDE5E7] dark:border-[#3F5E63] rounded-md shadow-sm focus:outline-none focus:ring-[#7CCFD0] focus:border-[#7CCFD0] dark:bg-[#1C2C2F] text-left flex justify-between items-center"
-                      >
-                        <span className={formData.returnPickupTime ? "text-[#2E4F54] dark:text-[#E0F4F5]" : "text-[#2E4F54]/50 dark:text-[#E0F4F5]/50"}>
-                          {formData.returnPickupTime 
-                            ? `${formatMonthDay(formData.returnPickupTime)}, ${getDayName(formData.returnPickupTime)} - ${formatTimeAmPm(formData.returnPickupTime)}`
-                            : "Select return pickup time"}
-                        </span>
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-[#3B5B63] dark:text-[#84CED3]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                        </svg>
-                      </button>
-                      
-                      {/* Return Date and Time Picker Popup */}
-                      {isReturnDatePickerOpen && (
-                        <div 
-                          ref={returnDatePickerRef}
-                          className="absolute z-50 mt-2 w-full bg-white dark:bg-[#1C2C2F] border border-[#DDE5E7] dark:border-[#3F5E63] rounded-md shadow-lg p-4"
+                  <div className="space-y-4">
+                    {/* Return Pickup Time - Popup Picker */}
+                    <div>
+                      <label htmlFor="returnPickupTime" className="block text-sm font-medium text-[#2E4F54] dark:text-[#E0F4F5] mb-1">
+                        Return Pickup Time
+                      </label>
+                      <div className="relative">
+                        <button
+                          type="button"
+                          id="returnPickupTime"
+                          onClick={openReturnDatePicker}
+                          className="w-full px-3 py-2 border border-[#DDE5E7] dark:border-[#3F5E63] rounded-md shadow-sm focus:outline-none focus:ring-[#7CCFD0] focus:border-[#7CCFD0] dark:bg-[#1C2C2F] text-left flex justify-between items-center"
                         >
-                          {/* Header with back button for time view */}
-                          <div className="flex justify-between items-center mb-2">
-                            <h4 className="text-[#2E4F54] dark:text-[#E0F4F5] font-medium">
-                              {currentView === 'date' ? 'Select Return Date' : 'Select Return Time'}
-                            </h4>
-                            {currentView === 'time' && (
-                              <button 
-                                type="button"
-                                onClick={() => setCurrentView('date')}
-                                className="text-[#3B5B63] dark:text-[#84CED3] hover:text-[#7CCFD0] flex items-center text-sm"
-                              >
-                                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                                </svg>
-                                Back to dates
-                              </button>
-                            )}
-                          </div>
-                          
-                          {/* Date selection view */}
-                          {currentView === 'date' && (
-                            <div className="grid grid-cols-3 sm:grid-cols-4 gap-2 max-h-60 overflow-y-auto">
-                              {getDateOptions().map((date, index) => {
-                                const isToday = new Date().toDateString() === date.toDateString();
-                                const isSelected = selectedReturnDate && selectedReturnDate.toDateString() === date.toDateString();
-                                
-                                return (
-                                  <button
-                                    key={index}
-                                    type="button"
-                                    onClick={() => handleReturnDateSelect(date)}
-                                    className={`
-                                      p-2 rounded-md border text-center flex flex-col items-center
-                                      ${isSelected 
-                                        ? 'bg-[#7CCFD0]/20 border-[#7CCFD0] text-[#3B5B63] dark:text-[#E0F4F5]' 
-                                        : 'border-[#DDE5E7] dark:border-[#3F5E63] hover:bg-[#F8F9FA] dark:hover:bg-[#24393C]'}
-                                    `}
-                                  >
-                                    <span className="text-xs font-medium">{getDayName(date)}</span>
-                                    <span className={`text-sm ${isToday ? 'font-bold' : ''}`}>{formatMonthDay(date)}</span>
-                                    {isToday && <span className="text-xs text-[#7CCFD0] mt-1">Today</span>}
-                                  </button>
-                                );
-                              })}
+                          <span className={formData.returnPickupTime ? "text-[#2E4F54] dark:text-[#E0F4F5]" : "text-[#2E4F54]/50 dark:text-[#E0F4F5]/50"}>
+                            {formData.returnPickupTime 
+                              ? `${formatMonthDay(formData.returnPickupTime)}, ${getDayName(formData.returnPickupTime)} - ${formatTimeAmPm(formData.returnPickupTime)}`
+                              : "Select return pickup time"}
+                          </span>
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-[#3B5B63] dark:text-[#84CED3]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                          </svg>
+                        </button>
+                        
+                        {/* Return Date and Time Picker Popup */}
+                        {isReturnDatePickerOpen && (
+                          <div 
+                            ref={returnDatePickerRef}
+                            className="absolute z-50 mt-2 w-full bg-white dark:bg-[#1C2C2F] border border-[#DDE5E7] dark:border-[#3F5E63] rounded-md shadow-lg p-4"
+                          >
+                            {/* Header with back button for time view */}
+                            <div className="flex justify-between items-center mb-2">
+                              <h4 className="text-[#2E4F54] dark:text-[#E0F4F5] font-medium">
+                                {currentView === 'date' ? 'Select Date' : 'Select Time'}
+                              </h4>
+                              {currentView === 'time' && (
+                                <button 
+                                  type="button"
+                                  onClick={() => setCurrentView('date')}
+                                  className="text-[#3B5B63] dark:text-[#84CED3] hover:text-[#7CCFD0] flex items-center text-sm"
+                                >
+                                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                                  </svg>
+                                  Back to dates
+                                </button>
+                              )}
                             </div>
-                          )}
-                          
-                          {/* Time selection view */}
-                          {currentView === 'time' && selectedReturnDate && (
-                            <div>
-                              <div className="text-sm text-[#2E4F54]/70 dark:text-[#E0F4F5]/70 mb-2">
-                                {new Date(selectedReturnDate).toLocaleDateString('en-US', { 
-                                  weekday: 'long', 
-                                  month: 'long', 
-                                  day: 'numeric',
-                                  year: 'numeric'
-                                })}
-                              </div>
-                              
+                            
+                            {/* Date selection view */}
+                            {currentView === 'date' && (
                               <div className="grid grid-cols-3 sm:grid-cols-4 gap-2 max-h-60 overflow-y-auto">
-                                {availableTimeSlots.map((slot, index) => {
+                                {getDateOptions().map((date, index) => {
+                                  const isToday = new Date().toDateString() === date.toDateString();
+                                  const isSelected = selectedReturnDate && selectedReturnDate.toDateString() === date.toDateString();
+                                  
                                   return (
                                     <button
                                       key={index}
                                       type="button"
-                                      onClick={() => handleTimeSelect(slot, true)}
-                                      className="p-2 rounded-md border border-[#DDE5E7] dark:border-[#3F5E63] hover:bg-[#7CCFD0]/10 text-center"
+                                      onClick={() => handleReturnDateSelect(date)}
+                                      className={`
+                                        p-2 rounded-md border text-center flex flex-col items-center
+                                        ${isSelected 
+                                          ? 'bg-[#7CCFD0]/20 border-[#7CCFD0] text-[#3B5B63] dark:text-[#E0F4F5]' 
+                                          : 'border-[#DDE5E7] dark:border-[#3F5E63] hover:bg-[#F8F9FA] dark:hover:bg-[#24393C]'}
+                                      `}
                                     >
-                                      {slot.label}
+                                      <span className="text-xs font-medium">{getDayName(date)}</span>
+                                      <span className={`text-sm ${isToday ? 'font-bold' : ''}`}>{formatMonthDay(date)}</span>
+                                      {isToday && <span className="text-xs text-[#7CCFD0] mt-1">Today</span>}
                                     </button>
                                   );
                                 })}
                               </div>
-                              
-                              <div className="text-xs text-[#2E4F54]/60 dark:text-[#E0F4F5]/60 mt-2 italic">
-                                All times shown are in your local timezone
+                            )}
+                            
+                            {/* Time selection view */}
+                            {currentView === 'time' && selectedReturnDate && (
+                              <div>
+                                <div className="text-sm text-[#2E4F54]/70 dark:text-[#E0F4F5]/70 mb-2">
+                                  {new Date(selectedReturnDate).toLocaleDateString('en-US', { 
+                                    weekday: 'long', 
+                                    month: 'long', 
+                                    day: 'numeric',
+                                    year: 'numeric'
+                                  })}
+                                </div>
+                                
+                                <div className="grid grid-cols-3 sm:grid-cols-4 gap-2 max-h-60 overflow-y-auto">
+                                  {availableTimeSlots.map((slot, index) => {
+                                    // In the future, we could mark some slots as unavailable
+                                    // For now, all slots are available
+                                    
+                                    return (
+                                      <button
+                                        key={index}
+                                        type="button"
+                                        onClick={() => handleTimeSelect(slot, true)}
+                                        className="p-2 rounded-md border border-[#DDE5E7] dark:border-[#3F5E63] hover:bg-[#7CCFD0]/10 text-center"
+                                      >
+                                        {slot.label}
+                                      </button>
+                                    );
+                                  })}
+                                </div>
+                                
+                                <div className="text-xs text-[#2E4F54]/60 dark:text-[#E0F4F5]/60 mt-2 italic">
+                                  All times shown are in your local timezone
+                                </div>
                               </div>
+                            )}
+                            
+                            {/* Optional hint for future availability feature */}
+                            <div className="mt-4 pt-2 border-t border-[#DDE5E7] dark:border-[#3F5E63] text-xs text-[#3B5B63] dark:text-[#84CED3]">
+                              <p>Select a date and then choose an available time slot</p>
                             </div>
-                          )}
-                          
-                          {/* Optional hint */}
-                          <div className="mt-4 pt-2 border-t border-[#DDE5E7] dark:border-[#3F5E63] text-xs text-[#3B5B63] dark:text-[#84CED3]">
-                            <p>Select a date and then choose an available time slot for your return trip</p>
                           </div>
-                        </div>
-                      )}
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                )}
+                
+                {/* Wheelchair Type */}
+                <div>
+                  <label htmlFor="wheelchairType" className="block text-sm font-medium text-[#2E4F54] dark:text-[#E0F4F5] mb-1">
+                    Wheelchair Requirements
+                  </label>
+                  <div className="relative">
+                    <select
+                      id="wheelchairType"
+                      name="wheelchairType"
+                      value={formData.wheelchairType}
+                      onChange={handleChange}
+                      className="w-full appearance-none px-3 py-2 border border-[#DDE5E7] dark:border-[#3F5E63] rounded-md shadow-sm focus:outline-none focus:ring-[#7CCFD0] focus:border-[#7CCFD0] dark:bg-[#1C2C2F] text-[#2E4F54] dark:text-[#E0F4F5] pr-10"
+                    >
+                      <option value="no_wheelchair">No Wheelchair</option>
+                      <option value="wheelchair">Wheelchair (+$25)</option>
+                    </select>
+                    <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-[#2E4F54] dark:text-[#E0F4F5]">
+                      <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+                        <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" />
+                      </svg>
                     </div>
                   </div>
                 </div>
-              )}
-
-              <div className="col-span-1 md:col-span-2 border-t border-[#DDE5E7] dark:border-[#3F5E63] pt-4">
-                <h3 className="text-md font-medium text-[#2E4F54] dark:text-[#E0F4F5] mb-2">Ride Details</h3>
                 
-                <div className="grid grid-cols-2 gap-4 mb-4">
-                  <div>
-                    <p className="text-sm text-[#2E4F54]/70 dark:text-[#E0F4F5]/70">Pickup Time</p>
-                    {formData.pickupTime ? (
-                      <p className="font-medium text-[#2E4F54] dark:text-[#E0F4F5]">
-                        {new Date(formData.pickupTime).toLocaleDateString('en-US', { 
-                          weekday: 'short', 
-                          month: 'short', 
-                          day: 'numeric'
-                        })}, {formatTimeAmPm(formData.pickupTime)}
-                      </p>
-                    ) : (
-                      <p className="font-medium text-[#2E4F54]/50 dark:text-[#E0F4F5]/50">Select a time</p>
-                    )}
-                  </div>
-                  
-                  {/* Return Pickup Time - Only show in summary if round trip is selected */}
-                  {formData.isRoundTrip && (
+              </div>
+
+              {/* Round trip toggle */}
+              <div className="col-span-1 md:col-span-2">
+                <div className="flex items-center mb-4">
+                  <input 
+                    type="checkbox" 
+                    id="isRoundTrip" 
+                    name="isRoundTrip"
+                    checked={formData.isRoundTrip}
+                    onChange={handleChange}
+                    className="h-4 w-4 text-[#7CCFD0] border border-[#DDE5E7] dark:border-[#3F5E63] rounded-md focus:ring-[#7CCFD0] focus:outline-none"
+                  />
+                  <label htmlFor="isRoundTrip" className="ml-3 block text-sm font-medium text-[#2E4F54] dark:text-[#E0F4F5]">
+                    Round Trip
+                  </label>
+                </div>
+                
+                {formData.isRoundTrip && (
+                  <div className="space-y-4">
+                    {/* Return Pickup Time - Popup Picker */}
                     <div>
-                      <p className="text-sm text-[#2E4F54]/70 dark:text-[#E0F4F5]/70">Return Pickup Time</p>
-                      {formData.returnPickupTime ? (
+                      <label htmlFor="returnPickupTime" className="block text-sm font-medium text-[#2E4F54] dark:text-[#E0F4F5] mb-1">
+                        Return Pickup Time
+                      </label>
+                      <div className="relative">
+                        <button
+                          type="button"
+                          id="returnPickupTime"
+                          onClick={openReturnDatePicker}
+                          className="w-full px-3 py-2 border border-[#DDE5E7] dark:border-[#3F5E63] rounded-md shadow-sm focus:outline-none focus:ring-[#7CCFD0] focus:border-[#7CCFD0] dark:bg-[#1C2C2F] text-left flex justify-between items-center"
+                        >
+                          <span className={formData.returnPickupTime ? "text-[#2E4F54] dark:text-[#E0F4F5]" : "text-[#2E4F54]/50 dark:text-[#E0F4F5]/50"}>
+                            {formData.returnPickupTime 
+                              ? `${formatMonthDay(formData.returnPickupTime)}, ${getDayName(formData.returnPickupTime)} - ${formatTimeAmPm(formData.returnPickupTime)}`
+                              : "Select return pickup time"}
+                          </span>
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-[#3B5B63] dark:text-[#84CED3]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                          </svg>
+                        </button>
+                        
+                        {/* Return Date and Time Picker Popup */}
+                        {isReturnDatePickerOpen && (
+                          <div 
+                            ref={returnDatePickerRef}
+                            className="absolute z-50 mt-2 w-full bg-white dark:bg-[#1C2C2F] border border-[#DDE5E7] dark:border-[#3F5E63] rounded-md shadow-lg p-4"
+                          >
+                            {/* Header with back button for time view */}
+                            <div className="flex justify-between items-center mb-2">
+                              <h4 className="text-[#2E4F54] dark:text-[#E0F4F5] font-medium">
+                                {currentView === 'date' ? 'Select Date' : 'Select Time'}
+                              </h4>
+                              {currentView === 'time' && (
+                                <button 
+                                  type="button"
+                                  onClick={() => setCurrentView('date')}
+                                  className="text-[#3B5B63] dark:text-[#84CED3] hover:text-[#7CCFD0] flex items-center text-sm"
+                                >
+                                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                                  </svg>
+                                  Back to dates
+                                </button>
+                              )}
+                            </div>
+                            
+                            {/* Date selection view */}
+                            {currentView === 'date' && (
+                              <div className="grid grid-cols-3 sm:grid-cols-4 gap-2 max-h-60 overflow-y-auto">
+                                {getDateOptions().map((date, index) => {
+                                  const isToday = new Date().toDateString() === date.toDateString();
+                                  const isSelected = selectedReturnDate && selectedReturnDate.toDateString() === date.toDateString();
+                                  
+                                  return (
+                                    <button
+                                      key={index}
+                                      type="button"
+                                      onClick={() => handleReturnDateSelect(date)}
+                                      className={`
+                                        p-2 rounded-md border text-center flex flex-col items-center
+                                        ${isSelected 
+                                          ? 'bg-[#7CCFD0]/20 border-[#7CCFD0] text-[#3B5B63] dark:text-[#E0F4F5]' 
+                                          : 'border-[#DDE5E7] dark:border-[#3F5E63] hover:bg-[#F8F9FA] dark:hover:bg-[#24393C]'}
+                                      `}
+                                    >
+                                      <span className="text-xs font-medium">{getDayName(date)}</span>
+                                      <span className={`text-sm ${isToday ? 'font-bold' : ''}`}>{formatMonthDay(date)}</span>
+                                      {isToday && <span className="text-xs text-[#7CCFD0] mt-1">Today</span>}
+                                    </button>
+                                  );
+                                })}
+                              </div>
+                            )}
+                            
+                            {/* Time selection view */}
+                            {currentView === 'time' && selectedReturnDate && (
+                              <div>
+                                <div className="text-sm text-[#2E4F54]/70 dark:text-[#E0F4F5]/70 mb-2">
+                                  {new Date(selectedReturnDate).toLocaleDateString('en-US', { 
+                                    weekday: 'long', 
+                                    month: 'long', 
+                                    day: 'numeric',
+                                    year: 'numeric'
+                                  })}
+                                </div>
+                                
+                                <div className="grid grid-cols-3 sm:grid-cols-4 gap-2 max-h-60 overflow-y-auto">
+                                  {availableTimeSlots.map((slot, index) => {
+                                    // In the future, we could mark some slots as unavailable
+                                    // For now, all slots are available
+                                    
+                                    return (
+                                      <button
+                                        key={index}
+                                        type="button"
+                                        onClick={() => handleTimeSelect(slot, true)}
+                                        className="p-2 rounded-md border border-[#DDE5E7] dark:border-[#3F5E63] hover:bg-[#7CCFD0]/10 text-center"
+                                      >
+                                        {slot.label}
+                                      </button>
+                                    );
+                                  })}
+                                </div>
+                                
+                                <div className="text-xs text-[#2E4F54]/60 dark:text-[#E0F4F5]/60 mt-2 italic">
+                                  All times shown are in your local timezone
+                                </div>
+                              </div>
+                            )}
+                            
+                            {/* Optional hint for future availability feature */}
+                            <div className="mt-4 pt-2 border-t border-[#DDE5E7] dark:border-[#3F5E63] text-xs text-[#3B5B63] dark:text-[#84CED3]">
+                              <p>Select a date and then choose an available time slot</p>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                )}
+                
+                {/* Ride Details Summary (Estimated Fare, Duration, Distance, Pricing Breakdown, Discount, Wait Time, etc.) */}
+                <div className="col-span-1 md:col-span-2 border-t border-[#DDE5E7] dark:border-[#3F5E63] pt-4">
+                  <h3 className="text-md font-medium text-[#2E4F54] dark:text-[#E0F4F5] mb-2">Ride Details</h3>
+                  <div className="grid grid-cols-2 gap-4 mb-4">
+                    <div>
+                      <p className="text-sm text-[#2E4F54]/70 dark:text-[#E0F4F5]/70">Pickup Time</p>
+                      {formData.pickupTime ? (
                         <p className="font-medium text-[#2E4F54] dark:text-[#E0F4F5]">
-                          {new Date(formData.returnPickupTime).toLocaleDateString('en-US', { 
+                          {new Date(formData.pickupTime).toLocaleDateString('en-US', { 
                             weekday: 'short', 
                             month: 'short', 
                             day: 'numeric'
-                          })}, {formatTimeAmPm(formData.returnPickupTime)}
+                          })}, {formatTimeAmPm(formData.pickupTime)}
                         </p>
                       ) : (
                         <p className="font-medium text-[#2E4F54]/50 dark:text-[#E0F4F5]/50">Select a time</p>
                       )}
                     </div>
-                  )}
-                  
-                  <div className="col-span-2">
-                    <p className="text-sm text-[#2E4F54]/70 dark:text-[#E0F4F5]/70">Estimated Fare</p>
-                    {pickupLocation && destinationLocation ? (
+                    {formData.isRoundTrip && (
                       <div>
-                        <p className="font-medium text-[#2E4F54] dark:text-[#E0F4F5] text-lg">
-                          {estimatedFare ? `$${estimatedFare.toFixed(2)}` : 'Calculating...'}
-                        </p>
-                        
-                        {/* Pricing Breakdown */}
-                        {pricingBreakdown && (
-                          <div className="mt-3 p-3 bg-[#F8F9FA] dark:bg-[#1C2C2F] rounded-md border border-[#DDE5E7] dark:border-[#3F5E63]">
-                            <p className="text-xs font-medium text-[#2E4F54] dark:text-[#E0F4F5] mb-2">Pricing Breakdown:</p>
-                            <div className="space-y-1 text-xs">
-                              <div className="flex justify-between">
-                                <span className="text-[#2E4F54]/70 dark:text-[#E0F4F5]/70">Base fare ({formData.isRoundTrip ? 'round trip' : 'one-way'}):</span>
-                                <span className="text-[#2E4F54] dark:text-[#E0F4F5]">${pricingBreakdown.baseRate.toFixed(2)}</span>
-                              </div>
-                              <div className="flex justify-between">
-                                <span className="text-[#2E4F54]/70 dark:text-[#E0F4F5]/70">Mileage ({pricingBreakdown.totalMiles.toFixed(1)} miles × ${pricingBreakdown.mileageRate}/mi):</span>
-                                <span className="text-[#2E4F54] dark:text-[#E0F4F5]">${pricingBreakdown.mileageCharge.toFixed(2)}</span>
-                              </div>
-                              {pricingBreakdown.weekendAdjustment > 0 && (
-                                <div className="flex justify-between">
-                                  <span className="text-[#2E4F54]/70 dark:text-[#E0F4F5]/70">Weekend premium:</span>
-                                  <span className="text-[#2E4F54] dark:text-[#E0F4F5]">+${pricingBreakdown.weekendAdjustment.toFixed(2)}</span>
-                                </div>
-                              )}
-                              {pricingBreakdown.offHoursAdjustment > 0 && (
-                                <div className="flex justify-between">
-                                  <span className="text-[#2E4F54]/70 dark:text-[#E0F4F5]/70">Off-hours premium:</span>
-                                  <span className="text-[#2E4F54] dark:text-[#E0F4F5]">+${pricingBreakdown.offHoursAdjustment.toFixed(2)}</span>
-                                </div>
-                              )}
-                              {pricingBreakdown.wheelchairAdjustment > 0 && (
-                                <div className="flex justify-between">
-                                  <span className="text-[#2E4F54]/70 dark:text-[#E0F4F5]/70">Wheelchair accessibility:</span>
-                                  <span className="text-[#2E4F54] dark:text-[#E0F4F5]">+${pricingBreakdown.wheelchairAdjustment.toFixed(2)}</span>
-                                </div>
-                              )}
-                              <div className="flex justify-between pt-1 mt-1 border-t border-[#DDE5E7] dark:border-[#3F5E63]">
-                                <span className="text-[#2E4F54]/70 dark:text-[#E0F4F5]/70">Subtotal:</span>
-                                <span className="text-[#2E4F54] dark:text-[#E0F4F5]">${pricingBreakdown.subtotal.toFixed(2)}</span>
-                              </div>
-                              <div className="flex justify-between text-[#7CCFD0]">
-                                <span>{pricingBreakdown.isVeteran ? 'Veteran' : 'Individual'} discount ({pricingBreakdown.discountPercentage}%):</span>
-                                <span>-${pricingBreakdown.discountAmount.toFixed(2)}</span>
-                              </div>
-                              <div className="flex justify-between pt-1 mt-1 border-t border-[#DDE5E7] dark:border-[#3F5E63] font-medium text-sm">
-                                <span className="text-[#2E4F54] dark:text-[#E0F4F5]">Total:</span>
-                                <span className="text-[#2E4F54] dark:text-[#E0F4F5]">${pricingBreakdown.finalPrice.toFixed(2)}</span>
-                              </div>
-                            </div>
-                          </div>
+                        <p className="text-sm text-[#2E4F54]/70 dark:text-[#E0F4F5]/70">Return Pickup Time</p>
+                        {formData.returnPickupTime ? (
+                          <p className="font-medium text-[#2E4F54] dark:text-[#E0F4F5]">
+                            {new Date(formData.returnPickupTime).toLocaleDateString('en-US', { 
+                              weekday: 'short', 
+                              month: 'short', 
+                              day: 'numeric'
+                            })}, {formatTimeAmPm(formData.returnPickupTime)}
+                          </p>
+                        ) : (
+                          <p className="font-medium text-[#2E4F54]/50 dark:text-[#E0F4F5]/50">Select a time</p>
                         )}
                       </div>
-                    ) : (
-                      <p className="font-medium text-[#2E4F54]/50 dark:text-[#E0F4F5]/50">Enter addresses</p>
                     )}
-                  </div>
-                  
-                  <div>
-                    <p className="text-sm text-[#2E4F54]/70 dark:text-[#E0F4F5]/70">Estimated Duration</p>
-                    {pickupLocation && destinationLocation ? (
-                      <p className="font-medium text-[#2E4F54] dark:text-[#E0F4F5]">{formData.isRoundTrip ? `${estimatedDuration} × 2` : estimatedDuration}</p>
-                    ) : (
-                      <p className="font-medium text-[#2E4F54]/50 dark:text-[#E0F4F5]/50">Enter addresses</p>
-                    )}
-                  </div>
-                  
-                  <div>
-                    <p className="text-sm text-[#2E4F54]/70 dark:text-[#E0F4F5]/70">Distance</p>
-                    {pickupLocation && destinationLocation ? (
-                      <p className="font-medium text-[#2E4F54] dark:text-[#E0F4F5]">
-                        {distanceMiles > 0 ? (
-                          formData.isRoundTrip 
-                            ? `${(distanceMiles * 2).toFixed(1)} miles (${distanceMiles.toFixed(1)} each way)`
-                            : `${distanceMiles.toFixed(1)} miles`
-                        ) : 'Calculating...'}
-                      </p>
-                    ) : (
-                      <p className="font-medium text-[#2E4F54]/50 dark:text-[#E0F4F5]/50">Enter addresses</p>
-                    )}
-                  </div>
-                  
-                  {/* For round trips, show wait time between pickup and return */}
-                  {formData.isRoundTrip && formData.pickupTime && formData.returnPickupTime && (
-                    <div>
-                      <p className="text-sm text-[#2E4F54]/70 dark:text-[#E0F4F5]/70">Wait Time</p>
-                      <p className="font-medium text-[#2E4F54] dark:text-[#E0F4F5]">
-                        {(() => {
-                          const pickupTime = new Date(formData.pickupTime);
-                          const returnTime = new Date(formData.returnPickupTime);
-                          const diffMs = returnTime - pickupTime;
-                          const diffHrs = Math.floor(diffMs / (1000 * 60 * 60));
-                          const diffMins = Math.round((diffMs % (1000 * 60 * 60)) / (1000 * 60));
-                          
-                          if (diffHrs === 0) {
-                            return `${diffMins} minutes`;
-                          } else if (diffMins === 0) {
-                            return `${diffHrs} ${diffHrs === 1 ? 'hour' : 'hours'}`;
-                          } else {
-                            return `${diffHrs} ${diffHrs === 1 ? 'hour' : 'hours'}, ${diffMins} ${diffMins === 1 ? 'minute' : 'minutes'}`;
-                          }
-                        })()}
-                      </p>
+                    <div className="col-span-2">
+                      <p className="text-sm text-[#2E4F54]/70 dark:text-[#E0F4F5]/70">Estimated Fare</p>
+                      {pickupLocation && destinationLocation ? (
+                        <div>
+                          <p className="font-medium text-[#2E4F54] dark:text-[#E0F4F5] text-lg">
+                            {estimatedFare ? `$${estimatedFare.toFixed(2)}` : 'Calculating...'}
+                          </p>
+                          {pricingBreakdown && (
+                            <div className="mt-3 p-3 bg-[#F8F9FA] dark:bg-[#1C2C2F] rounded-md border border-[#DDE5E7] dark:border-[#3F5E63]">
+                              <p className="text-xs font-medium text-[#2E4F54] dark:text-[#E0F4F5] mb-2">Pricing Breakdown:</p>
+                              <div className="space-y-1 text-xs">
+                                <div className="flex justify-between">
+                                  <span className="text-[#2E4F54]/70 dark:text-[#E0F4F5]/70">Base fare ({formData.isRoundTrip ? 'round trip' : 'one-way'}):</span>
+                                  <span className="text-[#2E4F54] dark:text-[#E0F5]">${pricingBreakdown.baseRate.toFixed(2)}</span>
+                                </div>
+                                <div className="flex justify-between">
+                                  <span className="text-[#2E4F54]/70 dark:text-[#E0F4F5]/70">Mileage ({pricingBreakdown.totalMiles.toFixed(1)} miles × ${pricingBreakdown.mileageRate}/mi):</span>
+                                  <span className="text-[#2E4F54] dark:text-[#E0F4F5]">${pricingBreakdown.mileageCharge.toFixed(2)}</span>
+                                </div>
+                                {pricingBreakdown.weekendAdjustment > 0 && (
+                                  <div className="flex justify-between">
+                                    <span className="text-[#2E4F54]/70 dark:text-[#E0F4F5]/70">Weekend premium:</span>
+                                    <span className="text-[#2E4F54] dark:text-[#E0F4F5]">+${pricingBreakdown.weekendAdjustment.toFixed(2)}</span>
+                                  </div>
+                                )}
+                                {pricingBreakdown.offHoursAdjustment > 0 && (
+                                  <div className="flex justify-between">
+                                    <span className="text-[#2E4F54]/70 dark:text-[#E0F4F5]/70">Off-hours premium:</span>
+                                    <span className="text-[#2E4F54] dark:text-[#E0F4F5]">+${pricingBreakdown.offHoursAdjustment.toFixed(2)}</span>
+                                  </div>
+                                )}
+                                {pricingBreakdown.wheelchairAdjustment > 0 && (
+                                  <div className="flex justify-between">
+                                    <span className="text-[#2E4F54]/70 dark:text-[#E0F4F5]/70">Wheelchair accessibility:</span>
+                                    <span className="text-[#2E4F54] dark:text-[#E0F4F5]">+${pricingBreakdown.wheelchairAdjustment.toFixed(2)}</span>
+                                  </div>
+                                )}
+                                <div className="flex justify-between pt-1 mt-1 border-t border-[#DDE5E7] dark:border-[#3F5E63]">
+                                  <span className="text-[#2E4F54]/70 dark:text-[#E0F4F5]/70">Subtotal:</span>
+                                  <span className="text-[#2E4F54] dark:text-[#E0F4F5]">${pricingBreakdown.subtotal.toFixed(2)}</span>
+                                </div>
+                                <div className="flex justify-between text-[#7CCFD0]">
+                                  <span>{pricingBreakdown.isVeteran ? 'Veteran' : 'Individual'} discount ({pricingBreakdown.discountPercentage}%):</span>
+                                  <span>-${pricingBreakdown.discountAmount.toFixed(2)}</span>
+                                </div>
+                                <div className="flex justify-between pt-1 mt-1 border-t border-[#DDE5E7] dark:border-[#3F5E63] font-medium text-sm">
+                                  <span className="text-[#2E4F54] dark:text-[#E0F4F5]">Total:</span>
+                                  <span className="text-[#2E4F54] dark:text-[#E0F4F5]">${pricingBreakdown.finalPrice.toFixed(2)}</span>
+                                </div>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      ) : (
+                        <p className="font-medium text-[#2E4F54]/50 dark:text-[#E0F4F5]/50">Enter addresses</p>
+                      )}
                     </div>
-                  )}
+                    <div>
+                      <p className="text-sm text-[#2E4F54]/70 dark:text-[#E0F4F5]/70">Estimated Duration</p>
+                      {pickupLocation && destinationLocation ? (
+                        <p className="font-medium text-[#2E4F54] dark:text-[#E0F4F5]">{formData.isRoundTrip ? `${estimatedDuration} × 2` : estimatedDuration}</p>
+                      ) : (
+                        <p className="font-medium text-[#2E4F54]/50 dark:text-[#E0F4F5]/50">Enter addresses</p>
+                      )}
+                    </div>
+                    <div>
+                      <p className="text-sm text-[#2E4F54]/70 dark:text-[#E0F4F5]/70">Distance</p>
+                      {pickupLocation && destinationLocation ? (
+                        <p className="font-medium text-[#2E4F54] dark:text-[#E0F4F5]">
+                          {distanceMiles > 0 ? (
+                            formData.isRoundTrip 
+                              ? `${(distanceMiles * 2).toFixed(1)} miles (${distanceMiles.toFixed(1)} each way)`
+                              : `${distanceMiles.toFixed(1)} miles`
+                          ) : 'Calculating...'}
+                        </p>
+                      ) : (
+                        <p className="font-medium text-[#2E4F54]/50 dark:text-[#E0F4F5]/50">Enter addresses</p>
+                      )}
+                    </div>
+                    {formData.isRoundTrip && formData.pickupTime && formData.returnPickupTime && (
+                      <div>
+                        <p className="text-sm text-[#2E4F54]/70 dark:text-[#E0F4F5]/70">Wait Time</p>
+                        <p className="font-medium text-[#2E4F54] dark:text-[#E0F4F5]">
+                          {(() => {
+                            const pickupTime = new Date(formData.pickupTime);
+                            const returnTime = new Date(formData.returnPickupTime);
+                            const diffMs = returnTime - pickupTime;
+                            const diffHrs = Math.floor(diffMs / (1000 * 60 * 60));
+                            const diffMins = Math.round((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+                            
+                            if (diffHrs === 0) {
+                              return `${diffMins} minutes`;
+                            } else if (diffMins === 0) {
+                              return `${diffHrs} ${diffHrs === 1 ? 'hour' : 'hours'}`;
+                            } else {
+                              return `${diffHrs} ${diffHrs === 1 ? 'hour' : 'hours'}, ${diffMins} ${diffMins === 1 ? 'minute' : 'minutes'}`;
+                            }
+                          })()}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                  <div className="bg-[#7CCFD0]/10 dark:bg-[#7CCFD0]/20 p-3 rounded-md text-sm mb-4 mt-4">
+                    <p className="text-[#2E4F54] dark:text-[#E0F4F5]">
+                      <strong>Note:</strong> Your ride request will be reviewed and approved by a dispatcher. Once approved, it will be assigned to a compassionate driver who specializes in supportive transportation.
+                    </p>
+                    <p className="text-[#2E4F54] dark:text-[#E0F4F5] mt-2">
+                      <strong>Discount:</strong> A 10% discount is automatically applied to all individual rides. Veterans receive a 20% discount.
+                    </p>
+                    <p className="text-[#2E4F54] dark:text-[#E0F4F5] mt-2">
+                      <strong>Cancellation Policy:</strong> You may cancel without penalty up until the day of the ride. Same-day cancellations will be charged the base fare only.
+                    </p>
+                    {formData.isRoundTrip && (
+                      <p className="text-[#2E4F54] dark:text-[#E0F4F5] mt-2">
+                        <strong>Round Trip:</strong> Your driver will wait at the destination and bring you back to your pickup location.
+                      </p>
+                    )}
+                  </div>
                 </div>
                 
-                <div className="bg-[#7CCFD0]/10 dark:bg-[#7CCFD0]/20 p-3 rounded-md text-sm mb-4">
-                  <p className="text-[#2E4F54] dark:text-[#E0F4F5]">
-                    <strong>Note:</strong> Your ride request will be reviewed and approved by a dispatcher. Once approved, it will be assigned to a compassionate driver who specializes in supportive transportation.
-                  </p>
-                  <p className="text-[#2E4F54] dark:text-[#E0F4F5] mt-2">
-                    <strong>Discount:</strong> A 10% discount is automatically applied to all individual rides. Veterans receive a 20% discount.
-                  </p>
-                  <p className="text-[#2E4F54] dark:text-[#E0F4F5] mt-2">
-                    <strong>Cancellation Policy:</strong> You may cancel without penalty up until the day of the ride. Same-day cancellations will be charged the base fare only.
-                  </p>
-                  {formData.isRoundTrip && (
-                    <p className="text-[#2E4F54] dark:text-[#E0F4F5] mt-2">
-                      <strong>Round Trip:</strong> Your driver will wait at the destination and bring you back to your pickup location.
-                    </p>
-                  )}
-                </div>
-              </div>
-              
-              {/* Payment Method Selection */}
-              <div className="col-span-1 md:col-span-2">
-                <label className="block text-sm font-medium text-[#2E4F54] dark:text-[#E0F4F5] mb-1">
-                  Payment Method
-                </label>
-                {paymentLoading ? (
-                  <div className="text-sm text-[#2E4F54]/70 dark:text-[#E0F4F5]/70">Loading payment methods...</div>
-                ) : paymentMethods.length === 0 ? (
-                  <div className="space-y-2">
-                    <div className="text-sm text-[#2E4F54]/70 dark:text-[#E0F4F5]/70">You must add a card before booking a ride.</div>
-                    {!isAddingCard && (
-                      <button type="button" onClick={handleAddCard} className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-[#7CCFD0] hover:bg-[#60BFC0] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#7CCFD0]">
-                        Add Card
-                      </button>
-                    )}
-                    {paymentError && <div className="text-red-600 text-xs mt-2">{paymentError}</div>}
-                  </div>
-                ) : (
-                  <div className="space-y-2">
-                    <select
-                      className="w-full p-2 border border-[#DDE5E7] dark:border-[#3F5E63] rounded-md dark:bg-[#1C2C2F] text-[#2E4F54] dark:text-[#E0F4F5]"
-                      value={selectedPaymentMethod}
-                      onChange={e => setSelectedPaymentMethod(e.target.value)}
-                      required
-                    >
+                {/* Payment Method Selection */}
+                <div className="col-span-1 md:col-span-2">
+                  <label className="block text-sm font-medium text-[#2E4F54] dark:text-[#E0F4F5] mb-1">
+                    Payment Method
+                  </label>
+                  {paymentLoading ? (
+                    <div className="text-sm text-[#2E4F54]/70 dark:text-[#E0F4F5]/70">Loading payment methods...</div>
+                  ) : paymentMethods.length === 0 ? (
+                    <div className="space-y-2">
+                      <div className="text-sm text-[#2E4F54]/70 dark:text-[#E0F4F5]/70">You must add a card before booking a ride.</div>
+                      {!isAddingCard && (
+                        <button type="button" onClick={handleAddCard} className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-[#7CCFD0] hover:bg-[#60BFC0] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#7CCFD0]">
+                          Add Card
+                        </button>
+                      )}
+                      {paymentError && <div className="text-red-600 text-xs mt-2">{paymentError}</div>}
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      <select
+                        className="w-full p-2 border border-[#DDE5E7] dark:border-[#3F5E63] rounded-md dark:bg-[#1C2C2F] text-[#2E4F54] dark:text-[#E0F4F5]"
+                        value={selectedPaymentMethod}
+                        onChange={e => setSelectedPaymentMethod(e.target.value)}
+                        required
+                      >
                                            {paymentMethods.map(method => (
                         <option key={method.id} value={method.id}>
                           {`${method.card.brand.toUpperCase()} •••• ${method.card.last4} (${method.card.funding === 'debit' ? 'Debit' : 'Credit'})`}
@@ -1660,8 +1811,7 @@ export default function BookingForm({ user, profile }) {
                     </button>
                     {paymentError && <div className="text-red-600 text-xs mt-2">{paymentError}</div>}
                   </div>
-                )}
-              </div>
+                </div>
 
               <div>
                 <button
