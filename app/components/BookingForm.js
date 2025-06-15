@@ -1451,172 +1451,6 @@ export default function BookingForm({ user, profile }) {
                   </div>
                 )}
                 
-                {/* Wheelchair Type */}
-                <div>
-                  <label htmlFor="wheelchairType" className="block text-sm font-medium text-[#2E4F54] dark:text-[#E0F4F5] mb-1">
-                    Wheelchair Requirements
-                  </label>
-                  <div className="relative">
-                    <select
-                      id="wheelchairType"
-                      name="wheelchairType"
-                      value={formData.wheelchairType}
-                      onChange={handleChange}
-                      className="w-full appearance-none px-3 py-2 border border-[#DDE5E7] dark:border-[#3F5E63] rounded-md shadow-sm focus:outline-none focus:ring-[#7CCFD0] focus:border-[#7CCFD0] dark:bg-[#1C2C2F] text-[#2E4F54] dark:text-[#E0F4F5] pr-10"
-                    >
-                      <option value="no_wheelchair">No Wheelchair</option>
-                      <option value="wheelchair">Wheelchair (+$25)</option>
-                    </select>
-                    <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-[#2E4F54] dark:text-[#E0F4F5]">
-                      <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
-                        <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" />
-                      </svg>
-                    </div>
-                  </div>
-                </div>
-                
-              </div>
-
-              {/* Round trip toggle */}
-              <div className="col-span-1 md:col-span-2">
-                <div className="flex items-center mb-4">
-                  <input 
-                    type="checkbox" 
-                    id="isRoundTrip" 
-                    name="isRoundTrip"
-                    checked={formData.isRoundTrip}
-                    onChange={handleChange}
-                    className="h-4 w-4 text-[#7CCFD0] border border-[#DDE5E7] dark:border-[#3F5E63] rounded-md focus:ring-[#7CCFD0] focus:outline-none"
-                  />
-                  <label htmlFor="isRoundTrip" className="ml-3 block text-sm font-medium text-[#2E4F54] dark:text-[#E0F4F5]">
-                    Round Trip
-                  </label>
-                </div>
-                
-                {formData.isRoundTrip && (
-                  <div className="space-y-4">
-                    {/* Return Pickup Time - Popup Picker */}
-                    <div>
-                      <label htmlFor="returnPickupTime" className="block text-sm font-medium text-[#2E4F54] dark:text-[#E0F4F5] mb-1">
-                        Return Pickup Time
-                      </label>
-                      <div className="relative">
-                        <button
-                          type="button"
-                          id="returnPickupTime"
-                          onClick={openReturnDatePicker}
-                          className="w-full px-3 py-2 border border-[#DDE5E7] dark:border-[#3F5E63] rounded-md shadow-sm focus:outline-none focus:ring-[#7CCFD0] focus:border-[#7CCFD0] dark:bg-[#1C2C2F] text-left flex justify-between items-center"
-                        >
-                          <span className={formData.returnPickupTime ? "text-[#2E4F54] dark:text-[#E0F4F5]" : "text-[#2E4F54]/50 dark:text-[#E0F4F5]/50"}>
-                            {formData.returnPickupTime 
-                              ? `${formatMonthDay(formData.returnPickupTime)}, ${getDayName(formData.returnPickupTime)} - ${formatTimeAmPm(formData.returnPickupTime)}`
-                              : "Select return pickup time"}
-                          </span>
-                          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-[#3B5B63] dark:text-[#84CED3]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                          </svg>
-                        </button>
-                        
-                        {/* Return Date and Time Picker Popup */}
-                        {isReturnDatePickerOpen && (
-                          <div 
-                            ref={returnDatePickerRef}
-                            className="absolute z-50 mt-2 w-full bg-white dark:bg-[#1C2C2F] border border-[#DDE5E7] dark:border-[#3F5E63] rounded-md shadow-lg p-4"
-                          >
-                            {/* Header with back button for time view */}
-                            <div className="flex justify-between items-center mb-2">
-                              <h4 className="text-[#2E4F54] dark:text-[#E0F4F5] font-medium">
-                                {currentView === 'date' ? 'Select Date' : 'Select Time'}
-                              </h4>
-                              {currentView === 'time' && (
-                                <button 
-                                  type="button"
-                                  onClick={() => setCurrentView('date')}
-                                  className="text-[#3B5B63] dark:text-[#84CED3] hover:text-[#7CCFD0] flex items-center text-sm"
-                                >
-                                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                                  </svg>
-                                  Back to dates
-                                </button>
-                              )}
-                            </div>
-                            
-                            {/* Date selection view */}
-                            {currentView === 'date' && (
-                              <div className="grid grid-cols-3 sm:grid-cols-4 gap-2 max-h-60 overflow-y-auto">
-                                {getDateOptions().map((date, index) => {
-                                  const isToday = new Date().toDateString() === date.toDateString();
-                                  const isSelected = selectedReturnDate && selectedReturnDate.toDateString() === date.toDateString();
-                                  
-                                  return (
-                                    <button
-                                      key={index}
-                                      type="button"
-                                      onClick={() => handleReturnDateSelect(date)}
-                                      className={`
-                                        p-2 rounded-md border text-center flex flex-col items-center
-                                        ${isSelected 
-                                          ? 'bg-[#7CCFD0]/20 border-[#7CCFD0] text-[#3B5B63] dark:text-[#E0F4F5]' 
-                                          : 'border-[#DDE5E7] dark:border-[#3F5E63] hover:bg-[#F8F9FA] dark:hover:bg-[#24393C]'}
-                                      `}
-                                    >
-                                      <span className="text-xs font-medium">{getDayName(date)}</span>
-                                      <span className={`text-sm ${isToday ? 'font-bold' : ''}`}>{formatMonthDay(date)}</span>
-                                      {isToday && <span className="text-xs text-[#7CCFD0] mt-1">Today</span>}
-                                    </button>
-                                  );
-                                })}
-                              </div>
-                            )}
-                            
-                            {/* Time selection view */}
-                            {currentView === 'time' && selectedReturnDate && (
-                              <div>
-                                <div className="text-sm text-[#2E4F54]/70 dark:text-[#E0F4F5]/70 mb-2">
-                                  {new Date(selectedReturnDate).toLocaleDateString('en-US', { 
-                                    weekday: 'long', 
-                                    month: 'long', 
-                                    day: 'numeric',
-                                    year: 'numeric'
-                                  })}
-                                </div>
-                                
-                                <div className="grid grid-cols-3 sm:grid-cols-4 gap-2 max-h-60 overflow-y-auto">
-                                  {availableTimeSlots.map((slot, index) => {
-                                    // In the future, we could mark some slots as unavailable
-                                    // For now, all slots are available
-                                    
-                                    return (
-                                      <button
-                                        key={index}
-                                        type="button"
-                                        onClick={() => handleTimeSelect(slot, true)}
-                                        className="p-2 rounded-md border border-[#DDE5E7] dark:border-[#3F5E63] hover:bg-[#7CCFD0]/10 text-center"
-                                      >
-                                        {slot.label}
-                                      </button>
-                                    );
-                                  })}
-                                </div>
-                                
-                                <div className="text-xs text-[#2E4F54]/60 dark:text-[#E0F4F5]/60 mt-2 italic">
-                                  All times shown are in your local timezone
-                                </div>
-                              </div>
-                            )}
-                            
-                            {/* Optional hint for future availability feature */}
-                            <div className="mt-4 pt-2 border-t border-[#DDE5E7] dark:border-[#3F5E63] text-xs text-[#3B5B63] dark:text-[#84CED3]">
-                              <p>Select a date and then choose an available time slot</p>
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                )}
-                
                 {/* Ride Details Summary (Estimated Fare, Duration, Distance, Pricing Breakdown, Discount, Wait Time, etc.) */}
                 <div className="col-span-1 md:col-span-2 border-t border-[#DDE5E7] dark:border-[#3F5E63] pt-4">
                   <h3 className="text-md font-medium text-[#2E4F54] dark:text-[#E0F4F5] mb-2">Ride Details</h3>
@@ -1690,7 +1524,7 @@ export default function BookingForm({ user, profile }) {
                                 )}
                                 <div className="flex justify-between pt-1 mt-1 border-t border-[#DDE5E7] dark:border-[#3F5E63]">
                                   <span className="text-[#2E4F54]/70 dark:text-[#E0F4F5]/70">Subtotal:</span>
-                                  <span className="text-[#2E4F54] dark:text-[#E0F5]">${pricingBreakdown.subtotal.toFixed(2)}</span>
+                                  <span className="text-[#2E4F54] dark:text-[#E0F4F5]">${pricingBreakdown.subtotal.toFixed(2)}</span>
                                 </div>
                                 <div className="flex justify-between text-[#7CCFD0]">
                                   <span>{pricingBreakdown.isVeteran ? 'Veteran' : 'Individual'} discount ({pricingBreakdown.discountPercentage}%):</span>
@@ -1720,39 +1554,13 @@ export default function BookingForm({ user, profile }) {
                       <p className="text-sm text-[#2E4F54]/70 dark:text-[#E0F4F5]/70">Distance</p>
                       {pickupLocation && destinationLocation ? (
                         <p className="font-medium text-[#2E4F54] dark:text-[#E0F4F5]">
-                          {distanceMiles > 0 ? (
-                            formData.isRoundTrip 
-                              ? `${(distanceMiles * 2).toFixed(1)} miles (${distanceMiles.toFixed(1)} each way)`
-                              : `${distanceMiles.toFixed(1)} miles`
-                          ) : 'Calculating...'}
+                          {distanceMiles > 0 ? `${distanceMiles.toFixed(1)} miles` : 'Calculating...'}
                         </p>
                       ) : (
                         <p className="font-medium text-[#2E4F54]/50 dark:text-[#E0F4F5]/50">Enter addresses</p>
                       )}
                     </div>
-                    {formData.isRoundTrip && formData.pickupTime && formData.returnPickupTime && (
-                      <div>
-                        <p className="text-sm text-[#2E4F54]/70 dark:text-[#E0F4F5]/70">Wait Time</p>
-                        <p className="font-medium text-[#2E4F54] dark:text-[#E0F4F5]">
-                          {(() => {
-                            const pickupTime = new Date(formData.pickupTime);
-                            const returnTime = new Date(formData.returnPickupTime);
-                            const diffMs = returnTime - pickupTime;
-                            const diffHrs = Math.floor(diffMs / (1000 * 60 * 60));
-                            const diffMins = Math.round((diffMs % (1000 * 60 * 60)) / (1000 * 60));
-                            
-                            if (diffHrs === 0) {
-                              return `${diffMins} minutes`;
-                            } else if (diffMins === 0) {
-                              return `${diffHrs} ${diffHrs === 1 ? 'hour' : 'hours'}`;
-                            } else {
-                              return `${diffHrs} ${diffHrs === 1 ? 'hour' : 'hours'}, ${diffMins} ${diffMins === 1 ? 'minute' : 'minutes'}`;
-                            }
-                          })()}
-                        </p>
-                      </div>
-                    )}
-                  </div>
+                  </div> {/* End grid grid-cols-2 gap-4 mb-4 */}
                   <div className="bg-[#7CCFD0]/10 dark:bg-[#7CCFD0]/20 p-3 rounded-md text-sm mb-4 mt-4">
                     <p className="text-[#2E4F54] dark:text-[#E0F4F5]">
                       <strong>Note:</strong> Your ride request will be reviewed and approved by a dispatcher. Once approved, it will be assigned to a compassionate driver who specializes in supportive transportation.
@@ -1769,109 +1577,83 @@ export default function BookingForm({ user, profile }) {
                       </p>
                     )}
                   </div>
-                </div>
-                
+                </div> {/* End Ride Details section */}
+
                 {/* Payment Method Selection */}
                 <div className="col-span-1 md:col-span-2">
-                  <label className="block text-sm font-medium text-[#2E4F54] dark:text-[#E0F4F5] mb-1">
+                  <label htmlFor="paymentMethod" className="block text-sm font-medium text-[#2E4F54] dark:text-[#E0F4F5] mb-2">
                     Payment Method
                   </label>
-                  {paymentLoading ? (
-                    <div className="text-sm text-[#2E4F54]/70 dark:text-[#E0F4F5]/70">Loading payment methods...</div>
-                  ) : paymentMethods.length === 0 ? (
-                    <div className="space-y-2">
-                      <div className="text-sm text-[#2E4F54]/70 dark:text-[#E0F4F5]/70">You must add a card before booking a ride.</div>
-                      {!isAddingCard && (
-                        <button type="button" onClick={handleAddCard} className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-[#7CCFD0] hover:bg-[#60BFC0] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#7CCFD0]">
+                  <div className="space-y-2">
+                    {paymentLoading ? (
+                      <p className="text-center text-sm text-[#2E4F54] dark:text-[#E0F4F5]">Loading payment methods...</p>
+                    ) : paymentMethods.length === 0 ? (
+                      <div className="text-center text-sm text-[#2E4F54] dark:text-[#E0F4F5]">
+                        <p>No payment methods found. Please add a card to continue.</p>
+                        <button
+                          onClick={handleAddCard}
+                          className="mt-2 px-4 py-2 bg-[#7CCFD0] dark:bg-[#60BFC0] text-white rounded-md shadow-sm hover:bg-[#60BFC0] dark:hover:bg-[#7CCFD0]"
+                        >
                           Add Card
                         </button>
-                      )}
-                      {paymentError && <div className="text-red-600 text-xs mt-2">{paymentError}</div>}
-                    </div>
-                  ) : (
-                    <div className="space-y-2">
-                      <select
-                        className="w-full p-2 border border-[#DDE5E7] dark:border-[#3F5E63] rounded-md dark:bg-[#1C2C2F] text-[#2E4F54] dark:text-[#E0F4F5]"
-                        value={selectedPaymentMethod}
-                        onChange={e => setSelectedPaymentMethod(e.target.value)}
-                        required
-                      >
-                                           {paymentMethods.map(method => (
-                        <option key={method.id} value={method.id}>
-                          {`${method.card.brand.toUpperCase()} •••• ${method.card.last4} (${method.card.funding === 'debit' ? 'Debit' : 'Credit'})`}
-                        </option>
-                      ))}
-                    </select>
-                    <button
-                      type="button"
-                      onClick={handleAddCard}
-                      className="inline-flex items-center px-3 py-1 border border-transparent rounded-md text-xs font-medium bg-[#7bcfd0] text-white hover:bg-[#60BFC0] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#7CCFD0]"
-                    >
-                      Add New Card
-                    </button>
-                    {paymentError && <div className="text-red-600 text-xs mt-2">{paymentError}</div>}
+                      </div>
+                    ) : (
+                      paymentMethods.map((method) => (
+                        <div
+                          key={method.id}
+                          className={`flex items-center p-3 rounded-md border cursor-pointer transition-all duration-200
+                          ${selectedPaymentMethod === method.id 
+                            ? 'bg-[#7CCFD0]/10 border-[#7CCFD0] dark:border-[#60BFC0]' 
+                            : 'border-[#DDE5E7] dark:border-[#3F5E63] hover:bg-[#F8F9FA] dark:hover:bg-[#24393C]'
+                          }`}
+                          onClick={() => setSelectedPaymentMethod(method.id)}
+                        >
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium text-[#2E4F54] dark:text-[#E0F4F5] truncate">
+                              {method.card?.brand} ending in {method.card?.last4}
+                            </p>
+                            <p className="text-xs text-[#2E4F54]/70 dark:text-[#E0F4F5]/70">
+                              Expires {method.card?.exp_month}/{method.card?.exp_year}
+                            </p>
+                          </div>
+                          <div className="ml-4">
+                            {selectedPaymentMethod === method.id && (
+                              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-[#7CCFD0] dark:text-[#60BFC0]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                              </svg>
+                            )}
+                          </div>
+                        </div>
+                      ))
+                    )}
                   </div>
                 </div>
-
-                <div>
+                
+                {/* Submit Button */}
+                <div className="col-span-1 md:col-span-2">
                   <button
                     type="submit"
-                    disabled={isLoading || paymentMethods.length === 0 || !selectedPaymentMethod}
-                    className="w-full py-3 px-4 bg-[#7CCFD0] hover:bg-[#60BFC0] text-white dark:text-[#1C2C2F] font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#7CCFD0] disabled:opacity-50 disabled:cursor-not-allowed relative overflow-hidden"
+                    disabled={isLoading}
+                    className="w-full px-4 py-2 bg-[#7CCFD0] dark:bg-[#60BFC0] text-white rounded-md shadow-sm hover:bg-[#60BFC0] dark:hover:bg-[#7CCFD0] transition-all duration-200 flex items-center justify-center"
                   >
-                    {bookingStatus === 'loading' && (
-                      <span className="absolute inset-0 flex items-center justify-center bg-[#7CCFD0]">
-                        <svg className="animate-spin h-5 w-5 text-white dark:text-[#1C2C2F]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    {isLoading ? (
+                      <>
+                        <svg className="animate-spin h-5 w-5 mr-3 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                          <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" className="opacity-25" />
+                          <path d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" fill="currentColor" />
                         </svg>
-                      </span>
+                        Processing...
+                      </>
+                    ) : (
+                      'Request Ride'
                     )}
-                    {bookingStatus === 'submitting' && (
-                      <span className="absolute inset-0 flex items-center justify-center bg-[#7CCFD0]">
-                        <div className="flex items-center space-x-2">
-                          <svg className="animate-spin h-5 w-5 text-white dark:text-[#1C2C2F]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                          </svg>
-                          <span className="text-white dark:text-[#1C2C2F]">Booking your trip...</span>
-                        </div>
-                      </span>
-                    )}
-                    <span className={bookingStatus === 'loading' || bookingStatus === 'submitting' ? 'invisible' : ''}>
-                      {isLoading ? 'Submitting...' : 'Request Ride'}
-                    </span>
                   </button>
                 </div>
+              </div> {/* End grid grid-cols-1 md:grid-cols-2 gap-6 */}
             </form>
           )}
-        </div>
+        </div> {/* End main card div */}
       </DashboardLayout>
-      
-      {/* Card Setup Form - Rendered outside the main form to avoid nested <form> hydration error */}
-      {isAddingCard && clientSecret && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30">
-          <div className="bg-white dark:bg-[#1C2C2F] rounded-lg shadow-lg p-6 w-full max-w-md mx-2 relative">
-            <CardSetupForm
-              clientSecret={clientSecret}
-              onSuccess={handleCardSetupSuccess}
-              onError={handleCardSetupError}
-              onCancel={handleCardSetupCancel}
-              profile={profile}
-              user={user}
-            />
-            <button
-              type="button"
-              onClick={handleCardSetupCancel}
-              className="absolute top-2 right-2 text-[#2E4F54] dark:text-[#E0F4F5] hover:text-red-500"
-              aria-label="Close add card form"
-            >
-              ×
-            </button>
-          </div>
-          
-        </div>
-      )}
     </>
   );
 }
