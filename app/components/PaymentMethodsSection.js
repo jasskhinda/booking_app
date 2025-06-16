@@ -203,16 +203,27 @@ export default function PaymentMethodsSection({ user, profile, onPaymentMethodCh
         throw new Error(data.error || 'Failed to fetch payment methods');
       }
       
-      setPaymentMethods(data.paymentMethods || []);
+      const methods = data.paymentMethods || [];
+      setPaymentMethods(methods);
       
-      // If there's a default payment method and no selection yet, use it
-      if (!selectedPaymentMethod && data.paymentMethods && data.paymentMethods.length > 0) {
-        const defaultMethod = data.paymentMethods.find(method => method.id === profile?.default_payment_method_id);
-        if (defaultMethod) {
-          setSelectedPaymentMethod(defaultMethod.id);
-        } else {
-          // If no default, select the first one
-          setSelectedPaymentMethod(data.paymentMethods[0].id);
+      // Auto-set default payment method if there's only one
+      if (methods.length === 1) {
+        const singleMethod = methods[0];
+        if (profile?.default_payment_method_id !== singleMethod.id) {
+          // Update the default payment method in the database
+          await updateDefaultPaymentMethod(singleMethod.id);
+        }
+        setSelectedPaymentMethod(singleMethod.id);
+      } else if (methods.length > 0) {
+        // If there's a default payment method and no selection yet, use it
+        if (!selectedPaymentMethod) {
+          const defaultMethod = methods.find(method => method.id === profile?.default_payment_method_id);
+          if (defaultMethod) {
+            setSelectedPaymentMethod(defaultMethod.id);
+          } else {
+            // If no default, select the first one
+            setSelectedPaymentMethod(methods[0].id);
+          }
         }
       }
     } catch (error) {
@@ -325,6 +336,27 @@ export default function PaymentMethodsSection({ user, profile, onPaymentMethodCh
         text: error.message || 'Failed to remove payment method',
         type: 'error'
       });
+    }
+  };
+
+  // Update default payment method in database
+  const updateDefaultPaymentMethod = async (paymentMethodId) => {
+    try {
+      const supabase = getSupabaseClient();
+      const { error } = await supabase
+        .from('profiles')
+        .update({ 
+          default_payment_method_id: paymentMethodId,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', user.id);
+      
+      if (error) {
+        throw new Error('Failed to update default payment method');
+      }
+    } catch (error) {
+      console.error('Error updating default payment method:', error);
+      // Don't throw error here as it's a background operation
     }
   };
 

@@ -205,7 +205,21 @@ export default function PaymentMethodsManager({ user, profile }) {
         throw new Error(data.error || 'Failed to fetch payment methods');
       }
       
-      setPaymentMethods(data.paymentMethods || []);
+      const methods = data.paymentMethods || [];
+      setPaymentMethods(methods);
+      
+      // Automatically set default payment method if needed
+      if (methods.length === 1 && !defaultPaymentMethod) {
+        // If there's only one payment method and no default is set, make it the default
+        const singleMethod = methods[0];
+        setDefaultPaymentMethod(singleMethod.id);
+        await updateDefaultPaymentMethod(singleMethod.id);
+      } else if (methods.length > 0 && !methods.find(method => method.id === defaultPaymentMethod)) {
+        // If current default doesn't exist in the list, set the first one as default
+        const firstMethod = methods[0];
+        setDefaultPaymentMethod(firstMethod.id);
+        await updateDefaultPaymentMethod(firstMethod.id);
+      }
     } catch (error) {
       console.error('Error fetching payment methods:', error);
       setMessage({
@@ -508,13 +522,24 @@ export default function PaymentMethodsManager({ user, profile }) {
                           </div>
                         </div>
                         <div className="flex space-x-2">
-                          {method.id !== defaultPaymentMethod && (
+                          {paymentMethods.length === 1 ? (
+                            // If there's only one payment method, show "Default Payment Method"
+                            <span className="text-sm text-[#7CCFD0] font-medium">
+                              Default Payment Method
+                            </span>
+                          ) : method.id !== defaultPaymentMethod ? (
+                            // If there are multiple methods and this isn't the default, show "Set as Default"
                             <button
                               onClick={() => handleSetDefaultPaymentMethod(method.id)}
                               className="text-sm text-[#7CCFD0] hover:text-[#60BFC0]"
                             >
                               Set as Default
                             </button>
+                          ) : (
+                            // If this is the default method in a multi-method scenario, show nothing or "Default"
+                            <span className="text-sm text-[#7CCFD0] font-medium">
+                              Default Payment Method
+                            </span>
                           )}
                           <button
                             onClick={() => handleRemovePaymentMethod(method.id)}
