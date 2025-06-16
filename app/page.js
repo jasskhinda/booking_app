@@ -26,7 +26,11 @@ function HomeContent() {
       <header className="p-4 bg-[#F8F9FA] dark:bg-[#1C2C2F] shadow border-b border-[#DDE5E7] dark:border-[#3F5E63]">
         <div className="container mx-auto flex justify-between items-center">
           <div className="flex items-center space-x-2">
-            <h1 className="text-xl font-bold text-[#2E4F54] dark:text-[#E0F4F5]">Compassionate Transportation</h1>
+            <img 
+              src="/cctlogo.png" 
+              alt="Compassionate Care Transportation" 
+              className="h-10 w-auto"
+            />
           </div>
           <nav>
             <ul className="flex space-x-6">
@@ -102,7 +106,7 @@ function HomeContent() {
       <footer className="bg-[#F8F9FA] dark:bg-[#1C2C2F] py-8 border-t border-[#DDE5E7] dark:border-[#3F5E63]">
         <div className="container mx-auto px-4">
           <div className="flex flex-col md:flex-row justify-between items-center">
-            <p className="text-[#2E4F54]/70 dark:text-[#E0F4F5]/70 mb-4 md:mb-0">&copy; 2025 Compassionate Transportation. All rights reserved.</p>
+            <p className="text-[#2E4F54]/70 dark:text-[#E0F4F5]/70 mb-4 md:mb-0">&copy; 2025 Compassionate Care Transportation. All rights reserved.</p>
             <div className="flex space-x-6">
               <Link href="#" className="text-[#2E4F54]/70 dark:text-[#E0F4F5]/70 hover:text-[#7CCFD0] dark:hover:text-[#7CCFD0]">
                 Terms
