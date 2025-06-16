@@ -190,6 +190,22 @@ export default function PaymentMethodsManager({ user, profile }) {
   const [defaultPaymentMethod, setDefaultPaymentMethod] = useState(profile.default_payment_method_id);
   const [message, setMessage] = useState({ text: '', type: '' });
 
+  // Update default payment method in database
+  const updateDefaultPaymentMethod = useCallback(async (paymentMethodId) => {
+    const supabase = getSupabaseClient();
+    const { error } = await supabase
+      .from('profiles')
+      .update({ 
+        default_payment_method_id: paymentMethodId,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', user.id);
+    
+    if (error) {
+      throw new Error('Failed to update default payment method');
+    }
+  }, [user.id]);
+
   // Fetch payment methods when component mounts
   useEffect(() => {
     fetchPaymentMethods();
@@ -229,7 +245,7 @@ export default function PaymentMethodsManager({ user, profile }) {
     } finally {
       setIsLoading(false);
     }
-  }, [defaultPaymentMethod]);
+  }, [defaultPaymentMethod, updateDefaultPaymentMethod]);
 
   const handleAddPaymentMethod = async () => {
     setMessage({ text: '', type: '' });
@@ -339,21 +355,6 @@ export default function PaymentMethodsManager({ user, profile }) {
         text: error.message || 'Failed to set default payment method',
         type: 'error'
       });
-    }
-  };
-
-  const updateDefaultPaymentMethod = async (paymentMethodId) => {
-    const supabase = getSupabaseClient();
-    const { error } = await supabase
-      .from('profiles')
-      .update({ 
-        default_payment_method_id: paymentMethodId,
-        updated_at: new Date().toISOString()
-      })
-      .eq('id', user.id);
-    
-    if (error) {
-      throw new Error('Failed to update default payment method');
     }
   };
 

@@ -181,17 +181,52 @@ export default function PaymentMethodsSection({ user, profile, onPaymentMethodCh
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState(profile?.default_payment_method_id || '');
   const [message, setMessage] = useState({ text: '', type: '' });
 
-  // Fetch payment methods when component mounts
-  useEffect(() => {
-    fetchPaymentMethods();
-  }, [fetchPaymentMethods]);
-
-  // Notify parent component when payment method changes
-  useEffect(() => {
-    if (onPaymentMethodChange) {
-      onPaymentMethodChange(selectedPaymentMethod);
+  // Update default payment method in database
+  const updateDefaultPaymentMethod = useCallback(async (paymentMethodId) => {
+    try {
+      const supabase = getSupabaseClient();
+      const { error } = await supabase
+        .from('profiles')
+        .update({ 
+          default_payment_method_id: paymentMethodId,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', user.id);
+      
+      if (error) {
+        throw new Error('Failed to update default payment method');
+      }
+    } catch (error) {
+      console.error('Error updating default payment method:', error);
+      // Don't throw error here as it's a background operation
     }
-  }, [selectedPaymentMethod, onPaymentMethodChange]);
+  }, [user.id]);
+
+  // Check if user has pending trips that would prevent payment method removal
+  const checkPendingTrips = useCallback(async () => {
+    try {
+      const supabase = getSupabaseClient();
+      const { data: pendingTrips, error } = await supabase
+        .from('trips')
+        .select('id, status, pickup_time')
+        .eq('user_id', user.id)
+        .in('status', ['pending', 'upcoming'])
+        .gt('pickup_time', new Date().toISOString());
+
+      if (error) {
+        console.error('Error checking pending trips:', error);
+        return { hasPendingTrips: false, tripCount: 0 };
+      }
+
+      return { 
+        hasPendingTrips: pendingTrips && pendingTrips.length > 0, 
+        tripCount: pendingTrips ? pendingTrips.length : 0 
+      };
+    } catch (error) {
+      console.error('Error in checkPendingTrips:', error);
+      return { hasPendingTrips: false, tripCount: 0 };
+    }
+  }, [user.id]);
 
   const fetchPaymentMethods = useCallback(async () => {
     setIsLoading(true);
@@ -235,7 +270,19 @@ export default function PaymentMethodsSection({ user, profile, onPaymentMethodCh
     } finally {
       setIsLoading(false);
     }
-  }, [profile?.default_payment_method_id, selectedPaymentMethod]);
+  }, [profile?.default_payment_method_id, selectedPaymentMethod, updateDefaultPaymentMethod]);
+
+  // Fetch payment methods when component mounts
+  useEffect(() => {
+    fetchPaymentMethods();
+  }, [fetchPaymentMethods]);
+
+  // Notify parent component when payment method changes
+  useEffect(() => {
+    if (onPaymentMethodChange) {
+      onPaymentMethodChange(selectedPaymentMethod);
+    }
+  }, [selectedPaymentMethod, onPaymentMethodChange]);
 
   const handleAddPaymentMethod = async () => {
     setMessage({ text: '', type: '' });
@@ -336,53 +383,6 @@ export default function PaymentMethodsSection({ user, profile, onPaymentMethodCh
         text: error.message || 'Failed to remove payment method',
         type: 'error'
       });
-    }
-  };
-
-  // Update default payment method in database
-  const updateDefaultPaymentMethod = async (paymentMethodId) => {
-    try {
-      const supabase = getSupabaseClient();
-      const { error } = await supabase
-        .from('profiles')
-        .update({ 
-          default_payment_method_id: paymentMethodId,
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', user.id);
-      
-      if (error) {
-        throw new Error('Failed to update default payment method');
-      }
-    } catch (error) {
-      console.error('Error updating default payment method:', error);
-      // Don't throw error here as it's a background operation
-    }
-  };
-
-  // Check if user has pending trips that would prevent payment method removal
-  const checkPendingTrips = async () => {
-    try {
-      const supabase = getSupabaseClient();
-      const { data: pendingTrips, error } = await supabase
-        .from('trips')
-        .select('id, status, pickup_time')
-        .eq('user_id', user.id)
-        .in('status', ['pending', 'upcoming'])
-        .gt('pickup_time', new Date().toISOString());
-
-      if (error) {
-        console.error('Error checking pending trips:', error);
-        return { hasPendingTrips: false, tripCount: 0 };
-      }
-
-      return { 
-        hasPendingTrips: pendingTrips && pendingTrips.length > 0, 
-        tripCount: pendingTrips ? pendingTrips.length : 0 
-      };
-    } catch (error) {
-      console.error('Error in checkPendingTrips:', error);
-      return { hasPendingTrips: false, tripCount: 0 };
     }
   };
 
