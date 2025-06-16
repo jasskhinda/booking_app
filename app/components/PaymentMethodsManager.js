@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import DashboardLayout from './DashboardLayout';
 import { getStripe } from '@/lib/stripe';
+import logger from '@/lib/logger';
 
 // Card setup form component
 export function CardSetupForm({ clientSecret, onSuccess, onError, onCancel, profile, user }) {
@@ -187,8 +188,65 @@ export default function PaymentMethodsManager({ user, profile }) {
   const [isLoading, setIsLoading] = useState(true);
   const [isAddingMethod, setIsAddingMethod] = useState(false);
   const [clientSecret, setClientSecret] = useState(null);
-  const [defaultPaymentMethod, setDefaultPaymentMethod] = useState(profile.default_payment_method_id);
+  const [defaultPaymentMethod, setDefaultPaymentMethod] = useState(profile?.default_payment_method_id || '');
   const [message, setMessage] = useState({ text: '', type: '' });
+  const [hasError, setHasError] = useState(false);
+
+  // Enhanced error logging for production debugging
+  useEffect(() => {
+    const logComponentMount = () => {
+      logger.info('PaymentMethodsManager mounted with props:', {
+        userId: user?.id,
+        userEmail: user?.email,
+        profileId: profile?.id,
+        defaultPaymentMethod: profile?.default_payment_method_id,
+        timestamp: new Date().toISOString()
+      });
+    };
+
+    logComponentMount();
+  }, [user, profile]);
+
+  // Error boundary effect
+  useEffect(() => {
+    const handleError = (event) => {
+      console.error('PaymentMethodsManager runtime error:', event.error);
+      setHasError(true);
+      setMessage({
+        text: 'An unexpected error occurred. Please refresh the page and try again.',
+        type: 'error'
+      });
+    };
+
+    const handleUnhandledRejection = (event) => {
+      console.error('PaymentMethodsManager unhandled promise rejection:', event.reason);
+      setHasError(true);
+      setMessage({
+        text: 'A network error occurred. Please check your connection and try again.',
+        type: 'error'
+      });
+    };
+
+    window.addEventListener('error', handleError);
+    window.addEventListener('unhandledrejection', handleUnhandledRejection);
+
+    return () => {
+      window.removeEventListener('error', handleError);
+      window.removeEventListener('unhandledrejection', handleUnhandledRejection);
+    };
+  }, []);
+
+  // Validate props
+  useEffect(() => {
+    if (!user) {
+      console.error('PaymentMethodsManager: user prop is required');
+      setHasError(true);
+      setMessage({
+        text: 'User information is missing. Please log in again.',
+        type: 'error'
+      });
+    }
+  }, [user]);
 
   // Update default payment method in database
   const updateDefaultPaymentMethod = useCallback(async (paymentMethodId) => {
@@ -206,14 +264,9 @@ export default function PaymentMethodsManager({ user, profile }) {
     }
   }, [user.id]);
 
-  // Fetch payment methods when component mounts
-  useEffect(() => {
-    fetchPaymentMethods();
-  }, [fetchPaymentMethods]);
-
   const fetchPaymentMethods = useCallback(async () => {
-    setIsLoading(true);
     try {
+      setIsLoading(true);
       const response = await fetch('/api/stripe/payment-methods');
       const data = await response.json();
       
@@ -242,10 +295,16 @@ export default function PaymentMethodsManager({ user, profile }) {
         text: error.message || 'Failed to load payment methods',
         type: 'error'
       });
+      // Don't set hasError for API failures, just show the message
     } finally {
       setIsLoading(false);
     }
   }, [defaultPaymentMethod, updateDefaultPaymentMethod]);
+
+  // Fetch payment methods when component mounts
+  useEffect(() => {
+    fetchPaymentMethods();
+  }, [fetchPaymentMethods]);
 
   const handleAddPaymentMethod = async () => {
     setMessage({ text: '', type: '' });
@@ -275,6 +334,32 @@ export default function PaymentMethodsManager({ user, profile }) {
         text: error.message || 'Failed to initialize payment method setup',
         type: 'error'
       });
+    }
+  };
+
+  // Check if user has pending trips that would prevent payment method removal
+  const checkPendingTrips = async () => {
+    try {
+      const supabase = getSupabaseClient();
+      const { data: pendingTrips, error } = await supabase
+        .from('trips')
+        .select('id, status, pickup_time')
+        .eq('user_id', user.id)
+        .in('status', ['pending', 'upcoming'])
+        .gt('pickup_time', new Date().toISOString());
+
+      if (error) {
+        console.error('Error checking pending trips:', error);
+        return { hasPendingTrips: false, tripCount: 0 };
+      }
+
+      return { 
+        hasPendingTrips: pendingTrips && pendingTrips.length > 0, 
+        tripCount: pendingTrips ? pendingTrips.length : 0 
+      };
+    } catch (error) {
+      console.error('Error in checkPendingTrips:', error);
+      return { hasPendingTrips: false, tripCount: 0 };
     }
   };
 
@@ -358,32 +443,6 @@ export default function PaymentMethodsManager({ user, profile }) {
     }
   };
 
-  // Check if user has pending trips that would prevent payment method removal
-  const checkPendingTrips = async () => {
-    try {
-      const supabase = getSupabaseClient();
-      const { data: pendingTrips, error } = await supabase
-        .from('trips')
-        .select('id, status, pickup_time')
-        .eq('user_id', user.id)
-        .in('status', ['pending', 'upcoming'])
-        .gt('pickup_time', new Date().toISOString());
-
-      if (error) {
-        console.error('Error checking pending trips:', error);
-        return { hasPendingTrips: false, tripCount: 0 };
-      }
-
-      return { 
-        hasPendingTrips: pendingTrips && pendingTrips.length > 0, 
-        tripCount: pendingTrips ? pendingTrips.length : 0 
-      };
-    } catch (error) {
-      console.error('Error in checkPendingTrips:', error);
-      return { hasPendingTrips: false, tripCount: 0 };
-    }
-  };
-
   // Format card expiration date
   const formatExpiry = (month, year) => {
     return `${month.toString().padStart(2, '0')}/${year.toString().slice(-2)}`;
@@ -434,6 +493,49 @@ export default function PaymentMethodsManager({ user, profile }) {
     setIsAddingMethod(false);
     setClientSecret(null);
   };
+  
+  // Error fallback UI
+  if (hasError) {
+    return (
+      <DashboardLayout user={user} activeTab="settings">
+        <div className="bg-[#F8F9FA] dark:bg-[#1A1A1A] rounded-lg shadow-md border border-[#DDE5E7] dark:border-[#333333] p-6 mb-6">
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-xl font-semibold text-[black] dark:text-[white]">Payment Methods</h2>
+            <Link 
+              href="/dashboard/settings" 
+              className="text-[#5fbfc0] hover:text-[#4aa5a6]"
+            >
+              Back to Settings
+            </Link>
+          </div>
+          
+          <div className="text-center py-8">
+            <svg className="mx-auto h-12 w-12 text-red-500 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.464 0L4.35 16.5c-.77.833.192 2.5 1.732 2.5z" />
+            </svg>
+            <h3 className="text-lg font-medium text-[black] dark:text-[white] mb-2">Something went wrong</h3>
+            <p className="text-[black]/70 dark:text-[white]/70 mb-4">
+              We encountered an error loading your payment methods.
+            </p>
+            <div className="space-x-4">
+              <button
+                onClick={() => window.location.reload()}
+                className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-[#5fbfc0] hover:bg-[#4aa5a6] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#5fbfc0]"
+              >
+                Refresh Page
+              </button>
+              <Link
+                href="/dashboard/settings"
+                className="inline-flex items-center px-4 py-2 border border-[#DDE5E7] dark:border-[#333333] rounded-md shadow-sm text-sm font-medium text-[black] dark:text-[white] bg-white dark:bg-[black] hover:bg-gray-50 dark:hover:bg-[#1A1A1A] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#5fbfc0]"
+              >
+                Back to Settings
+              </Link>
+            </div>
+          </div>
+        </div>
+      </DashboardLayout>
+    );
+  }
   
   return (
     <DashboardLayout user={user} activeTab="settings">

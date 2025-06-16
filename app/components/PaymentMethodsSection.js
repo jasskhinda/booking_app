@@ -1,8 +1,47 @@
 'use client';
 
-import { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { getSupabaseClient } from '@/lib/client-supabase';
 import { getStripe } from '@/lib/stripe';
+
+// React Error Boundary for payment methods
+class PaymentMethodsErrorBoundary extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
+
+  static getDerivedStateFromError(error) {
+    return { hasError: true, error };
+  }
+
+  componentDidCatch(error, errorInfo) {
+    console.error('PaymentMethodsSection error:', error, errorInfo);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="space-y-4">
+          <div className="p-4 bg-red-50 text-red-800 border border-red-200 rounded-md dark:bg-red-900/30 dark:text-red-300 dark:border-red-700">
+            <h4 className="font-medium mb-2">Payment Methods Error</h4>
+            <p className="text-sm">
+              There was an error loading the payment methods section. Please refresh the page.
+            </p>
+            <button
+              onClick={() => window.location.reload()}
+              className="mt-2 text-sm text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 underline"
+            >
+              Refresh Page
+            </button>
+          </div>
+        </div>
+      );
+    }
+
+    return this.props.children;
+  }
+}
 
 // Simplified card setup form for embedding in booking form
 function EmbeddedCardSetupForm({ clientSecret, onSuccess, onError, onCancel, profile, user }) {
@@ -453,138 +492,140 @@ export default function PaymentMethodsSection({ user, profile, onPaymentMethodCh
   };
   
   return (
-    <div className="space-y-4">
-      <div className="flex justify-between items-center">
-        <label className="block text-sm font-medium text-[black] dark:text-[white]">
-          Payment Method
-        </label>
-      </div>
-      
-      {message.text && (
-        <div className={`p-3 rounded-md text-sm ${
-          message.type === 'success' 
-            ? 'bg-green-50 text-green-800 border border-green-200 dark:bg-green-900/30 dark:text-green-300 dark:border-green-700' 
-            : 'bg-red-50 text-red-800 border border-red-200 dark:bg-red-900/30 dark:text-red-300 dark:border-red-700'
-        }`}>
-          {message.text}
+    <PaymentMethodsErrorBoundary>
+      <div className="space-y-4">
+        <div className="flex justify-between items-center">
+          <label className="block text-sm font-medium text-[black] dark:text-[white]">
+            Payment Method
+          </label>
         </div>
-      )}
-      
-      {isLoading ? (
-        <div className="flex items-center justify-center py-8 border-2 border-dashed border-[#DDE5E7] dark:border-[#333333] rounded-lg">
-          <svg className="animate-spin h-6 w-6 text-[#5fbfc0] mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-          </svg>
-          <span className="text-[black]/70 dark:text-[white]/70">Loading payment methods...</span>
-        </div>
-      ) : (
-        <div>
-          {isAddingMethod && clientSecret ? (
-            <div className="border border-[#DDE5E7] dark:border-[#333333] rounded-lg p-4 bg-[#F8F9FA] dark:bg-[#1A1A1A]">
-              <h4 className="text-sm font-medium text-[black] dark:text-[white] mb-3">Add New Payment Method</h4>
-              <EmbeddedCardSetupForm 
-                clientSecret={clientSecret} 
-                onSuccess={handleSetupSuccess} 
-                onError={handleSetupError} 
-                onCancel={handleSetupCancel}
-                profile={profile}
-                user={user}
-              />
-            </div>
-          ) : (
-            <>
-              {paymentMethods.length === 0 ? (
-                <div className="text-center py-8 border-2 border-dashed border-[#DDE5E7] dark:border-[#333333] rounded-lg">
-                  <svg className="mx-auto h-8 w-8 text-[#5fbfc0]/50 dark:text-[#5fbfc0]/40 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
-                  </svg>
-                  <h4 className="text-sm font-medium text-[black] dark:text-[white] mb-1">No payment methods</h4>
-                  <p className="text-xs text-[black]/70 dark:text-[white]/70 mb-3">
-                    Add a payment method to complete your booking
-                  </p>
-                  <button
-                    type="button"
-                    onClick={handleAddPaymentMethod}
-                    className="inline-flex items-center px-3 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-[#5fbfc0] hover:bg-[#4aa5a6] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#5fbfc0]"
-                  >
-                    <svg className="-ml-1 mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+        
+        {message.text && (
+          <div className={`p-3 rounded-md text-sm ${
+            message.type === 'success' 
+              ? 'bg-green-50 text-green-800 border border-green-200 dark:bg-green-900/30 dark:text-green-300 dark:border-green-700' 
+              : 'bg-red-50 text-red-800 border border-red-200 dark:bg-red-900/30 dark:text-red-300 dark:border-red-700'
+          }`}>
+            {message.text}
+          </div>
+        )}
+        
+        {isLoading ? (
+          <div className="flex items-center justify-center py-8 border-2 border-dashed border-[#DDE5E7] dark:border-[#333333] rounded-lg">
+            <svg className="animate-spin h-6 w-6 text-[#5fbfc0] mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            <span className="text-[black]/70 dark:text-[white]/70">Loading payment methods...</span>
+          </div>
+        ) : (
+          <div>
+            {isAddingMethod && clientSecret ? (
+              <div className="border border-[#DDE5E7] dark:border-[#333333] rounded-lg p-4 bg-[#F8F9FA] dark:bg-[#1A1A1A]">
+                <h4 className="text-sm font-medium text-[black] dark:text-[white] mb-3">Add New Payment Method</h4>
+                <EmbeddedCardSetupForm 
+                  clientSecret={clientSecret} 
+                  onSuccess={handleSetupSuccess} 
+                  onError={handleSetupError} 
+                  onCancel={handleSetupCancel}
+                  profile={profile}
+                  user={user}
+                />
+              </div>
+            ) : (
+              <>
+                {paymentMethods.length === 0 ? (
+                  <div className="text-center py-8 border-2 border-dashed border-[#DDE5E7] dark:border-[#333333] rounded-lg">
+                    <svg className="mx-auto h-8 w-8 text-[#5fbfc0]/50 dark:text-[#5fbfc0]/40 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
                     </svg>
-                    Add Card
-                  </button>
-                </div>
-              ) : (
-                <div className="space-y-3">
-                  {paymentMethods.map((method) => (
-                    <div 
-                      key={method.id} 
-                      className={`flex items-center justify-between p-3 border rounded-lg cursor-pointer transition-colors ${
-                        method.id === selectedPaymentMethod 
-                          ? 'border-[#5fbfc0] bg-[#5fbfc0]/10 dark:bg-[#5fbfc0]/20' 
-                          : 'border-[#DDE5E7] dark:border-[#333333] hover:border-[#5fbfc0]/50'
-                      }`}
-                      onClick={() => handlePaymentMethodSelect(method.id)}
+                    <h4 className="text-sm font-medium text-[black] dark:text-[white] mb-1">No payment methods</h4>
+                    <p className="text-xs text-[black]/70 dark:text-[white]/70 mb-3">
+                      Add a payment method to complete your booking
+                    </p>
+                    <button
+                      type="button"
+                      onClick={handleAddPaymentMethod}
+                      className="inline-flex items-center px-3 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-[#5fbfc0] hover:bg-[#4aa5a6] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#5fbfc0]"
                     >
-                      <div className="flex items-center space-x-3">
-                        <input
-                          type="radio"
-                          name="paymentMethod"
-                          value={method.id}
-                          checked={method.id === selectedPaymentMethod}
-                          onChange={() => handlePaymentMethodSelect(method.id)}
-                          className="h-4 w-4 text-[#5fbfc0] focus:ring-[#5fbfc0] border-[#DDE5E7] dark:border-[#333333]"
-                        />
-                        <div className="text-xl">{getCardBrandLogo(method.card.brand)}</div>
-                        <div>
-                          <p className="font-medium text-[black] dark:text-[white] text-sm">{formatCardNumber(method.card.last4)}</p>
-                          <p className="text-xs text-[black]/70 dark:text-[white]/70">
-                            Expires {formatExpiry(method.card.exp_month, method.card.exp_year)}
-                          </p>
-                        </div>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleRemovePaymentMethod(method.id);
-                        }}
-                        className="text-xs text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 px-2 py-1"
+                      <svg className="-ml-1 mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                      </svg>
+                      Add Card
+                    </button>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {paymentMethods.map((method) => (
+                      <div 
+                        key={method.id} 
+                        className={`flex items-center justify-between p-3 border rounded-lg cursor-pointer transition-colors ${
+                          method.id === selectedPaymentMethod 
+                            ? 'border-[#5fbfc0] bg-[#5fbfc0]/10 dark:bg-[#5fbfc0]/20' 
+                            : 'border-[#DDE5E7] dark:border-[#333333] hover:border-[#5fbfc0]/50'
+                        }`}
+                        onClick={() => handlePaymentMethodSelect(method.id)}
                       >
-                        Remove
-                      </button>
-                    </div>
-                  ))}
-                  
-                  <button
-                    type="button"
-                    onClick={handleAddPaymentMethod}
-                    disabled={isAddingMethod}
-                    className="w-full flex items-center justify-center px-3 py-2 border border-dashed border-[#DDE5E7] dark:border-[#333333] rounded-md text-sm font-medium text-[#5fbfc0] hover:text-[#4aa5a6] hover:border-[#5fbfc0] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#5fbfc0] disabled:opacity-50"
-                  >
-                    {isAddingMethod ? (
-                      <>
-                        <svg className="animate-spin -ml-1 mr-2 h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                        </svg>
-                        Processing...
-                      </>
-                    ) : (
-                      <>
-                        <svg className="-ml-1 mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                        </svg>
-                        Add Another Card
-                      </>
-                    )}
-                  </button>
-                </div>
-              )}
-            </>
-          )}
-        </div>
-      )}
-    </div>
+                        <div className="flex items-center space-x-3">
+                          <input
+                            type="radio"
+                            name="paymentMethod"
+                            value={method.id}
+                            checked={method.id === selectedPaymentMethod}
+                            onChange={() => handlePaymentMethodSelect(method.id)}
+                            className="h-4 w-4 text-[#5fbfc0] focus:ring-[#5fbfc0] border-[#DDE5E7] dark:border-[#333333]"
+                          />
+                          <div className="text-xl">{getCardBrandLogo(method.card.brand)}</div>
+                          <div>
+                            <p className="font-medium text-[black] dark:text-[white] text-sm">{formatCardNumber(method.card.last4)}</p>
+                            <p className="text-xs text-[black]/70 dark:text-[white]/70">
+                              Expires {formatExpiry(method.card.exp_month, method.card.exp_year)}
+                            </p>
+                          </div>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleRemovePaymentMethod(method.id);
+                          }}
+                          className="text-xs text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 px-2 py-1"
+                        >
+                          Remove
+                        </button>
+                      </div>
+                    ))}
+                    
+                    <button
+                      type="button"
+                      onClick={handleAddPaymentMethod}
+                      disabled={isAddingMethod}
+                      className="w-full flex items-center justify-center px-3 py-2 border border-dashed border-[#DDE5E7] dark:border-[#333333] rounded-md text-sm font-medium text-[#5fbfc0] hover:text-[#4aa5a6] hover:border-[#5fbfc0] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#5fbfc0] disabled:opacity-50"
+                    >
+                      {isAddingMethod ? (
+                        <>
+                          <svg className="animate-spin -ml-1 mr-2 h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                          </svg>
+                          Processing...
+                        </>
+                      ) : (
+                        <>
+                          <svg className="-ml-1 mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                          </svg>
+                          Add Another Card
+                        </>
+                      )}
+                    </button>
+                  </div>
+                )}
+              </>
+            )}
+          </div>
+        )}
+      </div>
+    </PaymentMethodsErrorBoundary>
   );
 }

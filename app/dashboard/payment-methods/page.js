@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation';
 import { createServerComponentClient } from '@supabase/auth-helpers-nextjs';
 import { cookies } from 'next/headers';
 import PaymentMethodsManager from '@/app/components/PaymentMethodsManager';
+import ErrorBoundary from '@/app/components/ErrorBoundary';
 
 export const dynamic = 'force-dynamic';
 
@@ -31,7 +32,11 @@ export default async function PaymentMethods() {
     
     // Even if there's an error, we'll render the component
     // The client component will handle the empty state
-    return <PaymentMethodsManager user={session.user} profile={profile || {}} />;
+    return (
+      <ErrorBoundary>
+        <PaymentMethodsManager user={session.user} profile={profile || {}} />
+      </ErrorBoundary>
+    );
   } catch (error) {
     console.error('Error in payment methods page:', error);
     redirect('/login?error=server_error');
