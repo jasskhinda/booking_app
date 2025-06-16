@@ -894,23 +894,28 @@ export default function BookingForm({ user }) {
   };
 
   // Handler for successful card setup
-  const handleSetupSuccess = async () => {
+  const handleSetupSuccess = async (setupIntent) => {
     setClientSecret(null);
     setIsAddingPayment(false);
     setPaymentMessage('Payment method added successfully!');
     // Refresh payment methods
     setIsLoadingPayments(true);
-    const response = await fetch('/api/stripe/payment-methods');
-    const data = await response.json();
-    setPaymentMethods(data.paymentMethods || []);
-    let defaultId = null;
-    if (data.profile && data.profile.default_payment_method_id) {
-      defaultId = data.profile.default_payment_method_id;
-    } else if (data.paymentMethods && data.paymentMethods.length > 0) {
-      defaultId = data.paymentMethods[0].id;
+    try {
+      const response = await fetch('/api/stripe/payment-methods');
+      const data = await response.json();
+      setPaymentMethods(data.paymentMethods || []);
+      let defaultId = null;
+      if (data.profile && data.profile.default_payment_method_id) {
+        defaultId = data.profile.default_payment_method_id;
+      } else if (data.paymentMethods && data.paymentMethods.length > 0) {
+        defaultId = data.paymentMethods[0].id;
+      }
+      setDefaultPaymentMethod(defaultId);
+    } catch (e) {
+      setPaymentMessage('Failed to load payment methods');
+    } finally {
+      setIsLoadingPayments(false);
     }
-    setDefaultPaymentMethod(defaultId);
-    setIsLoadingPayments(false);
   };
 
   // Handler for card setup error/cancel
