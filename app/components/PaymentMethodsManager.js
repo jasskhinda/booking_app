@@ -249,8 +249,30 @@ export default function PaymentMethodsManager({ user, profile }) {
   };
 
   const handleRemovePaymentMethod = async (paymentMethodId) => {
-    if (!window.confirm('Are you sure you want to remove this payment method?')) {
-      return;
+    // Check if this is the last payment method
+    if (paymentMethods.length === 1) {
+      // Check for pending trips
+      const { hasPendingTrips, tripCount } = await checkPendingTrips();
+      
+      if (hasPendingTrips) {
+        setMessage({
+          text: `Cannot remove your last payment method. You have ${tripCount} pending trip${tripCount > 1 ? 's' : ''} that require a payment method. Please add another payment method before removing this one.`,
+          type: 'error'
+        });
+        return;
+      }
+      
+      // If no pending trips, still warn about removing last payment method
+      if (!window.confirm(
+        'This is your only payment method. Removing it will prevent you from booking new rides until you add another payment method. Are you sure you want to continue?'
+      )) {
+        return;
+      }
+    } else {
+      // Standard confirmation for non-last payment method
+      if (!window.confirm('Are you sure you want to remove this payment method?')) {
+        return;
+      }
     }
     
     try {
@@ -318,6 +340,32 @@ export default function PaymentMethodsManager({ user, profile }) {
     
     if (error) {
       throw new Error('Failed to update default payment method');
+    }
+  };
+
+  // Check if user has pending trips that would prevent payment method removal
+  const checkPendingTrips = async () => {
+    try {
+      const supabase = getSupabaseClient();
+      const { data: pendingTrips, error } = await supabase
+        .from('trips')
+        .select('id, status, pickup_time')
+        .eq('user_id', user.id)
+        .in('status', ['pending', 'upcoming'])
+        .gt('pickup_time', new Date().toISOString());
+
+      if (error) {
+        console.error('Error checking pending trips:', error);
+        return { hasPendingTrips: false, tripCount: 0 };
+      }
+
+      return { 
+        hasPendingTrips: pendingTrips && pendingTrips.length > 0, 
+        tripCount: pendingTrips ? pendingTrips.length : 0 
+      };
+    } catch (error) {
+      console.error('Error in checkPendingTrips:', error);
+      return { hasPendingTrips: false, tripCount: 0 };
     }
   };
 
