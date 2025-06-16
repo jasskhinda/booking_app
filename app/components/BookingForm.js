@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef, useCallback, Fragment } from 'react';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { getSupabaseClient } from '@/lib/client-supabase';
 import { useRouter } from 'next/navigation';
 import DashboardLayout from './DashboardLayout';
 import Script from 'next/script';
@@ -82,7 +82,7 @@ export default function BookingForm({ user }) {
   const returnDatePickerRef = useRef(null);
 
   const router = useRouter();
-  const supabase = createClientComponentClient();
+  const supabase = getSupabaseClient();
   const [profileData, setProfileData] = useState(null);
 
   useEffect(() => {
