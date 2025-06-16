@@ -74,15 +74,13 @@ export function CardSetupForm({ clientSecret, onSuccess, onError, onCancel, prof
   
   const handleSubmit = async (event) => {
     event.preventDefault();
-    
-    if (!stripe.current || !elements.current || !cardElement.current) {
-      onError(new Error('Stripe is still loading. Please try again in a moment.'));
-      return;
-    }
-    
-    setProcessing(true);
-    
+    console.log('CardSetupForm handleSubmit called');
     try {
+      if (!stripe.current || !elements.current || !cardElement.current) {
+        onError(new Error('Stripe is still loading. Please try again in a moment.'));
+        return;
+      }
+      setProcessing(true);
       const { error, setupIntent } = await stripe.current.confirmCardSetup(clientSecret, {
         payment_method: {
           card: cardElement.current,
@@ -92,13 +90,13 @@ export function CardSetupForm({ clientSecret, onSuccess, onError, onCancel, prof
           },
         },
       });
-      
       if (error) {
-        throw new Error(error.message);
+        onError(new Error(error.message));
+        return;
       }
-      
       onSuccess(setupIntent);
     } catch (error) {
+      console.error('Error in CardSetupForm handleSubmit:', error);
       onError(error);
     } finally {
       setProcessing(false);
