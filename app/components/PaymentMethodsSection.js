@@ -80,8 +80,7 @@ function EmbeddedCardSetupForm({ clientSecret, onSuccess, onError, onCancel, pro
     };
   }, [clientSecret, onError]);
   
-  const handleSubmit = async (event) => {
-    event.preventDefault();
+  const handleSubmit = async () => {
     console.log('EmbeddedCardSetupForm handleSubmit called');
     console.log('Stripe ready:', !!stripe.current);
     console.log('Elements ready:', !!elements.current);
@@ -125,7 +124,7 @@ function EmbeddedCardSetupForm({ clientSecret, onSuccess, onError, onCancel, pro
   };
   
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <div className="space-y-4">
       <div>
         <label className="block text-sm font-medium text-[#2E4F54] dark:text-[#E0F4F5] mb-2">
           Card Information
@@ -147,7 +146,8 @@ function EmbeddedCardSetupForm({ clientSecret, onSuccess, onError, onCancel, pro
       </div>
       <div className="flex space-x-2">
         <button
-          type="submit"
+          type="button"
+          onClick={handleSubmit}
           disabled={processing || !stripeReady || !cardReady}
           className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-[#7CCFD0] hover:bg-[#60BFC0] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#7CCFD0] disabled:opacity-50"
         >
@@ -169,7 +169,7 @@ function EmbeddedCardSetupForm({ clientSecret, onSuccess, onError, onCancel, pro
           Cancel
         </button>
       </div>
-    </form>
+    </div>
   );
 }
 
