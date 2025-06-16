@@ -1617,19 +1617,19 @@ export default function BookingForm({ user }) {
                   </span>
                 </button>
               </div>
-            </form>
+            </div> {/* <-- Close the grid container here */}
+          </form>
 
-            {success && (
-              <div className="bg-[#7CCFD0]/20 dark:bg-[#7CCFD0]/30 text-[#2E4F54] dark:text-[#E0F4F5] p-4 rounded mb-6">
-                <div className="flex items-center">
-                  <svg className="w-6 h-6 text-[#3B5B63] dark:text-[#7CCFD0] mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
-                  </svg>
-                  <span>Your trip request has been submitted successfully! It is pending dispatcher approval. Redirecting to your trips...</span>
-                </div>
+          {success && (
+            <div className="bg-[#7CCFD0]/20 dark:bg-[#7CCFD0]/30 text-[#2E4F54] dark:text-[#E0F4F5] p-4 rounded mb-6">
+              <div className="flex items-center">
+                <svg className="w-6 h-6 text-[#3B5B63] dark:text-[#7CCFD0] mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
+                </svg>
+                <span>Your trip request has been submitted successfully! It is pending dispatcher approval. Redirecting to your trips...</span>
               </div>
-            )}
-          </div>
+            </div>
+          )}
         </div>
       </DashboardLayout>
     </>
