@@ -1,61 +1,118 @@
 import { NextResponse } from 'next/server';
-import { supabase } from '@/lib/supabase';
+import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
+import { cookies } from 'next/headers';
 
 // This route handles the callback after OAuth sign-in
 export async function GET(request) {
   const requestUrl = new URL(request.url);
   const code = requestUrl.searchParams.get('code');
+  const error = requestUrl.searchParams.get('error');
+  const errorDescription = requestUrl.searchParams.get('error_description');
+  
+  console.log('Auth callback called with:', { 
+    code: code ? 'present' : 'missing',
+    error, 
+    errorDescription,
+    fullUrl: requestUrl.toString()
+  });
+  
+  // Handle OAuth errors
+  if (error) {
+    console.error('OAuth error received:', { error, errorDescription });
+    const errorParam = error === 'access_denied' ? 'access_denied' : 'Authentication failed';
+    return NextResponse.redirect(
+      new URL(`/login?error=${encodeURIComponent(errorParam)}`, requestUrl.origin)
+    );
+  }
   
   if (code) {
-    const { data, error } = await supabase.auth.exchangeCodeForSession(code);
+    const cookieStore = cookies();
+    const supabase = createRouteHandlerClient({ cookies: () => cookieStore });
     
-    if (error) {
-      console.error('Error exchanging code for session:', error);
+    try {
+      console.log('Attempting to exchange code for session...');
+      const { data, error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
+      
+      if (exchangeError) {
+        console.error('Error exchanging code for session:', exchangeError);
+        return NextResponse.redirect(
+          new URL('/login?error=Authentication failed', requestUrl.origin)
+        );
+      }
+      
+      console.log('Session exchange successful, user:', data?.session?.user?.email);
+      
+      // For OAuth users, ensure they have a profile entry and role
+      if (data && data.session && data.session.user) {
+        const user = data.session.user;
+        console.log('Processing user profile for:', user.email);
+        
+        try {
+          // Check if profile exists, if not create it
+          const { data: existingProfile, error: profileError } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', user.id)
+            .single();
+          
+          if (profileError && profileError.code === 'PGRST116') {
+            // Profile doesn't exist, create it
+            console.log('Creating new profile for user:', user.email);
+            const { error: insertError } = await supabase
+              .from('profiles')
+              .insert({
+                id: user.id,
+                email: user.email,
+                full_name: user.user_metadata?.full_name || user.user_metadata?.name || '',
+                role: 'client',
+                created_at: new Date().toISOString(),
+                updated_at: new Date().toISOString()
+              });
+            
+            if (insertError) {
+              console.error('Error creating profile:', insertError);
+            } else {
+              console.log('Profile created successfully');
+            }
+          } else if (!existingProfile?.role) {
+            // Profile exists but no role, update it
+            console.log('Updating profile role for user:', user.email);
+            const { error: updateError } = await supabase
+              .from('profiles')
+              .update({ 
+                role: 'client',
+                updated_at: new Date().toISOString()
+              })
+              .eq('id', user.id);
+            
+            if (updateError) {
+              console.error('Error updating profile role:', updateError);
+            } else {
+              console.log('Profile role updated successfully');
+            }
+          } else {
+            console.log('Profile already exists with correct role');
+          }
+          
+        } catch (profileError) {
+          console.error('Error handling user profile:', profileError);
+          // Continue with the redirect even if profile updates fail
+        }
+      }
+      
+      // Successful authentication, redirect to dashboard
+      console.log('Redirecting to dashboard after successful authentication');
+      return NextResponse.redirect(new URL('/dashboard', requestUrl.origin));
+      
+    } catch (error) {
+      console.error('Unexpected error in auth callback:', error);
       return NextResponse.redirect(
         new URL('/login?error=Authentication failed', requestUrl.origin)
       );
     }
-    
-    // For OAuth users, ensure they have a role assigned in their profile and email is confirmed
-    if (data && data.session) {
-      try {
-        // Get user metadata
-        const userMetadata = data.session.user.user_metadata || {};
-        
-        // Check if user has a role, otherwise update profile to ensure role is assigned
-        if (!userMetadata.role) {
-          // Update user metadata to include role
-          await supabase.auth.updateUser({
-            data: { role: 'client' }
-          });
-          
-          // Also ensure profile has role set
-          await supabase
-            .from('profiles')
-            .update({ role: 'client' })
-            .eq('id', data.session.user.id);
-        }
-        
-        // Ensure email is confirmed via admin API
-        await fetch(`${requestUrl.origin}/api/auth/confirm-oauth`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            userId: data.session.user.id,
-          }),
-        });
-      } catch (profileError) {
-        console.error('Error updating user data:', profileError);
-        // Continue with the redirect even if updates fail
-      }
-    }
-    
-    // Successful authentication, redirect to dashboard
-    return NextResponse.redirect(new URL('/dashboard', requestUrl.origin));
   }
   
   // If no code is present, redirect back to login
-  return NextResponse.redirect(new URL('/login', requestUrl.origin));
+  console.log('No code parameter found in callback, redirecting to login');
+  return NextResponse.redirect(new URL('/login?error=Authentication failed', requestUrl.origin));
 }
