@@ -8,7 +8,7 @@ import DashboardLayout from './DashboardLayout';
 import { getStripe } from '@/lib/stripe';
 
 // Card setup form component
-function CardSetupForm({ clientSecret, onSuccess, onError, onCancel, profile, user }) {
+export function CardSetupForm({ clientSecret, onSuccess, onError, onCancel, profile, user }) {
   const [processing, setProcessing] = useState(false);
   const stripe = useRef(null);
   const elements = useRef(null);
@@ -503,3 +503,5 @@ export default function PaymentMethodsManager({ user, profile }) {
     </DashboardLayout>
   );
 }
+
+export { CardSetupForm };
