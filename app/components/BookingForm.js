@@ -1421,6 +1421,7 @@ export default function BookingForm({ user }) {
                 )}
                 {isAddingPayment && clientSecret && (
                   <div className="mb-8">
+                    {/* Prevent page reload on CardSetupForm submission by rendering outside the main <form> */}
                     <CardSetupForm
                       clientSecret={clientSecret}
                       onSuccess={handleSetupSuccess}
