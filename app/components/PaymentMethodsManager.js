@@ -15,6 +15,7 @@ export function CardSetupForm({ clientSecret, onSuccess, onError, onCancel, prof
   const cardElement = useRef(null);
   const [cardReady, setCardReady] = useState(false);
   const [stripeReady, setStripeReady] = useState(false);
+  const [stripeError, setStripeError] = useState('');
   
   // Initialize Stripe when component loads
   useEffect(() => {
@@ -75,12 +76,14 @@ export function CardSetupForm({ clientSecret, onSuccess, onError, onCancel, prof
   const handleSubmit = async (event) => {
     event.preventDefault();
     console.log('CardSetupForm handleSubmit called');
+    setStripeError('');
+    if (!stripe.current || !elements.current || !cardElement.current) {
+      setStripeError('Payment form is not ready. Please wait a moment and try again.');
+      onError(new Error('Stripe is still loading. Please try again in a moment.'));
+      return;
+    }
+    setProcessing(true);
     try {
-      if (!stripe.current || !elements.current || !cardElement.current) {
-        onError(new Error('Stripe is still loading. Please try again in a moment.'));
-        return;
-      }
-      setProcessing(true);
       const { error, setupIntent } = await stripe.current.confirmCardSetup(clientSecret, {
         payment_method: {
           card: cardElement.current,
@@ -91,11 +94,13 @@ export function CardSetupForm({ clientSecret, onSuccess, onError, onCancel, prof
         },
       });
       if (error) {
+        setStripeError(error.message);
         onError(new Error(error.message));
         return;
       }
       onSuccess(setupIntent);
     } catch (error) {
+      setStripeError(error.message || 'Unexpected error.');
       console.error('Error in CardSetupForm handleSubmit:', error);
       onError(error);
     } finally {
@@ -117,11 +122,13 @@ export function CardSetupForm({ clientSecret, onSuccess, onError, onCancel, prof
             Loading payment form...
           </p>
         )}
+        {stripeError && (
+          <p className="mt-2 text-xs text-red-600 dark:text-red-400">{stripeError}</p>
+        )}
         <p className="mt-2 text-xs text-[#2E4F54]/70 dark:text-[#E0F4F5]/70">
           Your card information is securely processed by Stripe.
         </p>
       </div>
-      
       <div className="flex space-x-2">
         <button
           type="submit"
