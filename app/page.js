@@ -24,24 +24,24 @@ function HomeContent() {
   return (
     <div className="min-h-screen flex flex-col">
       {/* Sticky Header */}
-      <header className="sticky top-0 left-0 right-0 p-4 bg-white/60 backdrop-blur-sm border-b border-white/20 z-20">
+      <header className="sticky top-0 left-0 right-0 py-4 px-4 bg-white/95 backdrop-blur-md border-b border-white/30 z-20 shadow-sm">
         <div className="container mx-auto flex justify-between items-center">
           <div className="flex items-center space-x-2">
             <img 
               src="/cctlogo.png" 
               alt="Compassionate Care Transportation" 
-              style={{ width: '117px', height: 'auto' }}
+              style={{ width: '140px', height: 'auto' }}
             />
           </div>
           <nav>
-            <ul className="flex space-x-6">
+            <ul className="flex space-x-4">
               <li>
-                <Link href="/login" className="bg-[#5fbfc0] text-white px-4 py-2 rounded hover:bg-[#4aa5a6] transition-colors">
+                <Link href="/login" className="bg-[#5fbfc0] text-white px-6 py-2 rounded-lg hover:bg-[#4aa5a6] transition-all duration-200 font-medium shadow-md">
                   Login
                 </Link>
               </li>
               <li>
-                <Link href="/signup" className="bg-[#5fbfc0] text-white px-4 py-2 rounded hover:bg-[#4aa5a6] transition-colors">
+                <Link href="/signup" className="bg-[#5fbfc0] text-white px-6 py-2 rounded-lg hover:bg-[#4aa5a6] transition-all duration-200 font-medium shadow-md">
                   Sign up
                 </Link>
               </li>

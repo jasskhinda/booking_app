@@ -139,7 +139,7 @@ export default function SignupForm() {
       <div className="space-y-4">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label htmlFor="firstName" className="block text-sm font-medium text-[black] dark:text-[white]">
+            <label htmlFor="firstName" className="block text-sm font-medium text-black">
               First name
             </label>
             <input
@@ -154,7 +154,7 @@ export default function SignupForm() {
             />
           </div>
           <div>
-            <label htmlFor="lastName" className="block text-sm font-medium text-[black] dark:text-[white]">
+            <label htmlFor="lastName" className="block text-sm font-medium text-black">
               Last name
             </label>
             <input
@@ -171,7 +171,7 @@ export default function SignupForm() {
         </div>
         
         <div>
-          <label htmlFor="email" className="block text-sm font-medium text-[black] dark:text-[white]">
+          <label htmlFor="email" className="block text-sm font-medium text-black">
             Email address
           </label>
           <input
@@ -187,7 +187,7 @@ export default function SignupForm() {
         </div>
         
         <div>
-          <label htmlFor="password" className="block text-sm font-medium text-[black] dark:text-[white]">
+          <label htmlFor="password" className="block text-sm font-medium text-black">
             Password
           </label>
           <input
@@ -203,7 +203,7 @@ export default function SignupForm() {
         </div>
         
         <div>
-          <label htmlFor="confirmPassword" className="block text-sm font-medium text-[black] dark:text-[white]">
+          <label htmlFor="confirmPassword" className="block text-sm font-medium text-black">
             Confirm password
           </label>
           <input
@@ -219,7 +219,7 @@ export default function SignupForm() {
         </div>
         
         <div>
-          <label htmlFor="birthdate" className="block text-sm font-medium text-[black] dark:text-[white]">
+          <label htmlFor="birthdate" className="block text-sm font-medium text-black">
             Date of Birth
           </label>
           <input
@@ -245,10 +245,10 @@ export default function SignupForm() {
             />
           </div>
           <div className="ml-3 text-sm">
-            <label htmlFor="marketingConsent" className="font-medium text-[black] dark:text-[white]">
+            <label htmlFor="marketingConsent" className="font-medium text-black">
               Marketing emails
             </label>
-            <p className="text-[black]/70 dark:text-[white]/70">
+            <p className="text-black">
               I agree to receive marketing emails about special offers and promotions.
             </p>
           </div>
@@ -276,7 +276,7 @@ export default function SignupForm() {
         <button
           type="button"
           onClick={handleSignUpWithGoogle}
-          className="w-full flex justify-center items-center gap-3 py-2 px-4 border border-[#DDE5E7] dark:border-[#333333] rounded-md shadow-sm text-sm font-medium text-[black] dark:text-[white] hover:bg-[#F8F9FA] dark:hover:bg-[#1A1A1A] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#5fbfc0]"
+          className="w-full flex justify-center items-center gap-3 py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-[#5fbfc0] hover:bg-[#4aa5a6] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#5fbfc0]"
         >
           <svg className="h-5 w-5" viewBox="0 0 24 24">
             <path

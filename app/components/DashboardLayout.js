@@ -44,34 +44,39 @@ export default function DashboardLayout({ user, activeTab = 'dashboard', childre
   ];
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="dashboard-container min-h-screen flex flex-col">
+      {/* Parallax Background - contained within the layout */}
+      <div className="hero-background"></div>
+      <div className="hero-overlay"></div>
+      
       {/* Top Navigation Bar */}
-      <header className="bg-white dark:bg-black shadow-sm border-b border-[#DDE5E7] dark:border-[#333333]">
+      <header className="bg-white/95 backdrop-blur-md border-b border-white/30 sticky top-0 z-20 shadow-sm">
         <div className="mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between h-16">
+          <div className="flex justify-between h-20">
             <div className="flex">
-              <div className="flex-shrink-0 flex items-center">
+              <div className="flex-shrink-0 flex items-center py-3">
                 <Link href="/" className="flex items-center">
                   <img 
                     src="/cctlogo.png" 
                     alt="Compassionate Care Transportation" 
-                    className="h-10 w-auto"
+                    style={{ width: '140px', height: 'auto' }}
+                    className="py-1"
                   />
                 </Link>
               </div>
             </div>
             
-            <div className="hidden sm:ml-6 sm:flex sm:items-center sm:space-x-4">
+            <div className="hidden sm:ml-6 sm:flex sm:items-center sm:space-x-6">
               {/* Desktop navigation */}
-              <div className="flex space-x-4">
+              <div className="flex space-x-2">
                 {navItems.map(item => (
                   <Link 
                     key={item.id}
                     href={item.href}
-                    className={`px-3 py-2 rounded-md text-sm font-medium flex items-center space-x-1 ${
+                    className={`px-4 py-2 rounded-lg text-sm font-bold flex items-center space-x-2 transition-all duration-200 ${
                       activeTab === item.id 
-                        ? 'bg-[#5fbfc0]/20 text-black dark:bg-[#5fbfc0]/30 dark:text-white' 
-                        : 'text-black hover:text-black hover:bg-[#F8F9FA] dark:text-white/70 dark:hover:text-white dark:hover:bg-[#1A1A1A]'
+                        ? 'bg-[#5fbfc0] text-white shadow-md' 
+                        : 'text-gray-800 hover:text-[#5fbfc0] hover:bg-[#5fbfc0]/10'
                     }`}
                   >
                     {item.icon}
@@ -81,16 +86,16 @@ export default function DashboardLayout({ user, activeTab = 'dashboard', childre
               </div>
               
               {/* User menu */}
-              <div className="ml-3 relative flex items-center space-x-4">
+              <div className="ml-4 relative flex items-center space-x-4 pl-4 border-l border-gray-300">
                 <Link 
                   href="/dashboard/settings"
-                  className="text-sm text-black dark:text-white hover:text-[#5fbfc0] dark:hover:text-[#5fbfc0]"
+                  className="text-sm font-bold text-gray-800 hover:text-[#5fbfc0] transition-colors"
                 >
                   {user?.user_metadata?.full_name || user?.email}
                 </Link>
                 <button
                   onClick={handleSignOut}
-                  className="text-sm text-[#5fbfc0] hover:text-[#4aa5a6]"
+                  className="text-sm font-bold text-[#5fbfc0] hover:text-[#4aa5a6] transition-colors"
                 >
                   Sign out
                 </button>
@@ -101,7 +106,7 @@ export default function DashboardLayout({ user, activeTab = 'dashboard', childre
             <div className="flex items-center sm:hidden">
               <button
                 type="button"
-                className="inline-flex items-center justify-center p-2 rounded-md text-black hover:text-[#5fbfc0] hover:bg-[#F8F9FA] dark:text-white dark:hover:text-[#5fbfc0] dark:hover:bg-[#1A1A1A]"
+                className="inline-flex items-center justify-center p-2 rounded-md text-gray-800 hover:text-[#5fbfc0] hover:bg-[#5fbfc0]/10 transition-all"
                 aria-controls="mobile-menu"
                 aria-expanded={isMobileMenuOpen}
                 onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
@@ -123,16 +128,16 @@ export default function DashboardLayout({ user, activeTab = 'dashboard', childre
 
         {/* Mobile menu, show/hide based on menu state */}
         {isMobileMenuOpen && (
-          <div className="sm:hidden" id="mobile-menu">
-            <div className="pt-2 pb-3 space-y-1">
+          <div className="sm:hidden bg-white/95 backdrop-blur-md border-t border-white/30 shadow-lg" id="mobile-menu">
+            <div className="pt-3 pb-4 space-y-2 px-4">
               {navItems.map(item => (
                 <Link 
                   key={item.id}
                   href={item.href}
-                  className={`block px-3 py-2 rounded-md text-base font-medium flex items-center space-x-2 ${
+                  className={`block px-4 py-3 rounded-lg text-base font-bold flex items-center space-x-3 transition-all duration-200 ${
                     activeTab === item.id 
-                      ? 'bg-[#5fbfc0]/20 text-black dark:bg-[#5fbfc0]/30 dark:text-white' 
-                      : 'text-black hover:text-black hover:bg-[#F8F9FA] dark:text-white/70 dark:hover:text-white dark:hover:bg-[#1A1A1A]'
+                      ? 'bg-[#5fbfc0] text-white shadow-md' 
+                      : 'text-gray-800 hover:text-[#5fbfc0] hover:bg-[#5fbfc0]/10'
                   }`}
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
@@ -141,48 +146,55 @@ export default function DashboardLayout({ user, activeTab = 'dashboard', childre
                 </Link>
               ))}
               
-              <button
-                onClick={() => {
-                  setIsMobileMenuOpen(false);
-                  handleSignOut();
-                }}
-                className="block w-full text-left px-3 py-2 rounded-md text-base font-medium text-[#5fbfc0] hover:bg-[#F8F9FA] dark:hover:bg-[#1A1A1A]"
-              >
-                Sign out
-              </button>
+              <div className="pt-3 mt-3 border-t border-gray-200 space-y-2">
+                <div className="px-4 py-2 text-sm font-bold text-gray-800">
+                  {user?.user_metadata?.full_name || user?.email}
+                </div>
+                <button
+                  onClick={() => {
+                    setIsMobileMenuOpen(false);
+                    handleSignOut();
+                  }}
+                  className="block w-full text-left px-4 py-3 rounded-lg text-base font-bold text-[#5fbfc0] hover:bg-[#5fbfc0]/10 transition-all"
+                >
+                  Sign out
+                </button>
+              </div>
             </div>
           </div>
         )}
       </header>
 
       {/* Main content */}
-      <main className="flex-grow container mx-auto px-4 py-8">
-        {children}
+      <main className="flex-grow container mx-auto px-4 py-8 relative z-10">
+        <div className="bg-white/90 backdrop-blur-sm dark:bg-black/90 rounded-xl border border-white/20 p-6 shadow-lg">
+          {children}
+        </div>
       </main>
 
       {/* Footer */}
-      <footer className="bg-[#F8F9FA] dark:bg-black py-6 border-t border-[#DDE5E7] dark:border-[#333333]">
+      <footer className="bg-[#5fbfc0] py-6 relative z-10">
         <div className="container mx-auto px-4">
           <div className="flex flex-col md:flex-row justify-between items-center">
-            <p className="text-black dark:text-white opacity-80 text-sm">
+            <p className="text-white text-sm">
               &copy; 2025 Compassionate Care Transportation. All rights reserved.
             </p>
             <div className="flex space-x-4 mt-4 md:mt-0">
               <Link 
                 href="#" 
-                className="text-black dark:text-white opacity-80 text-sm hover:text-[#5fbfc0] dark:hover:text-[#5fbfc0]"
+                className="text-white hover:text-white/80 text-sm"
               >
                 Help
               </Link>
               <Link 
                 href="#" 
-                className="text-black dark:text-white opacity-80 text-sm hover:text-[#5fbfc0] dark:hover:text-[#5fbfc0]"
+                className="text-white hover:text-white/80 text-sm"
               >
                 Privacy
               </Link>
               <Link 
                 href="#" 
-                className="text-black dark:text-white opacity-80 text-sm hover:text-[#5fbfc0] dark:hover:text-[#5fbfc0]"
+                className="text-white hover:text-white/80 text-sm"
               >
                 Terms
               </Link>
