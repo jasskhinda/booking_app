@@ -1441,8 +1441,8 @@ export default function BookingForm({ user }) {
                                 <span className="text-[#2E4F54] dark:text-[#E0F4F5]">${pricingBreakdown.subtotal.toFixed(2)}</span>
                               </div>
                               <div className="flex justify-between text-[#7CCFD0]">
-                                <span>{pricingBreakdown.isVeteran ? 'Veteran' : 'Individual'} discount ({pricingBreakdown.discountPercentage}%):</span>
-                                <span>-${pricingBreakdown.discountAmount.toFixed(2)}</span>
+                                <span>{profileData?.is_veteran ? 'Veteran discount (20%)' : 'Individual discount (10%)'}:</span>
+                                <span>- ${pricingBreakdown.discountAmount.toFixed(2)}</span>
                               </div>
                               <div className="flex justify-between pt-1 mt-1 border-t border-[#DDE5E7] dark:border-[#3F5E63] font-medium text-sm">
                                 <span className="text-[#2E4F54] dark:text-[#E0F4F5]">Total:</span>
@@ -1511,7 +1511,13 @@ export default function BookingForm({ user }) {
                     <strong>Note:</strong> Your ride request will be reviewed and approved by a dispatcher. Once approved, it will be assigned to a compassionate driver who specializes in supportive transportation.
                   </p>
                   <p className="text-[#2E4F54] dark:text-[#E0F4F5] mt-2">
-                    <strong>Discount:</strong> A 10% discount is automatically applied to all individual rides. Veterans receive a 20% discount.
+                    <strong>Discount:</strong> {profileData?.is_veteran
+                      ? (
+                        <>Thank you for your service! As a veteran, you receive a <span className="text-[#7CCFD0] font-semibold">20% discount</span> on all rides.</>
+                      )
+                      : (
+                        <>A <span className="text-[#7CCFD0] font-semibold">10% discount</span> is automatically applied to all individual rides. Veterans receive a 20% discount.</>
+                    )}
                   </p>
                   <p className="text-[#2E4F54] dark:text-[#E0F4F5] mt-2">
                     <strong>Cancellation Policy:</strong> You may cancel without penalty up until the day of the ride. Same-day cancellations will be charged the base fare only.
@@ -1603,7 +1609,7 @@ export default function BookingForm({ user }) {
                       <div className="flex items-center space-x-2">
                         <svg className="animate-spin h-5 w-5 text-white dark:text-[#1C2C2F]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                           <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                         </svg>
                         <span className="text-white dark:text-[#1C2C2F]">Booking your trip...</span>
                       </div>
