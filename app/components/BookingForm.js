@@ -1388,16 +1388,7 @@ export default function BookingForm({ user }) {
                 ) : paymentMethods.length === 0 ? (
                   <div className="mb-8">
                     <div className="text-[#2E4F54]/70 dark:text-[#E0F4F5]/70 mb-2">No payment method found. Please add a card to continue.</div>
-                    {isAddingPayment && clientSecret ? (
-                      <CardSetupForm
-                        clientSecret={clientSecret}
-                        onSuccess={handleSetupSuccess}
-                        onError={handleSetupError}
-                        onCancel={handleSetupCancel}
-                        profile={{}}
-                        user={user}
-                      />
-                    ) : (
+                    {!isAddingPayment || !clientSecret ? (
                       <button
                         onClick={handleAddPaymentMethod}
                         type="button"
@@ -1405,7 +1396,7 @@ export default function BookingForm({ user }) {
                       >
                         Add Payment Method
                       </button>
-                    )}
+                    ) : null}
                     {paymentMessage && <div className="text-red-600 mt-2">{paymentMessage}</div>}
                   </div>
                 ) : (
