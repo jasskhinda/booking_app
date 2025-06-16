@@ -927,354 +927,282 @@ export default function BookingForm({ user }) {
         <div className="bg-[#F8F9FA] dark:bg-[#24393C] rounded-lg shadow-md border border-[#DDE5E7] dark:border-[#3F5E63] p-6 mb-6">
           <h2 className="text-xl font-semibold text-[#2E4F54] dark:text-[#E0F4F5] mb-4">Book a Ride</h2>
 
-          {/* Payment Method Section */}
-          <div className="mb-8">
-            <h3 className="text-md font-medium text-[#2E4F54] dark:text-[#E0F4F5] mb-2">Payment Method</h3>
-            {isLoadingPayments ? (
-              <div className="text-[#2E4F54]/70 dark:text-[#E0F4F5]/70">Loading payment methods...</div>
-            ) : paymentMethods.length === 0 ? (
-              <div className="mb-4">
-                <div className="text-[#2E4F54]/70 dark:text-[#E0F4F5]/70 mb-2">No payment method found. Please add a card to continue.</div>
-                {isAddingPayment && clientSecret ? (
-                  <CardSetupForm
-                    clientSecret={clientSecret}
-                    onSuccess={handleSetupSuccess}
-                    onError={handleSetupError}
-                    onCancel={handleSetupCancel}
-                    profile={{}}
-                    user={user}
-                  />
-                ) : (
-                  <button
-                    onClick={handleAddPaymentMethod}
-                    className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-[#7CCFD0] hover:bg-[#60BFC0] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#7CCFD0]"
+          <form onSubmit={handleSubmit} className="space-y-6">
+            {error && (
+              <div className="bg-red-100 dark:bg-red-900/30 text-[#FF4A4A] dark:text-[#FF7A7A] p-4 rounded">
+                {error}
+              </div>
+            )}
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Pickup Address */}
+              <div className="col-span-1 md:col-span-2">
+                <div className="flex justify-between items-center mb-1">
+                  <label htmlFor="pickupAddress" className="block text-sm font-medium text-[#2E4F54] dark:text-[#E0F4F5]">
+                    Pickup Address
+                  </label>
+                  {favoriteAddresses.filter(addr => addr.type === 'pickup' || addr.type === 'both').length > 0 && (
+                    <button
+                      type="button"
+                      onClick={() => setShowFavoritePickupDropdown(!showFavoritePickupDropdown)}
+                      className="text-xs text-[#7CCFD0] hover:text-[#60BFC0] flex items-center favorite-pickup-button"
+                    >
+                      <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+                      </svg>
+                      Favorites
+                    </button>
+                  )}
+                </div>
+                
+                <div className="relative">
+                  <div 
+                    ref={pickupAutocompleteContainerRef} 
+                    className="w-full"
+                    aria-label="Pickup location input"
                   >
-                    Add Payment Method
-                  </button>
-                )}
-                {paymentMessage && <div className="text-red-600 mt-2">{paymentMessage}</div>}
-              </div>
-            ) : (
-              <div className="mb-4 flex items-center justify-between">
-                <div>
-                  <span className="font-medium text-[#2E4F54] dark:text-[#E0F4F5]">Default Card:</span>
-                  <span className="ml-2 text-[#2E4F54]/80 dark:text-[#E0F4F5]/80">
-                    {(() => {
-                      const card = paymentMethods.find(pm => pm.id === defaultPaymentMethod) || paymentMethods[0];
-                      return card ? `•••• ${card.card.last4} (${card.card.brand.toUpperCase()})` : 'N/A';
-                    })()}
-                  </span>
+                    {/* Autocomplete input will be inserted here */}
+                  </div>
+                  <input 
+                    type="hidden" 
+                    name="pickupAddress" 
+                    value={formData.pickupAddress} 
+                    required
+                  />
+                  
+                  {/* Favorite Addresses Dropdown for Pickup */}
+                  {showFavoritePickupDropdown && favoriteAddresses.length > 0 && (
+                    <div className="absolute z-40 mt-1 w-full bg-white dark:bg-[#1C2C2F] border border-[#DDE5E7] dark:border-[#3F5E63] rounded-md shadow-lg max-h-60 overflow-y-auto favorite-pickup-dropdown">
+                    <ul className="py-1">
+                      {favoriteAddresses
+                        .filter(addr => addr.type === 'pickup' || addr.type === 'both')
+                        .map((address) => (
+                          <li 
+                            key={address.id}
+                            className="px-3 py-2 hover:bg-[#7CCFD0]/10 cursor-pointer"
+                            onClick={() => handleSelectFavoritePickup(address)}
+                          >
+                            <div className="font-medium text-[#2E4F54] dark:text-[#E0F4F5]">
+                              {address.name}
+                            </div>
+                            <div className="text-sm text-[#2E4F54]/70 dark:text-[#E0F4F5]/70">
+                              {address.address}
+                            </div>
+                          </li>
+                        ))
+                      }
+                    </ul>
+                    </div>
+                  )}
                 </div>
-                <button
-                  onClick={handleAddPaymentMethod}
-                  className="inline-flex items-center px-3 py-1 border border-transparent rounded-md shadow-sm text-xs font-medium text-white bg-[#7CCFD0] hover:bg-[#60BFC0] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#7CCFD0]"
-                >
-                  Add New Card
-                </button>
               </div>
-            )}
-            {isAddingPayment && clientSecret && paymentMethods.length > 0 && (
-              <div className="mb-4">
-                <CardSetupForm
-                  clientSecret={clientSecret}
-                  onSuccess={handleSetupSuccess}
-                  onError={handleSetupError}
-                  onCancel={handleSetupCancel}
-                  profile={{}}
-                  user={user}
-                />
-              </div>
-            )}
-          </div>
-
-          {success ? (
-            <div className="bg-[#7CCFD0]/20 dark:bg-[#7CCFD0]/30 text-[#2E4F54] dark:text-[#E0F4F5] p-4 rounded mb-6">
-              <div className="flex items-center">
-                <svg className="w-6 h-6 text-[#3B5B63] dark:text-[#7CCFD0] mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
-                </svg>
-                <span>Your trip request has been submitted successfully! It is pending dispatcher approval. Redirecting to your trips...</span>
-              </div>
-            </div>
-          ) : (
-            <form onSubmit={handleSubmit} className="space-y-6">
-              {error && (
-                <div className="bg-red-100 dark:bg-red-900/30 text-[#FF4A4A] dark:text-[#FF7A7A] p-4 rounded">
-                  {error}
-                </div>
-              )}
               
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* Pickup Address */}
-                <div className="col-span-1 md:col-span-2">
-                  <div className="flex justify-between items-center mb-1">
-                    <label htmlFor="pickupAddress" className="block text-sm font-medium text-[#2E4F54] dark:text-[#E0F4F5]">
-                      Pickup Address
-                    </label>
-                    {favoriteAddresses.filter(addr => addr.type === 'pickup' || addr.type === 'both').length > 0 && (
-                      <button
-                        type="button"
-                        onClick={() => setShowFavoritePickupDropdown(!showFavoritePickupDropdown)}
-                        className="text-xs text-[#7CCFD0] hover:text-[#60BFC0] flex items-center favorite-pickup-button"
-                      >
-                        <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
-                        </svg>
-                        Favorites
-                      </button>
-                    )}
-                  </div>
-                  
-                  <div className="relative">
-                    <div 
-                      ref={pickupAutocompleteContainerRef} 
-                      className="w-full"
-                      aria-label="Pickup location input"
+              {/* Destination Address */}
+              <div className="col-span-1 md:col-span-2">
+                <div className="flex justify-between items-center mb-1">
+                  <label htmlFor="destinationAddress" className="block text-sm font-medium text-[#2E4F54] dark:text-[#E0F4F5]">
+                    Destination Address
+                  </label>
+                  {favoriteAddresses.filter(addr => addr.type === 'destination' || addr.type === 'both').length > 0 && (
+                    <button
+                      type="button"
+                      onClick={() => setShowFavoriteDestinationDropdown(!showFavoriteDestinationDropdown)}
+                      className="text-xs text-[#7CCFD0] hover:text-[#60BFC0] flex items-center favorite-destination-button"
                     >
-                      {/* Autocomplete input will be inserted here */}
-                    </div>
-                    <input 
-                      type="hidden" 
-                      name="pickupAddress" 
-                      value={formData.pickupAddress} 
-                      required
-                    />
-                    
-                    {/* Favorite Addresses Dropdown for Pickup */}
-                    {showFavoritePickupDropdown && favoriteAddresses.length > 0 && (
-                      <div className="absolute z-40 mt-1 w-full bg-white dark:bg-[#1C2C2F] border border-[#DDE5E7] dark:border-[#3F5E63] rounded-md shadow-lg max-h-60 overflow-y-auto favorite-pickup-dropdown">
-                        <ul className="py-1">
-                          {favoriteAddresses
-                            .filter(addr => addr.type === 'pickup' || addr.type === 'both')
-                            .map((address) => (
-                              <li 
-                                key={address.id}
-                                className="px-3 py-2 hover:bg-[#7CCFD0]/10 cursor-pointer"
-                                onClick={() => handleSelectFavoritePickup(address)}
-                              >
-                                <div className="font-medium text-[#2E4F54] dark:text-[#E0F4F5]">
-                                  {address.name}
-                                </div>
-                                <div className="text-sm text-[#2E4F54]/70 dark:text-[#E0F4F5]/70">
-                                  {address.address}
-                                </div>
-                              </li>
-                            ))
-                          }
-                        </ul>
-                      </div>
-                    )}
-                  </div>
+                      <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+                      </svg>
+                      Favorites
+                    </button>
+                  )}
                 </div>
                 
-                {/* Destination Address */}
-                <div className="col-span-1 md:col-span-2">
-                  <div className="flex justify-between items-center mb-1">
-                    <label htmlFor="destinationAddress" className="block text-sm font-medium text-[#2E4F54] dark:text-[#E0F4F5]">
-                      Destination Address
-                    </label>
-                    {favoriteAddresses.filter(addr => addr.type === 'destination' || addr.type === 'both').length > 0 && (
-                      <button
-                        type="button"
-                        onClick={() => setShowFavoriteDestinationDropdown(!showFavoriteDestinationDropdown)}
-                        className="text-xs text-[#7CCFD0] hover:text-[#60BFC0] flex items-center favorite-destination-button"
-                      >
-                        <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
-                        </svg>
-                        Favorites
-                      </button>
-                    )}
+                <div className="relative">
+                  <div 
+                    ref={destinationAutocompleteContainerRef} 
+                    className="w-full"
+                    aria-label="Destination location input"
+                  >
+                    {/* Autocomplete input will be inserted here */}
                   </div>
+                  <input 
+                    type="hidden" 
+                    name="destinationAddress" 
+                    value={formData.destinationAddress} 
+                    required
+                  />
                   
-                  <div className="relative">
-                    <div 
-                      ref={destinationAutocompleteContainerRef} 
-                      className="w-full"
-                      aria-label="Destination location input"
-                    >
-                      {/* Autocomplete input will be inserted here */}
+                  {/* Favorite Addresses Dropdown for Destination */}
+                  {showFavoriteDestinationDropdown && favoriteAddresses.length > 0 && (
+                    <div className="absolute z-40 mt-1 w-full bg-white dark:bg-[#1C2C2F] border border-[#DDE5E7] dark:border-[#3F5E63] rounded-md shadow-lg max-h-60 overflow-y-auto favorite-destination-dropdown">
+                    <ul className="py-1">
+                      {favoriteAddresses
+                        .filter(addr => addr.type === 'destination' || addr.type === 'both')
+                        .map((address) => (
+                          <li 
+                            key={address.id}
+                            className="px-3 py-2 hover:bg-[#7CCFD0]/10 cursor-pointer"
+                            onClick={() => handleSelectFavoriteDestination(address)}
+                          >
+                            <div className="font-medium text-[#2E4F54] dark:text-[#E0F4F5]">
+                              {address.name}
+                            </div>
+                            <div className="text-sm text-[#2E4F54]/70 dark:text-[#E0F4F5]/70">
+                              {address.address}
+                            </div>
+                          </li>
+                        ))
+                      }
+                    </ul>
                     </div>
-                    <input 
-                      type="hidden" 
-                      name="destinationAddress" 
-                      value={formData.destinationAddress} 
-                      required
-                    />
-                    
-                    {/* Favorite Addresses Dropdown for Destination */}
-                    {showFavoriteDestinationDropdown && favoriteAddresses.length > 0 && (
-                      <div className="absolute z-40 mt-1 w-full bg-white dark:bg-[#1C2C2F] border border-[#DDE5E7] dark:border-[#3F5E63] rounded-md shadow-lg max-h-60 overflow-y-auto favorite-destination-dropdown">
-                        <ul className="py-1">
-                          {favoriteAddresses
-                            .filter(addr => addr.type === 'destination' || addr.type === 'both')
-                            .map((address) => (
-                              <li 
-                                key={address.id}
-                                className="px-3 py-2 hover:bg-[#7CCFD0]/10 cursor-pointer"
-                                onClick={() => handleSelectFavoriteDestination(address)}
-                              >
-                                <div className="font-medium text-[#2E4F54] dark:text-[#E0F4F5]">
-                                  {address.name}
-                                </div>
-                                <div className="text-sm text-[#2E4F54]/70 dark:text-[#E0F4F5]/70">
-                                  {address.address}
-                                </div>
-                              </li>
-                            ))
-                          }
-                        </ul>
-                      </div>
-                    )}
-                  </div>
+                  )}
                 </div>
-                
-                {/* Pickup Date and Time - Popup Picker */}
-                <div className="space-y-4">
-                  <div>
-                    <label htmlFor="pickupDateTime" className="block text-sm font-medium text-[#2E4F54] dark:text-[#E0F4F5] mb-1">
-                      Pickup Date & Time
-                    </label>
-                    <div className="relative">
-                      <button
-                        type="button"
-                        id="pickupDateTime"
-                        onClick={openDatePicker}
-                        className="w-full px-3 py-2 border border-[#DDE5E7] dark:border-[#3F5E63] rounded-md shadow-sm focus:outline-none focus:ring-[#7CCFD0] focus:border-[#7CCFD0] dark:bg-[#1C2C2F] text-left flex justify-between items-center"
+              </div>
+              
+              {/* Pickup Date and Time - Popup Picker */}
+              <div className="space-y-4">
+                <div>
+                  <label htmlFor="pickupDateTime" className="block text-sm font-medium text-[#2E4F54] dark:text-[#E0F4F5] mb-1">
+                    Pickup Date & Time
+                  </label>
+                  <div className="relative">
+                    <button
+                      type="button"
+                      id="pickupDateTime"
+                      onClick={openDatePicker}
+                      className="w-full px-3 py-2 border border-[#DDE5E7] dark:border-[#3F5E63] rounded-md shadow-sm focus:outline-none focus:ring-[#7CCFD0] focus:border-[#7CCFD0] dark:bg-[#1C2C2F] text-left flex justify-between items-center"
+                    >
+                      <span className={formData.pickupTime ? "text-[#2E4F54] dark:text-[#E0F4F5]" : "text-[#2E4F54]/50 dark:text-[#E0F4F5]/50"}>
+                        {formData.pickupTime 
+                          ? `${formatMonthDay(formData.pickupTime)}, ${getDayName(formData.pickupTime)} - ${formatTimeAmPm(formData.pickupTime)}`
+                          : "Select pickup date and time"}
+                      </span>
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-[#3B5B63] dark:text-[#84CED3]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                      </svg>
+                    </button>
+                    
+                    {/* Date and Time Picker Popup */}
+                    {isDatePickerOpen && (
+                      <div 
+                        ref={datePickerRef}
+                        className="absolute z-50 mt-2 w-full bg-white dark:bg-[#1C2C2F] border border-[#DDE5E7] dark:border-[#3F5E63] rounded-md shadow-lg p-4"
                       >
-                        <span className={formData.pickupTime ? "text-[#2E4F54] dark:text-[#E0F4F5]" : "text-[#2E4F54]/50 dark:text-[#E0F4F5]/50"}>
-                          {formData.pickupTime 
-                            ? `${formatMonthDay(formData.pickupTime)}, ${getDayName(formData.pickupTime)} - ${formatTimeAmPm(formData.pickupTime)}`
-                            : "Select pickup date and time"}
-                        </span>
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-[#3B5B63] dark:text-[#84CED3]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                        </svg>
-                      </button>
-                      
-                      {/* Date and Time Picker Popup */}
-                      {isDatePickerOpen && (
-                        <div 
-                          ref={datePickerRef}
-                          className="absolute z-50 mt-2 w-full bg-white dark:bg-[#1C2C2F] border border-[#DDE5E7] dark:border-[#3F5E63] rounded-md shadow-lg p-4"
-                        >
-                          {/* Header with back button for time view */}
-                          <div className="flex justify-between items-center mb-2">
-                            <h4 className="text-[#2E4F54] dark:text-[#E0F4F5] font-medium">
-                              {currentView === 'date' ? 'Select Date' : 'Select Time'}
-                            </h4>
-                            {currentView === 'time' && (
-                              <button 
-                                type="button"
-                                onClick={() => setCurrentView('date')}
-                                className="text-[#3B5B63] dark:text-[#84CED3] hover:text-[#7CCFD0] flex items-center text-sm"
-                              >
-                                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                                </svg>
-                                Back to dates
-                              </button>
-                            )}
+                        {/* Header with back button for time view */}
+                        <div className="flex justify-between items-center mb-2">
+                          <h4 className="text-[#2E4F54] dark:text-[#E0F4F5] font-medium">
+                            {currentView === 'date' ? 'Select Date' : 'Select Time'}
+                          </h4>
+                          {currentView === 'time' && (
+                            <button 
+                              type="button"
+                              onClick={() => setCurrentView('date')}
+                              className="text-[#3B5B63] dark:text-[#84CED3] hover:text-[#7CCFD0] flex items-center text-sm"
+                            >
+                              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                              </svg>
+                              Back to dates
+                            </button>
+                          )}
+                        </div>
+                        
+                        {/* Date selection view */}
+                        {currentView === 'date' && (
+                          <div className="grid grid-cols-3 sm:grid-cols-4 gap-2 max-h-60 overflow-y-auto">
+                            {getDateOptions().map((date, index) => {
+                              const isToday = new Date().toDateString() === date.toDateString();
+                              const isSelected = selectedDate && selectedDate.toDateString() === date.toDateString();
+                              
+                              return (
+                                <button
+                                  key={index}
+                                  type="button"
+                                  onClick={() => handleDateSelect(date)}
+                                  className={`
+                                    p-2 rounded-md border text-center flex flex-col items-center
+                                    ${isSelected 
+                                      ? 'bg-[#7CCFD0]/20 border-[#7CCFD0] text-[#3B5B63] dark:text-[#E0F4F5]' 
+                                      : 'border-[#DDE5E7] dark:border-[#3F5E63] hover:bg-[#F8F9FA] dark:hover:bg-[#24393C]'}
+                                  `}
+                                >
+                                  <span className="text-xs font-medium">{getDayName(date)}</span>
+                                  <span className={`text-sm ${isToday ? 'font-bold' : ''}`}>{formatMonthDay(date)}</span>
+                                  {isToday && <span className="text-xs text-[#7CCFD0] mt-1">Today</span>}
+                                </button>
+                              );
+                            })}
                           </div>
-                          
-                          {/* Date selection view */}
-                          {currentView === 'date' && (
+                        )}
+                        
+                        {/* Time selection view */}
+                        {currentView === 'time' && selectedDate && (
+                          <div>
+                            <div className="text-sm text-[#2E4F54]/70 dark:text-[#E0F4F5]/70 mb-2">
+                              {new Date(selectedDate).toLocaleDateString('en-US', { 
+                                weekday: 'long', 
+                                month: 'long', 
+                                day: 'numeric',
+                                year: 'numeric'
+                              })}
+                            </div>
+                            
                             <div className="grid grid-cols-3 sm:grid-cols-4 gap-2 max-h-60 overflow-y-auto">
-                              {getDateOptions().map((date, index) => {
-                                const isToday = new Date().toDateString() === date.toDateString();
-                                const isSelected = selectedDate && selectedDate.toDateString() === date.toDateString();
+                              {availableTimeSlots.map((slot, index) => {
+                                // In the future, we could mark some slots as unavailable
+                                // For now, all slots are available
                                 
                                 return (
                                   <button
                                     key={index}
                                     type="button"
-                                    onClick={() => handleDateSelect(date)}
-                                    className={`
-                                      p-2 rounded-md border text-center flex flex-col items-center
-                                      ${isSelected 
-                                        ? 'bg-[#7CCFD0]/20 border-[#7CCFD0] text-[#3B5B63] dark:text-[#E0F4F5]' 
-                                        : 'border-[#DDE5E7] dark:border-[#3F5E63] hover:bg-[#F8F9FA] dark:hover:bg-[#24393C]'}
-                                    `}
+                                    onClick={() => handleTimeSelect(slot)}
+                                    className="p-2 rounded-md border border-[#DDE5E7] dark:border-[#3F5E63] hover:bg-[#7CCFD0]/10 text-center"
                                   >
-                                    <span className="text-xs font-medium">{getDayName(date)}</span>
-                                    <span className={`text-sm ${isToday ? 'font-bold' : ''}`}>{formatMonthDay(date)}</span>
-                                    {isToday && <span className="text-xs text-[#7CCFD0] mt-1">Today</span>}
+                                    {slot.label}
                                   </button>
                                 );
                               })}
                             </div>
-                          )}
-                          
-                          {/* Time selection view */}
-                          {currentView === 'time' && selectedDate && (
-                            <div>
-                              <div className="text-sm text-[#2E4F54]/70 dark:text-[#E0F4F5]/70 mb-2">
-                                {new Date(selectedDate).toLocaleDateString('en-US', { 
-                                  weekday: 'long', 
-                                  month: 'long', 
-                                  day: 'numeric',
-                                  year: 'numeric'
-                                })}
-                              </div>
-                              
-                              <div className="grid grid-cols-3 sm:grid-cols-4 gap-2 max-h-60 overflow-y-auto">
-                                {availableTimeSlots.map((slot, index) => {
-                                  // In the future, we could mark some slots as unavailable
-                                  // For now, all slots are available
-                                  
-                                  return (
-                                    <button
-                                      key={index}
-                                      type="button"
-                                      onClick={() => handleTimeSelect(slot)}
-                                      className="p-2 rounded-md border border-[#DDE5E7] dark:border-[#3F5E63] hover:bg-[#7CCFD0]/10 text-center"
-                                    >
-                                      {slot.label}
-                                    </button>
-                                  );
-                                })}
-                              </div>
-                              
-                              <div className="text-xs text-[#2E4F54]/60 dark:text-[#E0F4F5]/60 mt-2 italic">
-                                All times shown are in your local timezone
-                              </div>
+                            
+                            <div className="text-xs text-[#2E4F54]/60 dark:text-[#E0F4F5]/60 mt-2 italic">
+                              All times shown are in your local timezone
                             </div>
-                          )}
-                          
-                          {/* Optional hint for future availability feature */}
-                          <div className="mt-4 pt-2 border-t border-[#DDE5E7] dark:border-[#3F5E63] text-xs text-[#3B5B63] dark:text-[#84CED3]">
-                            <p>Select a date and then choose an available time slot</p>
                           </div>
+                        )}
+                        
+                        {/* Optional hint for future availability feature */}
+                        <div className="mt-4 pt-2 border-t border-[#DDE5E7] dark:border-[#3F5E63] text-xs text-[#3B5B63] dark:text-[#84CED3]">
+                          <p>Select a date and then choose an available time slot</p>
                         </div>
-                      )}
-                    </div>
+                      </div>
+                    )}
                   </div>
                 </div>
-                
-                {/* Wheelchair Type */}
-                <div>
-                  <label htmlFor="wheelchairType" className="block text-sm font-medium text-[#2E4F54] dark:text-[#E0F4F5] mb-1">
-                    Wheelchair Requirements
-                  </label>
-                  <div className="relative">
-                    <select
-                      id="wheelchairType"
-                      name="wheelchairType"
-                      value={formData.wheelchairType}
-                      onChange={handleChange}
-                      className="w-full appearance-none px-3 py-2 border border-[#DDE5E7] dark:border-[#3F5E63] rounded-md shadow-sm focus:outline-none focus:ring-[#7CCFD0] focus:border-[#7CCFD0] dark:bg-[#1C2C2F] text-[#2E4F54] dark:text-[#E0F4F5] pr-10"
-                    >
-                      <option value="no_wheelchair">No Wheelchair</option>
-                      <option value="wheelchair">Wheelchair (+$25)</option>
-                    </select>
-                    <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-[#2E4F54] dark:text-[#E0F4F5]">
-                      <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
-                        <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" />
-                      </svg>
-                    </div>
+              </div>
+              
+              {/* Wheelchair Type */}
+              <div>
+                <label htmlFor="wheelchairType" className="block text-sm font-medium text-[#2E4F54] dark:text-[#E0F4F5] mb-1">
+                  Wheelchair Requirements
+                </label>
+                <div className="relative">
+                  <select
+                    id="wheelchairType"
+                    name="wheelchairType"
+                    value={formData.wheelchairType}
+                    onChange={handleChange}
+                    className="w-full appearance-none px-3 py-2 border border-[#DDE5E7] dark:border-[#3F5E63] rounded-md shadow-sm focus:outline-none focus:ring-[#7CCFD0] focus:border-[#7CCFD0] dark:bg-[#1C2C2F] text-[#2E4F54] dark:text-[#E0F4F5] pr-10"
+                  >
+                    <option value="no_wheelchair">No Wheelchair</option>
+                    <option value="wheelchair">Wheelchair (+$25)</option>
+                  </select>
+                  <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-[#2E4F54] dark:text-[#E0F4F5]">
+                    <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+                      <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" />
+                    </svg>
                   </div>
                 </div>
-                
               </div>
               
               {/* Map display */}
@@ -1596,6 +1524,66 @@ export default function BookingForm({ user }) {
                 </div>
               </div>
               
+              {/* Payment Method Section - Moved here, just above the Request Ride button */}
+              <div className="mb-8">
+                <h3 className="text-md font-medium text-[#2E4F54] dark:text-[#E0F4F5] mb-2">Payment Method</h3>
+                {isLoadingPayments ? (
+                  <div className="text-[#2E4F54]/70 dark:text-[#E0F4F5]/70">Loading payment methods...</div>
+                ) : paymentMethods.length === 0 ? (
+                  <div className="mb-4">
+                    <div className="text-[#2E4F54]/70 dark:text-[#E0F4F5]/70 mb-2">No payment method found. Please add a card to continue.</div>
+                    {isAddingPayment && clientSecret ? (
+                      <CardSetupForm
+                        clientSecret={clientSecret}
+                        onSuccess={handleSetupSuccess}
+                        onError={handleSetupError}
+                        onCancel={handleSetupCancel}
+                        profile={{}}
+                        user={user}
+                      />
+                    ) : (
+                      <button
+                        onClick={handleAddPaymentMethod}
+                        className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-[#7CCFD0] hover:bg-[#60BFC0] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#7CCFD0]"
+                      >
+                        Add Payment Method
+                      </button>
+                    )}
+                    {paymentMessage && <div className="text-red-600 mt-2">{paymentMessage}</div>}
+                  </div>
+                ) : (
+                  <div className="mb-4 flex items-center justify-between">
+                    <div>
+                      <span className="font-medium text-[#2E4F54] dark:text-[#E0F4F5]">Default Card:</span>
+                      <span className="ml-2 text-[#2E4F54]/80 dark:text-[#E0F4F5]/80">
+                        {(() => {
+                          const card = paymentMethods.find(pm => pm.id === defaultPaymentMethod) || paymentMethods[0];
+                          return card ? `•••• ${card.card.last4} (${card.card.brand.toUpperCase()})` : 'N/A';
+                        })()}
+                      </span>
+                    </div>
+                    <button
+                      onClick={handleAddPaymentMethod}
+                      className="inline-flex items-center px-3 py-1 border border-transparent rounded-md shadow-sm text-xs font-medium text-white bg-[#7CCFD0] hover:bg-[#60BFC0] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#7CCFD0]"
+                    >
+                      Add New Card
+                    </button>
+                  </div>
+                )}
+                {isAddingPayment && clientSecret && paymentMethods.length > 0 && (
+                  <div className="mb-4">
+                    <CardSetupForm
+                      clientSecret={clientSecret}
+                      onSuccess={handleSetupSuccess}
+                      onError={handleSetupError}
+                      onCancel={handleSetupCancel}
+                      profile={{}}
+                      user={user}
+                    />
+                  </div>
+                )}
+              </div>
+
               <div>
                 <button
                   type="submit"
@@ -1617,7 +1605,7 @@ export default function BookingForm({ user }) {
                           <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                           <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                         </svg>
-                        <span className="text-white dark:text-[#1C2C2F]">Booking your trip...</span>
+                                               <span className="text-white dark:text-[#1C2C2F]">Booking your trip...</span>
                       </div>
                     </span>
                   )}
@@ -1628,7 +1616,18 @@ export default function BookingForm({ user }) {
                 </button>
               </div>
             </form>
-          )}
+
+            {success && (
+              <div className="bg-[#7CCFD0]/20 dark:bg-[#7CCFD0]/30 text-[#2E4F54] dark:text-[#E0F4F5] p-4 rounded mb-6">
+                <div className="flex items-center">
+                  <svg className="w-6 h-6 text-[#3B5B63] dark:text-[#7CCFD0] mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
+                  </svg>
+                  <span>Your trip request has been submitted successfully! It is pending dispatcher approval. Redirecting to your trips...</span>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       </DashboardLayout>
     </>
