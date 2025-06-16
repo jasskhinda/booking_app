@@ -503,5 +503,3 @@ export default function PaymentMethodsManager({ user, profile }) {
     </DashboardLayout>
   );
 }
-
-export { CardSetupForm };
