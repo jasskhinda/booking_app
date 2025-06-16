@@ -5,7 +5,6 @@ import { getSupabaseClient } from '@/lib/client-supabase';
 import { useRouter } from 'next/navigation';
 import DashboardLayout from './DashboardLayout';
 import Script from 'next/script';
-import PaymentMethodsSection from './PaymentMethodsSection';
 
 // Helper function to format date in AM/PM format
 function formatTimeAmPm(dateStr) {
@@ -649,7 +648,7 @@ export default function BookingForm({ user }) {
 
     // Validate payment method selection
     if (!selectedPaymentMethodId) {
-      setError('Please select a payment method to complete your booking');
+      setError('Please add a payment method before booking. Visit your Payment Methods page to add a card.');
       setIsLoading(false);
       setBookingStatus('error');
       return;
@@ -755,10 +754,67 @@ export default function BookingForm({ user }) {
 
   // State for selected payment method from PaymentMethodsSection
   const [selectedPaymentMethodId, setSelectedPaymentMethodId] = useState(null);
+  const [defaultPaymentMethod, setDefaultPaymentMethod] = useState(null);
+  const [paymentMethodsLoading, setPaymentMethodsLoading] = useState(true);
   
   // Handle payment method change from PaymentMethodsSection
   const handlePaymentMethodChange = (paymentMethodId) => {
     setSelectedPaymentMethodId(paymentMethodId);
+  };
+
+  // Fetch default payment method
+  const fetchDefaultPaymentMethod = async () => {
+    setPaymentMethodsLoading(true);
+    try {
+      const response = await fetch('/api/stripe/payment-methods');
+      const data = await response.json();
+      
+      if (response.ok && data.paymentMethods && data.paymentMethods.length > 0) {
+        // Find the default payment method or use the first one
+        const defaultMethod = data.paymentMethods.find(method => 
+          method.id === profileData?.default_payment_method_id
+        ) || data.paymentMethods[0];
+        
+        setDefaultPaymentMethod(defaultMethod);
+        setSelectedPaymentMethodId(defaultMethod.id);
+      } else {
+        setDefaultPaymentMethod(null);
+        setSelectedPaymentMethodId(null);
+      }
+    } catch (error) {
+      console.error('Error fetching payment methods:', error);
+      setDefaultPaymentMethod(null);
+      setSelectedPaymentMethodId(null);
+    } finally {
+      setPaymentMethodsLoading(false);
+    }
+  };
+
+  // Fetch payment methods when component mounts or profile data changes
+  useEffect(() => {
+    if (profileData) {
+      fetchDefaultPaymentMethod();
+    }
+  }, [profileData]);
+
+  // Helper functions for payment method display
+  const formatCardNumber = (last4) => {
+    return `•••• •••• •••• ${last4}`;
+  };
+
+  const getCardBrandDisplay = (brand) => {
+    switch (brand.toLowerCase()) {
+      case 'visa':
+        return 'Visa';
+      case 'mastercard':
+        return 'Mastercard';
+      case 'amex':
+        return 'American Express';
+      case 'discover':
+        return 'Discover';
+      default:
+        return brand.charAt(0).toUpperCase() + brand.slice(1);
+    }
   };
 
   return (
@@ -1311,18 +1367,91 @@ export default function BookingForm({ user }) {
                 </div>
               </div>
               
-              {/* Payment Method Section - using the working PaymentMethodsSection component */}
+              {/* Payment Method Section - Simplified read-only display */}
               <div className="col-span-1 md:col-span-2 mb-8">
-                <PaymentMethodsSection 
-                  user={user} 
-                  profile={{}} 
-                  onPaymentMethodChange={handlePaymentMethodChange}
-                />
+                <div className="space-y-4">
+                  <div className="flex justify-between items-center">
+                    <label className="block text-sm font-medium text-[#2E4F54] dark:text-[#E0F4F5]">
+                      Payment Method
+                    </label>
+                  </div>
+                  
+                  {paymentMethodsLoading ? (
+                    <div className="flex items-center justify-center py-8 border-2 border-dashed border-[#DDE5E7] dark:border-[#3F5E63] rounded-lg">
+                      <svg className="animate-spin h-6 w-6 text-[#7CCFD0] mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                      <span className="text-[#2E4F54]/70 dark:text-[#E0F4F5]/70">Loading payment methods...</span>
+                    </div>
+                  ) : defaultPaymentMethod ? (
+                    <div className="bg-[#F8F9FA] dark:bg-[#24393C] border border-[#DDE5E7] dark:border-[#3F5E63] rounded-lg p-4">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-3">
+                          <div className="text-xl">💳</div>
+                          <div>
+                            <p className="font-medium text-[#2E4F54] dark:text-[#E0F4F5] text-sm">
+                              Default Payment Method
+                            </p>
+                            <p className="text-sm text-[#2E4F54]/70 dark:text-[#E0F4F5]/70">
+                              {getCardBrandDisplay(defaultPaymentMethod.card.brand)} {formatCardNumber(defaultPaymentMethod.card.last4)}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <div className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-[#7CCFD0]/10 text-[#2E4F54] dark:text-[#E0F4F5]">
+                            ✓ Default
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div className="mt-3 pt-3 border-t border-[#DDE5E7] dark:border-[#3F5E63]">
+                        <div className="bg-[#7CCFD0]/10 dark:bg-[#7CCFD0]/20 p-3 rounded-md">
+                          <p className="text-sm text-[#2E4F54] dark:text-[#E0F4F5]">
+                            <strong>Payment Notice:</strong> Your card ending in {defaultPaymentMethod.card.last4} will be charged after your booking is approved by our dispatchers. You will not be charged immediately upon booking submission.
+                          </p>
+                        </div>
+                        
+                        <div className="mt-3 text-center">
+                          <a 
+                            href="/dashboard/payment-methods"
+                            className="text-sm text-[#7CCFD0] hover:text-[#60BFC0] font-medium inline-flex items-center"
+                          >
+                            <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.349 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.349a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.349 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.349a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                            </svg>
+                            Manage Payment Methods
+                          </a>
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="text-center py-8 border-2 border-dashed border-[#DDE5E7] dark:border-[#3F5E63] rounded-lg">
+                      <svg className="mx-auto h-12 w-12 text-[#7CCFD0]/50 dark:text-[#7CCFD0]/40 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                      </svg>
+                      <h4 className="text-lg font-medium text-[#2E4F54] dark:text-[#E0F4F5] mb-2">Payment Method Required</h4>
+                      <p className="text-sm text-[#2E4F54]/70 dark:text-[#E0F4F5]/70 mb-4 max-w-md mx-auto">
+                        Please add a payment method to your account before booking a ride. You will not be charged immediately and will only be charged once your booking is approved by our dispatchers.
+                      </p>
+                      <a 
+                        href="/dashboard/payment-methods"
+                        className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-[#7CCFD0] hover:bg-[#60BFC0] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#7CCFD0]"
+                      >
+                        <svg className="-ml-1 mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                        </svg>
+                        Add Payment Method
+                      </a>
+                    </div>
+                  )}
+                </div>
               </div>
               {/* Move the Request Ride button here, full width */}
               <button
                 type="submit"
-                disabled={isLoading}
+                disabled={isLoading || !defaultPaymentMethod || paymentMethodsLoading}
                 className="w-full py-3 px-4 bg-[#7CCFD0] hover:bg-[#60BFC0] text-white dark:text-[#1C2C2F] font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#7CCFD0] disabled:opacity-50 disabled:cursor-not-allowed relative overflow-hidden mt-4"
               >
                 {bookingStatus === 'loading' && (
