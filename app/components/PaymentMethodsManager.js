@@ -21,7 +21,9 @@ export function CardSetupForm({ clientSecret, onSuccess, onError, onCancel, prof
   useEffect(() => {
     const initializeStripe = async () => {
       try {
+        console.log('Initializing Stripe with client secret:', clientSecret);
         stripe.current = await getStripe();
+        console.log('Stripe loaded:', !!stripe.current);
         if (!stripe.current) {
           throw new Error('Failed to load Stripe. Please refresh and try again.');
         }
@@ -29,6 +31,7 @@ export function CardSetupForm({ clientSecret, onSuccess, onError, onCancel, prof
         elements.current = stripe.current.elements({
           clientSecret: clientSecret,
         });
+        console.log('Elements created:', !!elements.current);
         
         cardElement.current = elements.current.create('card', {
           style: {
@@ -41,13 +44,19 @@ export function CardSetupForm({ clientSecret, onSuccess, onError, onCancel, prof
             },
           },
         });
+        console.log('Card element created:', !!cardElement.current);
         
         // Mount the card element to the DOM
         const cardElementContainer = document.getElementById('card-element-container');
+        console.log('Card element container found:', !!cardElementContainer);
         if (cardElementContainer) {
           cardElement.current.mount(cardElementContainer);
-          cardElement.current.on('ready', () => setCardReady(true));
+          cardElement.current.on('ready', () => {
+            console.log('Card element ready');
+            setCardReady(true);
+          });
           cardElement.current.on('change', (event) => {
+            console.log('Card element changed:', event);
             if (event.error) {
               onError(new Error(event.error.message));
             }
@@ -57,6 +66,7 @@ export function CardSetupForm({ clientSecret, onSuccess, onError, onCancel, prof
         }
         
         setStripeReady(true);
+        console.log('Stripe initialization complete');
       } catch (error) {
         console.error('Error initializing Stripe:', error);
         onError(new Error('Failed to initialize payment form. Please try again later.'));
@@ -76,6 +86,11 @@ export function CardSetupForm({ clientSecret, onSuccess, onError, onCancel, prof
   const handleSubmit = async (event) => {
     event.preventDefault();
     console.log('CardSetupForm handleSubmit called');
+    console.log('Stripe ready:', !!stripe.current);
+    console.log('Elements ready:', !!elements.current);
+    console.log('Card element ready:', !!cardElement.current);
+    console.log('Client secret:', clientSecret);
+    
     setStripeError('');
     if (!stripe.current || !elements.current || !cardElement.current) {
       setStripeError('Payment form is not ready. Please wait a moment and try again.');
@@ -84,6 +99,7 @@ export function CardSetupForm({ clientSecret, onSuccess, onError, onCancel, prof
     }
     setProcessing(true);
     try {
+      console.log('Attempting to confirm card setup...');
       const { error, setupIntent } = await stripe.current.confirmCardSetup(clientSecret, {
         payment_method: {
           card: cardElement.current,
@@ -93,11 +109,14 @@ export function CardSetupForm({ clientSecret, onSuccess, onError, onCancel, prof
           },
         },
       });
+      console.log('Setup result:', { error, setupIntent });
       if (error) {
+        console.error('Stripe error:', error);
         setStripeError(error.message);
         onError(new Error(error.message));
         return;
       }
+      console.log('Setup successful, calling onSuccess');
       onSuccess(setupIntent);
     } catch (error) {
       setStripeError(error.message || 'Unexpected error.');
@@ -288,6 +307,7 @@ export default function PaymentMethodsManager({ user, profile }) {
   };
 
   const updateDefaultPaymentMethod = async (paymentMethodId) => {
+    const supabase = getSupabaseClient();
     const { error } = await supabase
       .from('profiles')
       .update({ 
