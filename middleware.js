@@ -19,6 +19,11 @@ export async function middleware(req) {
   const { pathname } = req.nextUrl;
   console.log(`Middleware handling path: ${pathname}`);
   
+  // Allow test page without authentication
+  if (pathname.startsWith('/test-payment')) {
+    return NextResponse.next();
+  }
+  
   // Create a response object that we can modify
   const res = NextResponse.next();
   

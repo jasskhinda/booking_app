@@ -5,7 +5,7 @@ import { getSupabaseClient } from '@/lib/client-supabase';
 import { useRouter } from 'next/navigation';
 import DashboardLayout from './DashboardLayout';
 import Script from 'next/script';
-import PaymentMethodsManager, { CardSetupForm } from './PaymentMethodsManager';
+import PaymentMethodsSection from './PaymentMethodsSection';
 
 // Helper function to format date in AM/PM format
 function formatTimeAmPm(dateStr) {
@@ -647,6 +647,14 @@ export default function BookingForm({ user }) {
       }
     }
 
+    // Validate payment method selection
+    if (!selectedPaymentMethodId) {
+      setError('Please select a payment method to complete your booking');
+      setIsLoading(false);
+      setBookingStatus('error');
+      return;
+    }
+
     try {
       // Calculate final price (in case route hasn't been calculated yet)
       let calculatedPrice = estimatedFare;
@@ -672,6 +680,7 @@ export default function BookingForm({ user }) {
           wheelchair_type: formData.wheelchairType,
           is_round_trip: formData.isRoundTrip,
           price: calculatedPrice, // Save estimated price
+          payment_method_id: selectedPaymentMethodId, // Include the selected payment method
           distance: distanceMiles > 0 
             ? Math.round((formData.isRoundTrip ? distanceMiles * 2 : distanceMiles) * 10) / 10 
             : null, // Save distance in miles, doubled for round trips, rounded to 1 decimal
@@ -744,90 +753,12 @@ export default function BookingForm({ user }) {
     }
   };
 
-  const [paymentMethods, setPaymentMethods] = useState([]);
-  const [defaultPaymentMethod, setDefaultPaymentMethod] = useState(null);
-  const [isLoadingPayments, setIsLoadingPayments] = useState(true);
-  const [isAddingPayment, setIsAddingPayment] = useState(false);
-  const [clientSecret, setClientSecret] = useState(null);
-  const [paymentMessage, setPaymentMessage] = useState('');
-
-  // Fetch payment methods and default on mount
-  useEffect(() => {
-    const fetchPaymentMethods = async () => {
-      setIsLoadingPayments(true);
-      try {
-        const response = await fetch('/api/stripe/payment-methods');
-        const data = await response.json();
-        setPaymentMethods(data.paymentMethods || []);
-        // Find default from profile or fallback to first
-        let defaultId = null;
-        if (data.profile && data.profile.default_payment_method_id) {
-          defaultId = data.profile.default_payment_method_id;
-        } else if (data.paymentMethods && data.paymentMethods.length > 0) {
-          defaultId = data.paymentMethods[0].id;
-        }
-        setDefaultPaymentMethod(defaultId);
-      } catch (e) {
-        setPaymentMessage('Failed to load payment methods');
-      } finally {
-        setIsLoadingPayments(false);
-      }
-    };
-    fetchPaymentMethods();
-  }, [user]);
-
-  // Handler to add a new payment method
-  const handleAddPaymentMethod = async () => {
-    setIsAddingPayment(true);
-    setPaymentMessage('');
-    try {
-      const response = await fetch('/api/stripe/setup-intent', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-      });
-      const { clientSecret, error } = await response.json();
-      if (error) throw new Error(error);
-      setClientSecret(clientSecret);
-    } catch (e) {
-      setPaymentMessage(e.message || 'Failed to start payment method setup');
-      setIsAddingPayment(false);
-    }
-  };
-
-  // Handler for successful card setup
-  const handleSetupSuccess = async (setupIntent) => {
-    setClientSecret(null);
-    setIsAddingPayment(false);
-    setPaymentMessage('Payment method added successfully!');
-    // Refresh payment methods
-    setIsLoadingPayments(true);
-    try {
-      const response = await fetch('/api/stripe/payment-methods');
-      const data = await response.json();
-      setPaymentMethods(data.paymentMethods || []);
-      let defaultId = null;
-      if (data.profile && data.profile.default_payment_method_id) {
-        defaultId = data.profile.default_payment_method_id;
-      } else if (data.paymentMethods && data.paymentMethods.length > 0) {
-        defaultId = data.paymentMethods[0].id;
-      }
-      setDefaultPaymentMethod(defaultId);
-    } catch (e) {
-      setPaymentMessage('Failed to load payment methods');
-    } finally {
-      setIsLoadingPayments(false);
-    }
-  };
-
-  // Handler for card setup error/cancel
-  const handleSetupError = (error) => {
-    setPaymentMessage(error.message || 'Failed to add payment method');
-    setIsAddingPayment(false);
-    setClientSecret(null);
-  };
-  const handleSetupCancel = () => {
-    setIsAddingPayment(false);
-    setClientSecret(null);
+  // State for selected payment method from PaymentMethodsSection
+  const [selectedPaymentMethodId, setSelectedPaymentMethodId] = useState(null);
+  
+  // Handle payment method change from PaymentMethodsSection
+  const handlePaymentMethodChange = (paymentMethodId) => {
+    setSelectedPaymentMethodId(paymentMethodId);
   };
 
   return (
@@ -1380,86 +1311,13 @@ export default function BookingForm({ user }) {
                 </div>
               </div>
               
-              {/* Payment Method Section - moved here above the submit button */}
-              <div className="mb-8">
-                <h3 className="text-md font-medium text-[#2E4F54] dark:text-[#E0F4F5] mb-2">Payment Method</h3>
-                {isLoadingPayments ? (
-                  <div className="text-[#2E4F54]/70 dark:text-[#E0F4F5]/70 mb-8">Loading payment methods...</div>
-                ) : paymentMethods.length === 0 ? (
-                  <div className="mb-8">
-                    <div className="text-[#2E4F54]/70 dark:text-[#E0F4F5]/70 mb-2">No payment method found. Please add a card to continue.</div>
-                    {!isAddingPayment || !clientSecret ? (
-                      <button
-                        onClick={handleAddPaymentMethod}
-                        type="button"
-                        className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-[#7CCFD0] hover:bg-[#60BFC0] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#7CCFD0]"
-                      >
-                        Add Payment Method
-                      </button>
-                    ) : (
-                      <div className="mt-4">
-                        <h4 className="text-md font-medium text-[#2E4F54] dark:text-[#E0F4F5] mb-3">Add New Payment Method</h4>
-                        <CardSetupForm
-                          clientSecret={clientSecret}
-                          onSuccess={handleSetupSuccess}
-                          onError={handleSetupError}
-                          onCancel={handleSetupCancel}
-                          profile={{}}
-                          user={user}
-                        />
-                      </div>
-                    )}
-                    {paymentMessage && <div className="text-red-600 mt-2">{paymentMessage}</div>}
-                  </div>
-                ) : (
-                  <div className="mb-8">
-                    {!isAddingPayment || !clientSecret ? (
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <span className="font-medium text-[#2E4F54] dark:text-[#E0F4F5]">Default Card:</span>
-                          <span className="ml-2 text-[#2E4F54]/80 dark:text-[#E0F4F5]/80">
-                            {(() => {
-                              const card = paymentMethods.find(pm => pm.id === defaultPaymentMethod) || paymentMethods[0];
-                              return card ? `•••• ${card.card.last4} (${card.card.brand.toUpperCase()})` : 'N/A';
-                            })()}
-                          </span>
-                        </div>
-                        <button
-                          onClick={handleAddPaymentMethod}
-                          type="button"
-                          className="inline-flex items-center px-3 py-1 border border-transparent rounded-md shadow-sm text-xs font-medium text-white bg-[#7CCFD0] hover:bg-[#60BFC0] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#7CCFD0]"
-                        >
-                          Add New Card
-                        </button>
-                      </div>
-                    ) : (
-                      <div className="space-y-4">
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <span className="font-medium text-[#2E4F54] dark:text-[#E0F4F5]">Default Card:</span>
-                            <span className="ml-2 text-[#2E4F54]/80 dark:text-[#E0F4F5]/80">
-                              {(() => {
-                                const card = paymentMethods.find(pm => pm.id === defaultPaymentMethod) || paymentMethods[0];
-                                return card ? `•••• ${card.card.last4} (${card.card.brand.toUpperCase()})` : 'N/A';
-                              })()}
-                            </span>
-                          </div>
-                        </div>
-                        <div>
-                          <h4 className="text-md font-medium text-[#2E4F54] dark:text-[#E0F4F5] mb-3">Add New Payment Method</h4>
-                          <CardSetupForm
-                            clientSecret={clientSecret}
-                            onSuccess={handleSetupSuccess}
-                            onError={handleSetupError}
-                            onCancel={handleSetupCancel}
-                            profile={{}}
-                            user={user}
-                          />
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                )}
+              {/* Payment Method Section - using the working PaymentMethodsSection component */}
+              <div className="col-span-1 md:col-span-2 mb-8">
+                <PaymentMethodsSection 
+                  user={user} 
+                  profile={{}} 
+                  onPaymentMethodChange={handlePaymentMethodChange}
+                />
               </div>
               {/* Move the Request Ride button here, full width */}
               <button
