@@ -37,7 +37,7 @@ export function CardSetupForm({ clientSecret, onSuccess, onError, onCancel, prof
           style: {
             base: {
               fontSize: '16px',
-              color: '#2E4F54',
+              color: 'black',
               '::placeholder': {
                 color: '#7a8c91',
               },
@@ -128,23 +128,23 @@ export function CardSetupForm({ clientSecret, onSuccess, onError, onCancel, prof
   };
   
   return (
-    <form onSubmit={handleSubmit} className="space-y-4 p-4 border border-[#DDE5E7] dark:border-[#3F5E63] rounded-lg bg-white dark:bg-[#1C2C2F]">
+    <form onSubmit={handleSubmit} className="space-y-4 p-4 border border-[#DDE5E7] dark:border-[#333333] rounded-lg bg-white dark:bg-[black]">
       <div className="mb-4">
-        <label className="block text-sm font-medium text-[#2E4F54] dark:text-[#E0F4F5] mb-2">
+        <label className="block text-sm font-medium text-[black] dark:text-[white] mb-2">
           Card Information
         </label>
-        <div className="p-3 border border-[#DDE5E7] dark:border-[#3F5E63] rounded-md bg-[#F8F9FA] dark:bg-[#24393C]">
+        <div className="p-3 border border-[#DDE5E7] dark:border-[#333333] rounded-md bg-[#F8F9FA] dark:bg-[#1A1A1A]">
           <div id="card-element-container" className="min-h-[40px]"></div>
         </div>
         {!stripeReady && (
-          <p className="mt-2 text-xs text-[#2E4F54]/70 dark:text-[#E0F4F5]/70">
+          <p className="mt-2 text-xs text-[black]/70 dark:text-[white]/70">
             Loading payment form...
           </p>
         )}
         {stripeError && (
           <p className="mt-2 text-xs text-red-600 dark:text-red-400">{stripeError}</p>
         )}
-        <p className="mt-2 text-xs text-[#2E4F54]/70 dark:text-[#E0F4F5]/70">
+        <p className="mt-2 text-xs text-[black]/70 dark:text-[white]/70">
           Your card information is securely processed by Stripe.
         </p>
       </div>
@@ -152,7 +152,7 @@ export function CardSetupForm({ clientSecret, onSuccess, onError, onCancel, prof
         <button
           type="submit"
           disabled={processing || !stripeReady || !cardReady}
-          className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-[#7CCFD0] hover:bg-[#60BFC0] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#7CCFD0] disabled:opacity-50"
+          className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-[#5fbfc0] hover:bg-[#4aa5a6] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#5fbfc0] disabled:opacity-50"
         >
           {processing ? (
             <>
@@ -167,7 +167,7 @@ export function CardSetupForm({ clientSecret, onSuccess, onError, onCancel, prof
         <button
           type="button"
           onClick={onCancel}
-          className="inline-flex items-center px-4 py-2 border border-[#DDE5E7] dark:border-[#3F5E63] rounded-md shadow-sm text-sm font-medium text-[#2E4F54] dark:text-[#E0F4F5] bg-white dark:bg-[#1C2C2F] hover:bg-gray-50 dark:hover:bg-[#24393C] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#7CCFD0]"
+          className="inline-flex items-center px-4 py-2 border border-[#DDE5E7] dark:border-[#333333] rounded-md shadow-sm text-sm font-medium text-[black] dark:text-[white] bg-white dark:bg-[black] hover:bg-gray-50 dark:hover:bg-[#1A1A1A] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#5fbfc0]"
         >
           Cancel
         </button>
@@ -436,12 +436,12 @@ export default function PaymentMethodsManager({ user, profile }) {
   
   return (
     <DashboardLayout user={user} activeTab="settings">
-      <div className="bg-[#F8F9FA] dark:bg-[#24393C] rounded-lg shadow-md border border-[#DDE5E7] dark:border-[#3F5E63] p-6 mb-6">
+      <div className="bg-[#F8F9FA] dark:bg-[#1A1A1A] rounded-lg shadow-md border border-[#DDE5E7] dark:border-[#333333] p-6 mb-6">
         <div className="flex justify-between items-center mb-6">
-          <h2 className="text-xl font-semibold text-[#2E4F54] dark:text-[#E0F4F5]">Payment Methods</h2>
+          <h2 className="text-xl font-semibold text-[black] dark:text-[white]">Payment Methods</h2>
           <Link 
             href="/dashboard/settings" 
-            className="text-[#7CCFD0] hover:text-[#60BFC0]"
+            className="text-[#5fbfc0] hover:text-[#4aa5a6]"
           >
             Back to Settings
           </Link>
@@ -450,7 +450,7 @@ export default function PaymentMethodsManager({ user, profile }) {
         {message.text && (
           <div className={`p-4 mb-6 rounded-md ${
             message.type === 'success' 
-              ? 'bg-[#7CCFD0]/20 text-[#2E4F54] dark:bg-[#7CCFD0]/30 dark:text-[#E0F4F5]' 
+              ? 'bg-[#5fbfc0]/20 text-[black] dark:bg-[#5fbfc0]/30 dark:text-[white]' 
               : 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300'
           }`}>
             {message.text}
@@ -458,24 +458,24 @@ export default function PaymentMethodsManager({ user, profile }) {
         )}
         
         <div className="mb-6">
-          <p className="text-[#2E4F54]/70 dark:text-[#E0F4F5]/70">
+          <p className="text-[black]/70 dark:text-[white]/70">
             Add and manage your payment methods for booking rides. Your payment information is securely stored with Stripe.
           </p>
         </div>
         
         {isLoading ? (
           <div className="text-center py-8">
-            <svg className="animate-spin h-8 w-8 text-[#7CCFD0] mx-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <svg className="animate-spin h-8 w-8 text-[#5fbfc0] mx-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
               <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
               <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
             </svg>
-            <p className="mt-2 text-[#2E4F54]/70 dark:text-[#E0F4F5]/70">Loading payment methods...</p>
+            <p className="mt-2 text-[black]/70 dark:text-[white]/70">Loading payment methods...</p>
           </div>
         ) : (
           <div>
             {isAddingMethod && clientSecret ? (
               <div className="mb-6">
-                <h3 className="text-lg font-medium text-[#2E4F54] dark:text-[#E0F4F5] mb-4">Add New Payment Method</h3>
+                <h3 className="text-lg font-medium text-[black] dark:text-[white] mb-4">Add New Payment Method</h3>
                 <StripeCardForm 
                   clientSecret={clientSecret} 
                   onSuccess={handleSetupSuccess} 
@@ -488,35 +488,35 @@ export default function PaymentMethodsManager({ user, profile }) {
             ) : (
               <>
                 {paymentMethods.length === 0 ? (
-                  <div className="text-center py-8 border-2 border-dashed border-[#DDE5E7] dark:border-[#3F5E63] rounded-lg">
-                    <svg className="mx-auto h-12 w-12 text-[#7CCFD0]/50 dark:text-[#7CCFD0]/40" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <div className="text-center py-8 border-2 border-dashed border-[#DDE5E7] dark:border-[#333333] rounded-lg">
+                    <svg className="mx-auto h-12 w-12 text-[#5fbfc0]/50 dark:text-[#5fbfc0]/40" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
                     </svg>
-                    <h3 className="mt-2 text-sm font-medium text-[#2E4F54] dark:text-[#E0F4F5]">No payment methods</h3>
-                    <p className="mt-1 text-sm text-[#2E4F54]/70 dark:text-[#E0F4F5]/70">
+                    <h3 className="mt-2 text-sm font-medium text-[black] dark:text-[white]">No payment methods</h3>
+                    <p className="mt-1 text-sm text-[black]/70 dark:text-[white]/70">
                       You haven&apos;t added any payment methods yet.
                     </p>
                   </div>
                 ) : (
                   <div className="space-y-4">
-                    <h3 className="text-lg font-medium text-[#2E4F54] dark:text-[#E0F4F5] mb-2">Your Cards</h3>
+                    <h3 className="text-lg font-medium text-[black] dark:text-[white] mb-2">Your Cards</h3>
                     {paymentMethods.map((method) => (
                       <div 
                         key={method.id} 
                         className={`flex justify-between items-center p-4 border rounded-lg ${
                           method.id === defaultPaymentMethod 
-                            ? 'border-[#7CCFD0] bg-[#7CCFD0]/10 dark:bg-[#7CCFD0]/20' 
-                            : 'border-[#DDE5E7] dark:border-[#3F5E63]'
+                            ? 'border-[#5fbfc0] bg-[#5fbfc0]/10 dark:bg-[#5fbfc0]/20' 
+                            : 'border-[#DDE5E7] dark:border-[#333333]'
                         }`}
                       >
                         <div className="flex items-center space-x-3">
                           <div className="text-2xl">{getCardBrandLogo(method.card.brand)}</div>
                           <div>
-                            <p className="font-medium text-[#2E4F54] dark:text-[#E0F4F5]">{formatCardNumber(method.card.last4)}</p>
-                            <p className="text-sm text-[#2E4F54]/70 dark:text-[#E0F4F5]/70">
+                            <p className="font-medium text-[black] dark:text-[white]">{formatCardNumber(method.card.last4)}</p>
+                            <p className="text-sm text-[black]/70 dark:text-[white]/70">
                               Expires {formatExpiry(method.card.exp_month, method.card.exp_year)}
                               {method.id === defaultPaymentMethod && (
-                                <span className="ml-2 text-[#7CCFD0] dark:text-[#7CCFD0] font-medium">Default</span>
+                                <span className="ml-2 text-[#5fbfc0] dark:text-[#5fbfc0] font-medium">Default</span>
                               )}
                             </p>
                           </div>
@@ -524,20 +524,20 @@ export default function PaymentMethodsManager({ user, profile }) {
                         <div className="flex space-x-2">
                           {paymentMethods.length === 1 ? (
                             // If there's only one payment method, show "Default Payment Method"
-                            <span className="text-sm text-[#7CCFD0] font-medium">
+                            <span className="text-sm text-[#5fbfc0] font-medium">
                               Default Payment Method
                             </span>
                           ) : method.id !== defaultPaymentMethod ? (
                             // If there are multiple methods and this isn't the default, show "Set as Default"
                             <button
                               onClick={() => handleSetDefaultPaymentMethod(method.id)}
-                              className="text-sm text-[#7CCFD0] hover:text-[#60BFC0]"
+                              className="text-sm text-[#5fbfc0] hover:text-[#4aa5a6]"
                             >
                               Set as Default
                             </button>
                           ) : (
                             // If this is the default method in a multi-method scenario, show nothing or "Default"
-                            <span className="text-sm text-[#7CCFD0] font-medium">
+                            <span className="text-sm text-[#5fbfc0] font-medium">
                               Default Payment Method
                             </span>
                           )}
@@ -557,7 +557,7 @@ export default function PaymentMethodsManager({ user, profile }) {
                   <button
                     onClick={handleAddPaymentMethod}
                     disabled={isAddingMethod}
-                    className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-[#7CCFD0] hover:bg-[#60BFC0] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#7CCFD0] disabled:opacity-50"
+                    className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-[#5fbfc0] hover:bg-[#4aa5a6] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#5fbfc0] disabled:opacity-50"
                   >
                     {isAddingMethod ? (
                       <>
@@ -582,9 +582,9 @@ export default function PaymentMethodsManager({ user, profile }) {
           </div>
         )}
         
-        <div className="mt-8 pt-6 border-t border-[#DDE5E7] dark:border-[#3F5E63]">
-          <h3 className="text-lg font-medium text-[#2E4F54] dark:text-[#E0F4F5] mb-2">About Payment Processing</h3>
-          <div className="text-sm text-[#2E4F54]/70 dark:text-[#E0F4F5]/70 space-y-2">
+        <div className="mt-8 pt-6 border-t border-[#DDE5E7] dark:border-[#333333]">
+          <h3 className="text-lg font-medium text-[black] dark:text-[white] mb-2">About Payment Processing</h3>
+          <div className="text-sm text-[black]/70 dark:text-[white]/70 space-y-2">
             <p>
               We use Stripe to securely process all payments. Your card information is never stored on our servers.
             </p>
@@ -592,7 +592,7 @@ export default function PaymentMethodsManager({ user, profile }) {
               When you add a payment method, your card details are sent directly to Stripe&apos;s secure servers, and we only store a reference to that payment method.
             </p>
             <p>
-              For more information about how we handle your payment information, please see our <Link href="#" className="text-[#7CCFD0] hover:text-[#60BFC0] hover:underline">Privacy Policy</Link>.
+              For more information about how we handle your payment information, please see our <Link href="#" className="text-[#5fbfc0] hover:text-[#4aa5a6] hover:underline">Privacy Policy</Link>.
             </p>
           </div>
         </div>

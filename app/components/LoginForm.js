@@ -112,7 +112,7 @@ export default function LoginForm() {
       
       <div className="space-y-4">
         <div>
-          <label htmlFor="email" className="block text-sm font-medium text-[#2E4F54] dark:text-[#E0F4F5]">
+          <label htmlFor="email" className="block text-sm font-medium text-[black] dark:text-[white]">
             Email address
           </label>
           <input
@@ -123,19 +123,19 @@ export default function LoginForm() {
             required
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="mt-1 block w-full px-3 py-2 border border-[#DDE5E7] dark:border-[#3F5E63] rounded-md shadow-sm focus:outline-none focus:ring-[#7CCFD0] focus:border-[#7CCFD0] bg-white dark:bg-[#24393C] text-[#2E4F54] dark:text-[#E0F4F5]"
+            className="mt-1 block w-full px-3 py-2 border border-[#DDE5E7] dark:border-[#333333] rounded-md shadow-sm focus:outline-none focus:ring-[#5fbfc0] focus:border-[#5fbfc0] bg-white dark:bg-[#1A1A1A] text-[black] dark:text-[white]"
           />
         </div>
         
         <div>
           <div className="flex justify-between">
-            <label htmlFor="password" className="block text-sm font-medium text-[#2E4F54] dark:text-[#E0F4F5]">
+            <label htmlFor="password" className="block text-sm font-medium text-[black] dark:text-[white]">
               Password
             </label>
             <button 
               type="button"
               onClick={() => router.push('/reset-password')}
-              className="text-sm font-medium text-[#7CCFD0] hover:text-[#60BFC0]">
+              className="text-sm font-medium text-[#5fbfc0] hover:text-[#4aa5a6]">
               Forgot password?
             </button>
           </div>
@@ -147,7 +147,7 @@ export default function LoginForm() {
             required
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="mt-1 block w-full px-3 py-2 border border-[#DDE5E7] dark:border-[#3F5E63] rounded-md shadow-sm focus:outline-none focus:ring-[#7CCFD0] focus:border-[#7CCFD0] bg-white dark:bg-[#24393C] text-[#2E4F54] dark:text-[#E0F4F5]"
+            className="mt-1 block w-full px-3 py-2 border border-[#DDE5E7] dark:border-[#333333] rounded-md shadow-sm focus:outline-none focus:ring-[#5fbfc0] focus:border-[#5fbfc0] bg-white dark:bg-[#1A1A1A] text-[black] dark:text-[white]"
           />
         </div>
       </div>
@@ -156,24 +156,24 @@ export default function LoginForm() {
         <button
           type="submit"
           disabled={isLoading}
-          className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-[#7CCFD0] hover:bg-[#60BFC0] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#7CCFD0] disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-[#5fbfc0] hover:bg-[#4aa5a6] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#5fbfc0] disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {isLoading ? 'Signing in...' : 'Sign in'}
         </button>
         
         <div className="relative">
           <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-[#DDE5E7] dark:border-[#3F5E63]"></div>
+            <div className="w-full border-t border-[#DDE5E7] dark:border-[#333333]"></div>
           </div>
           <div className="relative flex justify-center text-sm">
-            <span className="px-2 bg-white dark:bg-[#1C2C2F] text-[#7CCFD0]">Or continue with</span>
+            <span className="px-2 bg-white dark:bg-[black] text-[#5fbfc0]">Or continue with</span>
           </div>
         </div>
         
         <button
           type="button"
           onClick={handleSignInWithGoogle}
-          className="w-full flex justify-center items-center gap-3 py-2 px-4 border border-[#DDE5E7] dark:border-[#3F5E63] rounded-md shadow-sm text-sm font-medium text-[#2E4F54] dark:text-[#E0F4F5] hover:bg-[#F8F9FA] dark:hover:bg-[#24393C] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#7CCFD0]"
+          className="w-full flex justify-center items-center gap-3 py-2 px-4 border border-[#DDE5E7] dark:border-[#333333] rounded-md shadow-sm text-sm font-medium text-[black] dark:text-[white] hover:bg-[#F8F9FA] dark:hover:bg-[#1A1A1A] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#5fbfc0]"
         >
           <svg className="h-5 w-5" viewBox="0 0 24 24">
             <path

@@ -139,7 +139,7 @@ export default function SignupForm() {
       <div className="space-y-4">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label htmlFor="firstName" className="block text-sm font-medium text-[#2E4F54] dark:text-[#E0F4F5]">
+            <label htmlFor="firstName" className="block text-sm font-medium text-[black] dark:text-[white]">
               First name
             </label>
             <input
@@ -150,11 +150,11 @@ export default function SignupForm() {
               required
               value={formData.firstName}
               onChange={handleChange}
-              className="mt-1 block w-full px-3 py-2 border border-[#DDE5E7] dark:border-[#3F5E63] rounded-md shadow-sm focus:outline-none focus:ring-[#7CCFD0] focus:border-[#7CCFD0] bg-white dark:bg-[#24393C] text-[#2E4F54] dark:text-[#E0F4F5]"
+              className="mt-1 block w-full px-3 py-2 border border-[#DDE5E7] dark:border-[#333333] rounded-md shadow-sm focus:outline-none focus:ring-[#5fbfc0] focus:border-[#5fbfc0] bg-white dark:bg-[#1A1A1A] text-[black] dark:text-[white]"
             />
           </div>
           <div>
-            <label htmlFor="lastName" className="block text-sm font-medium text-[#2E4F54] dark:text-[#E0F4F5]">
+            <label htmlFor="lastName" className="block text-sm font-medium text-[black] dark:text-[white]">
               Last name
             </label>
             <input
@@ -165,13 +165,13 @@ export default function SignupForm() {
               required
               value={formData.lastName}
               onChange={handleChange}
-              className="mt-1 block w-full px-3 py-2 border border-[#DDE5E7] dark:border-[#3F5E63] rounded-md shadow-sm focus:outline-none focus:ring-[#7CCFD0] focus:border-[#7CCFD0] bg-white dark:bg-[#24393C] text-[#2E4F54] dark:text-[#E0F4F5]"
+              className="mt-1 block w-full px-3 py-2 border border-[#DDE5E7] dark:border-[#333333] rounded-md shadow-sm focus:outline-none focus:ring-[#5fbfc0] focus:border-[#5fbfc0] bg-white dark:bg-[#1A1A1A] text-[black] dark:text-[white]"
             />
           </div>
         </div>
         
         <div>
-          <label htmlFor="email" className="block text-sm font-medium text-[#2E4F54] dark:text-[#E0F4F5]">
+          <label htmlFor="email" className="block text-sm font-medium text-[black] dark:text-[white]">
             Email address
           </label>
           <input
@@ -182,12 +182,12 @@ export default function SignupForm() {
             required
             value={formData.email}
             onChange={handleChange}
-            className="mt-1 block w-full px-3 py-2 border border-[#DDE5E7] dark:border-[#3F5E63] rounded-md shadow-sm focus:outline-none focus:ring-[#7CCFD0] focus:border-[#7CCFD0] bg-white dark:bg-[#24393C] text-[#2E4F54] dark:text-[#E0F4F5]"
+            className="mt-1 block w-full px-3 py-2 border border-[#DDE5E7] dark:border-[#333333] rounded-md shadow-sm focus:outline-none focus:ring-[#5fbfc0] focus:border-[#5fbfc0] bg-white dark:bg-[#1A1A1A] text-[black] dark:text-[white]"
           />
         </div>
         
         <div>
-          <label htmlFor="password" className="block text-sm font-medium text-[#2E4F54] dark:text-[#E0F4F5]">
+          <label htmlFor="password" className="block text-sm font-medium text-[black] dark:text-[white]">
             Password
           </label>
           <input
@@ -198,12 +198,12 @@ export default function SignupForm() {
             required
             value={formData.password}
             onChange={handleChange}
-            className="mt-1 block w-full px-3 py-2 border border-[#DDE5E7] dark:border-[#3F5E63] rounded-md shadow-sm focus:outline-none focus:ring-[#7CCFD0] focus:border-[#7CCFD0] bg-white dark:bg-[#24393C] text-[#2E4F54] dark:text-[#E0F4F5]"
+            className="mt-1 block w-full px-3 py-2 border border-[#DDE5E7] dark:border-[#333333] rounded-md shadow-sm focus:outline-none focus:ring-[#5fbfc0] focus:border-[#5fbfc0] bg-white dark:bg-[#1A1A1A] text-[black] dark:text-[white]"
           />
         </div>
         
         <div>
-          <label htmlFor="confirmPassword" className="block text-sm font-medium text-[#2E4F54] dark:text-[#E0F4F5]">
+          <label htmlFor="confirmPassword" className="block text-sm font-medium text-[black] dark:text-[white]">
             Confirm password
           </label>
           <input
@@ -214,12 +214,12 @@ export default function SignupForm() {
             required
             value={formData.confirmPassword}
             onChange={handleChange}
-            className="mt-1 block w-full px-3 py-2 border border-[#DDE5E7] dark:border-[#3F5E63] rounded-md shadow-sm focus:outline-none focus:ring-[#7CCFD0] focus:border-[#7CCFD0] bg-white dark:bg-[#24393C] text-[#2E4F54] dark:text-[#E0F4F5]"
+            className="mt-1 block w-full px-3 py-2 border border-[#DDE5E7] dark:border-[#333333] rounded-md shadow-sm focus:outline-none focus:ring-[#5fbfc0] focus:border-[#5fbfc0] bg-white dark:bg-[#1A1A1A] text-[black] dark:text-[white]"
           />
         </div>
         
         <div>
-          <label htmlFor="birthdate" className="block text-sm font-medium text-[#2E4F54] dark:text-[#E0F4F5]">
+          <label htmlFor="birthdate" className="block text-sm font-medium text-[black] dark:text-[white]">
             Date of Birth
           </label>
           <input
@@ -229,7 +229,7 @@ export default function SignupForm() {
             required
             value={formData.birthdate}
             onChange={handleChange}
-            className="mt-1 block w-full px-3 py-2 border border-[#DDE5E7] dark:border-[#3F5E63] rounded-md shadow-sm focus:outline-none focus:ring-[#7CCFD0] focus:border-[#7CCFD0] bg-white dark:bg-[#24393C] text-[#2E4F54] dark:text-[#E0F4F5]"
+            className="mt-1 block w-full px-3 py-2 border border-[#DDE5E7] dark:border-[#333333] rounded-md shadow-sm focus:outline-none focus:ring-[#5fbfc0] focus:border-[#5fbfc0] bg-white dark:bg-[#1A1A1A] text-[black] dark:text-[white]"
           />
         </div>
         
@@ -241,14 +241,14 @@ export default function SignupForm() {
               type="checkbox"
               checked={formData.marketingConsent}
               onChange={handleChange}
-              className="h-4 w-4 text-[#7CCFD0] border-[#DDE5E7] rounded focus:ring-[#7CCFD0]"
+              className="h-4 w-4 text-[#5fbfc0] border-[#DDE5E7] rounded focus:ring-[#5fbfc0]"
             />
           </div>
           <div className="ml-3 text-sm">
-            <label htmlFor="marketingConsent" className="font-medium text-[#2E4F54] dark:text-[#E0F4F5]">
+            <label htmlFor="marketingConsent" className="font-medium text-[black] dark:text-[white]">
               Marketing emails
             </label>
-            <p className="text-[#2E4F54]/70 dark:text-[#E0F4F5]/70">
+            <p className="text-[black]/70 dark:text-[white]/70">
               I agree to receive marketing emails about special offers and promotions.
             </p>
           </div>
@@ -259,24 +259,24 @@ export default function SignupForm() {
         <button
           type="submit"
           disabled={isLoading}
-          className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-[#7CCFD0] hover:bg-[#60BFC0] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#7CCFD0] disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-[#5fbfc0] hover:bg-[#4aa5a6] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#5fbfc0] disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {isLoading ? 'Creating account...' : 'Create account'}
         </button>
         
         <div className="relative">
           <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-[#DDE5E7] dark:border-[#3F5E63]"></div>
+            <div className="w-full border-t border-[#DDE5E7] dark:border-[#333333]"></div>
           </div>
           <div className="relative flex justify-center text-sm">
-            <span className="px-2 bg-white dark:bg-[#1C2C2F] text-[#7CCFD0]">Or continue with</span>
+            <span className="px-2 bg-white dark:bg-[black] text-[#5fbfc0]">Or continue with</span>
           </div>
         </div>
         
         <button
           type="button"
           onClick={handleSignUpWithGoogle}
-          className="w-full flex justify-center items-center gap-3 py-2 px-4 border border-[#DDE5E7] dark:border-[#3F5E63] rounded-md shadow-sm text-sm font-medium text-[#2E4F54] dark:text-[#E0F4F5] hover:bg-[#F8F9FA] dark:hover:bg-[#24393C] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#7CCFD0]"
+          className="w-full flex justify-center items-center gap-3 py-2 px-4 border border-[#DDE5E7] dark:border-[#333333] rounded-md shadow-sm text-sm font-medium text-[black] dark:text-[white] hover:bg-[#F8F9FA] dark:hover:bg-[#1A1A1A] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#5fbfc0]"
         >
           <svg className="h-5 w-5" viewBox="0 0 24 24">
             <path

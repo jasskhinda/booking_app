@@ -46,7 +46,7 @@ export default function DashboardLayout({ user, activeTab = 'dashboard', childre
   return (
     <div className="min-h-screen flex flex-col">
       {/* Top Navigation Bar */}
-      <header className="bg-white dark:bg-[#1C2C2F] shadow-sm border-b border-[#DDE5E7] dark:border-[#3F5E63]">
+      <header className="bg-white dark:bg-black shadow-sm border-b border-[#DDE5E7] dark:border-[#333333]">
         <div className="mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-16">
             <div className="flex">
@@ -70,8 +70,8 @@ export default function DashboardLayout({ user, activeTab = 'dashboard', childre
                     href={item.href}
                     className={`px-3 py-2 rounded-md text-sm font-medium flex items-center space-x-1 ${
                       activeTab === item.id 
-                        ? 'bg-[#7CCFD0]/20 text-[#2E4F54] dark:bg-[#7CCFD0]/30 dark:text-[#E0F4F5]' 
-                        : 'text-[#2E4F54] hover:text-[#2E4F54] hover:bg-[#F8F9FA] dark:text-[#E0F4F5]/70 dark:hover:text-[#E0F4F5] dark:hover:bg-[#24393C]'
+                        ? 'bg-[#5fbfc0]/20 text-black dark:bg-[#5fbfc0]/30 dark:text-white' 
+                        : 'text-black hover:text-black hover:bg-[#F8F9FA] dark:text-white/70 dark:hover:text-white dark:hover:bg-[#1A1A1A]'
                     }`}
                   >
                     {item.icon}
@@ -84,13 +84,13 @@ export default function DashboardLayout({ user, activeTab = 'dashboard', childre
               <div className="ml-3 relative flex items-center space-x-4">
                 <Link 
                   href="/dashboard/settings"
-                  className="text-sm text-[#2E4F54] dark:text-[#E0F4F5] hover:text-[#7CCFD0] dark:hover:text-[#7CCFD0]"
+                  className="text-sm text-black dark:text-white hover:text-[#5fbfc0] dark:hover:text-[#5fbfc0]"
                 >
                   {user?.user_metadata?.full_name || user?.email}
                 </Link>
                 <button
                   onClick={handleSignOut}
-                  className="text-sm text-[#7CCFD0] hover:text-[#60BFC0]"
+                  className="text-sm text-[#5fbfc0] hover:text-[#4aa5a6]"
                 >
                   Sign out
                 </button>
@@ -101,7 +101,7 @@ export default function DashboardLayout({ user, activeTab = 'dashboard', childre
             <div className="flex items-center sm:hidden">
               <button
                 type="button"
-                className="inline-flex items-center justify-center p-2 rounded-md text-[#2E4F54] hover:text-[#7CCFD0] hover:bg-[#F8F9FA] dark:text-[#E0F4F5] dark:hover:text-[#7CCFD0] dark:hover:bg-[#24393C]"
+                className="inline-flex items-center justify-center p-2 rounded-md text-black hover:text-[#5fbfc0] hover:bg-[#F8F9FA] dark:text-white dark:hover:text-[#5fbfc0] dark:hover:bg-[#1A1A1A]"
                 aria-controls="mobile-menu"
                 aria-expanded={isMobileMenuOpen}
                 onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
@@ -131,8 +131,8 @@ export default function DashboardLayout({ user, activeTab = 'dashboard', childre
                   href={item.href}
                   className={`block px-3 py-2 rounded-md text-base font-medium flex items-center space-x-2 ${
                     activeTab === item.id 
-                      ? 'bg-[#7CCFD0]/20 text-[#2E4F54] dark:bg-[#7CCFD0]/30 dark:text-[#E0F4F5]' 
-                      : 'text-[#2E4F54] hover:text-[#2E4F54] hover:bg-[#F8F9FA] dark:text-[#E0F4F5]/70 dark:hover:text-[#E0F4F5] dark:hover:bg-[#24393C]'
+                      ? 'bg-[#5fbfc0]/20 text-black dark:bg-[#5fbfc0]/30 dark:text-white' 
+                      : 'text-black hover:text-black hover:bg-[#F8F9FA] dark:text-white/70 dark:hover:text-white dark:hover:bg-[#1A1A1A]'
                   }`}
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
@@ -146,7 +146,7 @@ export default function DashboardLayout({ user, activeTab = 'dashboard', childre
                   setIsMobileMenuOpen(false);
                   handleSignOut();
                 }}
-                className="block w-full text-left px-3 py-2 rounded-md text-base font-medium text-[#7CCFD0] hover:bg-[#F8F9FA] dark:hover:bg-[#24393C]"
+                className="block w-full text-left px-3 py-2 rounded-md text-base font-medium text-[#5fbfc0] hover:bg-[#F8F9FA] dark:hover:bg-[#1A1A1A]"
               >
                 Sign out
               </button>
@@ -161,28 +161,28 @@ export default function DashboardLayout({ user, activeTab = 'dashboard', childre
       </main>
 
       {/* Footer */}
-      <footer className="bg-[#F8F9FA] dark:bg-[#24393C] py-6 border-t border-[#DDE5E7] dark:border-[#3F5E63]">
+      <footer className="bg-[#F8F9FA] dark:bg-black py-6 border-t border-[#DDE5E7] dark:border-[#333333]">
         <div className="container mx-auto px-4">
           <div className="flex flex-col md:flex-row justify-between items-center">
-            <p className="text-[#2E4F54] dark:text-[#E0F4F5] opacity-80 text-sm">
+            <p className="text-black dark:text-white opacity-80 text-sm">
               &copy; 2025 Compassionate Care Transportation. All rights reserved.
             </p>
             <div className="flex space-x-4 mt-4 md:mt-0">
               <Link 
                 href="#" 
-                className="text-[#2E4F54] dark:text-[#E0F4F5] opacity-80 text-sm hover:text-[#7CCFD0] dark:hover:text-[#7CCFD0]"
+                className="text-black dark:text-white opacity-80 text-sm hover:text-[#5fbfc0] dark:hover:text-[#5fbfc0]"
               >
                 Help
               </Link>
               <Link 
                 href="#" 
-                className="text-[#2E4F54] dark:text-[#E0F4F5] opacity-80 text-sm hover:text-[#7CCFD0] dark:hover:text-[#7CCFD0]"
+                className="text-black dark:text-white opacity-80 text-sm hover:text-[#5fbfc0] dark:hover:text-[#5fbfc0]"
               >
                 Privacy
               </Link>
               <Link 
                 href="#" 
-                className="text-[#2E4F54] dark:text-[#E0F4F5] opacity-80 text-sm hover:text-[#7CCFD0] dark:hover:text-[#7CCFD0]"
+                className="text-black dark:text-white opacity-80 text-sm hover:text-[#5fbfc0] dark:hover:text-[#5fbfc0]"
               >
                 Terms
               </Link>

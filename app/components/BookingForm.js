@@ -379,13 +379,13 @@ export default function BookingForm({ user }) {
 
       // Create traditional input fields for autocomplete
       const pickupInput = document.createElement('input');
-      pickupInput.className = 'w-full px-3 py-2 border border-[#DDE5E7] dark:border-[#3F5E63] rounded-md shadow-sm focus:outline-none focus:ring-[#7CCFD0] focus:border-[#7CCFD0] dark:bg-[#1C2C2F]';
+      pickupInput.className = 'w-full px-3 py-2 border border-[#DDE5E7] dark:border-[#333333] rounded-md shadow-sm focus:outline-none focus:ring-[#5fbfc0] focus:border-[#5fbfc0] dark:bg-[black]';
       pickupInput.placeholder = 'Enter your pickup location';
       pickupInput.value = formData.pickupAddress || '';
       pickupInput.id = 'pickup-autocomplete-input';
       
       const destinationInput = document.createElement('input');
-      destinationInput.className = 'w-full px-3 py-2 border border-[#DDE5E7] dark:border-[#3F5E63] rounded-md shadow-sm focus:outline-none focus:ring-[#7CCFD0] focus:border-[#7CCFD0] dark:bg-[#1C2C2F]';
+      destinationInput.className = 'w-full px-3 py-2 border border-[#DDE5E7] dark:border-[#333333] rounded-md shadow-sm focus:outline-none focus:ring-[#5fbfc0] focus:border-[#5fbfc0] dark:bg-[black]';
       destinationInput.placeholder = 'Enter your destination';
       destinationInput.value = formData.destinationAddress || '';
       destinationInput.id = 'destination-autocomplete-input';
@@ -835,8 +835,8 @@ export default function BookingForm({ user }) {
       />
 
       <DashboardLayout user={user} activeTab="book">
-        <div className="bg-[#F8F9FA] dark:bg-[#24393C] rounded-lg shadow-md border border-[#DDE5E7] dark:border-[#3F5E63] p-6 mb-6">
-          <h2 className="text-xl font-semibold text-[#2E4F54] dark:text-[#E0F4F5] mb-4">Book a Ride</h2>
+        <div className="bg-[#F8F9FA] dark:bg-[#1A1A1A] rounded-lg shadow-md border border-[#DDE5E7] dark:border-[#333333] p-6 mb-6">
+          <h2 className="text-xl font-semibold text-black dark:text-white mb-4">Book a Ride</h2>
 
           <form onSubmit={handleSubmit} className="space-y-6">
             {error && (
@@ -849,7 +849,7 @@ export default function BookingForm({ user }) {
               {/* Pickup Address */}
               <div className="col-span-1 md:col-span-2">
                 <div className="flex justify-between items-center mb-1">
-                  <label htmlFor="pickupAddress" className="block text-sm font-medium text-[#2E4F54] dark:text-[#E0F4F5]">
+                  <label htmlFor="pickupAddress" className="block text-sm font-medium text-[black] dark:text-[white]">
                     Pickup Address
                   </label>
                 </div>
@@ -874,7 +874,7 @@ export default function BookingForm({ user }) {
               {/* Destination Address */}
               <div className="col-span-1 md:col-span-2">
                 <div className="flex justify-between items-center mb-1">
-                  <label htmlFor="destinationAddress" className="block text-sm font-medium text-[#2E4F54] dark:text-[#E0F4F5]">
+                  <label htmlFor="destinationAddress" className="block text-sm font-medium text-[black] dark:text-[white]">
                     Destination Address
                   </label>
                 </div>
@@ -899,7 +899,7 @@ export default function BookingForm({ user }) {
               {/* Pickup Date and Time - Popup Picker */}
               <div className="space-y-4">
                 <div>
-                  <label htmlFor="pickupDateTime" className="block text-sm font-medium text-[#2E4F54] dark:text-[#E0F4F5] mb-1">
+                  <label htmlFor="pickupDateTime" className="block text-sm font-medium text-[black] dark:text-[white] mb-1">
                     Pickup Date & Time
                   </label>
                   <div className="relative">
@@ -907,9 +907,9 @@ export default function BookingForm({ user }) {
                       type="button"
                       id="pickupDateTime"
                       onClick={openDatePicker}
-                      className="w-full px-3 py-2 border border-[#DDE5E7] dark:border-[#3F5E63] rounded-md shadow-sm focus:outline-none focus:ring-[#7CCFD0] focus:border-[#7CCFD0] dark:bg-[#1C2C2F] text-left flex justify-between items-center"
+                      className="w-full px-3 py-2 border border-[#DDE5E7] dark:border-[#333333] rounded-md shadow-sm focus:outline-none focus:ring-[#5fbfc0] focus:border-[#5fbfc0] dark:bg-[black] text-left flex justify-between items-center"
                     >
-                      <span className={formData.pickupTime ? "text-[#2E4F54] dark:text-[#E0F4F5]" : "text-[#2E4F54]/50 dark:text-[#E0F4F5]/50"}>
+                      <span className={formData.pickupTime ? "text-[black] dark:text-[white]" : "text-[black]/50 dark:text-[white]/50"}>
                         {formData.pickupTime 
                           ? `${formatMonthDay(formData.pickupTime)}, ${getDayName(formData.pickupTime)} - ${formatTimeAmPm(formData.pickupTime)}`
                           : "Select pickup date and time"}
@@ -923,18 +923,18 @@ export default function BookingForm({ user }) {
                     {isDatePickerOpen && (
                       <div 
                         ref={datePickerRef}
-                        className="absolute z-50 mt-2 w-full bg-white dark:bg-[#1C2C2F] border border-[#DDE5E7] dark:border-[#3F5E63] rounded-md shadow-lg p-4"
+                        className="absolute z-50 mt-2 w-full bg-white dark:bg-[black] border border-[#DDE5E7] dark:border-[#333333] rounded-md shadow-lg p-4"
                       >
                         {/* Header with back button for time view */}
                         <div className="flex justify-between items-center mb-2">
-                          <h4 className="text-[#2E4F54] dark:text-[#E0F4F5] font-medium">
+                          <h4 className="text-[black] dark:text-[white] font-medium">
                             {currentView === 'date' ? 'Select Date' : 'Select Time'}
                           </h4>
                           {currentView === 'time' && (
                             <button 
                               type="button"
                               onClick={() => setCurrentView('date')}
-                              className="text-[#3B5B63] dark:text-[#84CED3] hover:text-[#7CCFD0] flex items-center text-sm"
+                              className="text-[#3B5B63] dark:text-[#84CED3] hover:text-[#5fbfc0] flex items-center text-sm"
                             >
                               <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -959,13 +959,13 @@ export default function BookingForm({ user }) {
                                   className={`
                                     p-2 rounded-md border text-center flex flex-col items-center
                                     ${isSelected 
-                                      ? 'bg-[#7CCFD0]/20 border-[#7CCFD0] text-[#3B5B63] dark:text-[#E0F4F5]' 
-                                      : 'border-[#DDE5E7] dark:border-[#3F5E63] hover:bg-[#F8F9FA] dark:hover:bg-[#24393C]'}
+                                      ? 'bg-[#5fbfc0]/20 border-[#5fbfc0] text-[#3B5B63] dark:text-[white]' 
+                                      : 'border-[#DDE5E7] dark:border-[#333333] hover:bg-[#F8F9FA] dark:hover:bg-[#1A1A1A]'}
                                   `}
                                 >
                                   <span className="text-xs font-medium">{getDayName(date)}</span>
                                   <span className={`text-sm ${isToday ? 'font-bold' : ''}`}>{formatMonthDay(date)}</span>
-                                  {isToday && <span className="text-xs text-[#7CCFD0] mt-1">Today</span>}
+                                  {isToday && <span className="text-xs text-[#5fbfc0] mt-1">Today</span>}
                                 </button>
                               );
                             })}
@@ -975,7 +975,7 @@ export default function BookingForm({ user }) {
                         {/* Time selection view */}
                         {currentView === 'time' && selectedDate && (
                           <div>
-                            <div className="text-sm text-[#2E4F54]/70 dark:text-[#E0F4F5]/70 mb-2">
+                            <div className="text-sm text-[black]/70 dark:text-[white]/70 mb-2">
                               {new Date(selectedDate).toLocaleDateString('en-US', { 
                                 weekday: 'long', 
                                 month: 'long', 
@@ -994,7 +994,7 @@ export default function BookingForm({ user }) {
                                     key={index}
                                     type="button"
                                     onClick={() => handleTimeSelect(slot)}
-                                    className="p-2 rounded-md border border-[#DDE5E7] dark:border-[#3F5E63] hover:bg-[#7CCFD0]/10 text-center"
+                                    className="p-2 rounded-md border border-[#DDE5E7] dark:border-[#333333] hover:bg-[#5fbfc0]/10 text-center"
                                   >
                                     {slot.label}
                                   </button>
@@ -1002,14 +1002,14 @@ export default function BookingForm({ user }) {
                               })}
                             </div>
                             
-                            <div className="text-xs text-[#2E4F54]/60 dark:text-[#E0F4F5]/60 mt-2 italic">
+                            <div className="text-xs text-[black]/60 dark:text-[white]/60 mt-2 italic">
                               All times shown are in your local timezone
                             </div>
                           </div>
                         )}
                         
                         {/* Optional hint for future availability feature */}
-                        <div className="mt-4 pt-2 border-t border-[#DDE5E7] dark:border-[#3F5E63] text-xs text-[#3B5B63] dark:text-[#84CED3]">
+                        <div className="mt-4 pt-2 border-t border-[#DDE5E7] dark:border-[#333333] text-xs text-[#3B5B63] dark:text-[#84CED3]">
                           <p>Select a date and then choose an available time slot</p>
                         </div>
                       </div>
@@ -1020,7 +1020,7 @@ export default function BookingForm({ user }) {
               
               {/* Wheelchair Type */}
               <div>
-                <label htmlFor="wheelchairType" className="block text-sm font-medium text-[#2E4F54] dark:text-[#E0F4F5] mb-1">
+                <label htmlFor="wheelchairType" className="block text-sm font-medium text-[black] dark:text-[white] mb-1">
                   Wheelchair Requirements
                 </label>
                 <div className="relative">
@@ -1029,12 +1029,12 @@ export default function BookingForm({ user }) {
                     name="wheelchairType"
                     value={formData.wheelchairType}
                     onChange={handleChange}
-                    className="w-full appearance-none px-3 py-2 border border-[#DDE5E7] dark:border-[#3F5E63] rounded-md shadow-sm focus:outline-none focus:ring-[#7CCFD0] focus:border-[#7CCFD0] dark:bg-[#1C2C2F] text-[#2E4F54] dark:text-[#E0F4F5] pr-10"
+                    className="w-full appearance-none px-3 py-2 border border-[#DDE5E7] dark:border-[#333333] rounded-md shadow-sm focus:outline-none focus:ring-[#5fbfc0] focus:border-[#5fbfc0] dark:bg-[black] text-[black] dark:text-[white] pr-10"
                   >
                     <option value="no_wheelchair">No Wheelchair</option>
                     <option value="wheelchair">Wheelchair (+$25)</option>
                   </select>
-                  <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-[#2E4F54] dark:text-[#E0F4F5]">
+                  <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-[black] dark:text-[white]">
                     <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
                       <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" />
                     </svg>
@@ -1046,7 +1046,7 @@ export default function BookingForm({ user }) {
               <div className="col-span-1 md:col-span-2 mt-4">
                 <div 
                   ref={mapRef} 
-                  className="w-full h-[300px] rounded-md border border-[#DDE5E7] dark:border-[#3F5E63]"
+                  className="w-full h-[300px] rounded-md border border-[#DDE5E7] dark:border-[#333333]"
                 ></div>
               </div>
               
@@ -1059,18 +1059,18 @@ export default function BookingForm({ user }) {
                     id="isRoundTrip"
                     checked={formData.isRoundTrip}
                     onChange={(e) => setFormData({...formData, isRoundTrip: e.target.checked})}
-                    className="absolute block w-6 h-6 rounded-full bg-white border-4 border-[#DDE5E7] appearance-none cursor-pointer checked:right-0 checked:border-[#7CCFD0] transition-all duration-200 focus:outline-none"
+                    className="absolute block w-6 h-6 rounded-full bg-white border-4 border-[#DDE5E7] appearance-none cursor-pointer checked:right-0 checked:border-[#5fbfc0] transition-all duration-200 focus:outline-none"
                   />
                   <label 
                     htmlFor="isRoundTrip"
-                    className={`block overflow-hidden h-6 rounded-full bg-[#DDE5E7] cursor-pointer ${formData.isRoundTrip ? 'bg-[#7CCFD0]' : ''}`}
+                    className={`block overflow-hidden h-6 rounded-full bg-[#DDE5E7] cursor-pointer ${formData.isRoundTrip ? 'bg-[#5fbfc0]' : ''}`}
                   ></label>
                 </div>
                 <label htmlFor="isRoundTrip" className="text-sm font-medium cursor-pointer">
                   Round Trip
                 </label>
                 {formData.isRoundTrip && (
-                  <span className="ml-2 text-xs text-[#2E4F54] dark:text-[#7CCFD0]">
+                  <span className="ml-2 text-xs text-[black] dark:text-[#5fbfc0]">
                     The vehicle will wait for you and take you back to your pickup location.
                   </span>
                 )}
@@ -1078,9 +1078,9 @@ export default function BookingForm({ user }) {
               
               {/* Return Pickup Time - Only visible for round trips */}
               {formData.isRoundTrip && (
-                <div className="col-span-1 md:col-span-2 pt-4 border-t border-[#DDE5E7] dark:border-[#3F5E63] mt-4">
+                <div className="col-span-1 md:col-span-2 pt-4 border-t border-[#DDE5E7] dark:border-[#333333] mt-4">
                   <div>
-                    <label htmlFor="returnPickupTime" className="block text-sm font-medium text-[#2E4F54] dark:text-[#E0F4F5] mb-1">
+                    <label htmlFor="returnPickupTime" className="block text-sm font-medium text-[black] dark:text-[white] mb-1">
                       Return Pickup Time
                     </label>
                     <div className="relative">
@@ -1088,9 +1088,9 @@ export default function BookingForm({ user }) {
                         type="button"
                         id="returnPickupTime"
                         onClick={openReturnDatePicker}
-                        className="w-full px-3 py-2 border border-[#DDE5E7] dark:border-[#3F5E63] rounded-md shadow-sm focus:outline-none focus:ring-[#7CCFD0] focus:border-[#7CCFD0] dark:bg-[#1C2C2F] text-left flex justify-between items-center"
+                        className="w-full px-3 py-2 border border-[#DDE5E7] dark:border-[#333333] rounded-md shadow-sm focus:outline-none focus:ring-[#5fbfc0] focus:border-[#5fbfc0] dark:bg-[black] text-left flex justify-between items-center"
                       >
-                        <span className={formData.returnPickupTime ? "text-[#2E4F54] dark:text-[#E0F4F5]" : "text-[#2E4F54]/50 dark:text-[#E0F4F5]/50"}>
+                        <span className={formData.returnPickupTime ? "text-[black] dark:text-[white]" : "text-[black]/50 dark:text-[white]/50"}>
                           {formData.returnPickupTime 
                             ? `${formatMonthDay(formData.returnPickupTime)}, ${getDayName(formData.returnPickupTime)} - ${formatTimeAmPm(formData.returnPickupTime)}`
                             : "Select return pickup time"}
@@ -1104,18 +1104,18 @@ export default function BookingForm({ user }) {
                       {isReturnDatePickerOpen && (
                         <div 
                           ref={returnDatePickerRef}
-                          className="absolute z-50 mt-2 w-full bg-white dark:bg-[#1C2C2F] border border-[#DDE5E7] dark:border-[#3F5E63] rounded-md shadow-lg p-4"
+                          className="absolute z-50 mt-2 w-full bg-white dark:bg-[black] border border-[#DDE5E7] dark:border-[#333333] rounded-md shadow-lg p-4"
                         >
                           {/* Header with back button for time view */}
                           <div className="flex justify-between items-center mb-2">
-                            <h4 className="text-[#2E4F54] dark:text-[#E0F4F5] font-medium">
+                            <h4 className="text-[black] dark:text-[white] font-medium">
                               {currentView === 'date' ? 'Select Return Date' : 'Select Return Time'}
                             </h4>
                             {currentView === 'time' && (
                               <button 
                                 type="button"
                                 onClick={() => setCurrentView('date')}
-                                className="text-[#3B5B63] dark:text-[#84CED3] hover:text-[#7CCFD0] flex items-center text-sm"
+                                className="text-[#3B5B63] dark:text-[#84CED3] hover:text-[#5fbfc0] flex items-center text-sm"
                               >
                                 <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -1140,13 +1140,13 @@ export default function BookingForm({ user }) {
                                     className={`
                                       p-2 rounded-md border text-center flex flex-col items-center
                                       ${isSelected 
-                                        ? 'bg-[#7CCFD0]/20 border-[#7CCFD0] text-[#3B5B63] dark:text-[#E0F4F5]' 
-                                        : 'border-[#DDE5E7] dark:border-[#3F5E63] hover:bg-[#F8F9FA] dark:hover:bg-[#24393C]'}
+                                        ? 'bg-[#5fbfc0]/20 border-[#5fbfc0] text-[#3B5B63] dark:text-[white]' 
+                                        : 'border-[#DDE5E7] dark:border-[#333333] hover:bg-[#F8F9FA] dark:hover:bg-[#1A1A1A]'}
                                     `}
                                   >
                                     <span className="text-xs font-medium">{getDayName(date)}</span>
                                     <span className={`text-sm ${isToday ? 'font-bold' : ''}`}>{formatMonthDay(date)}</span>
-                                    {isToday && <span className="text-xs text-[#7CCFD0] mt-1">Today</span>}
+                                    {isToday && <span className="text-xs text-[#5fbfc0] mt-1">Today</span>}
                                   </button>
                                 );
                               })}
@@ -1156,7 +1156,7 @@ export default function BookingForm({ user }) {
                           {/* Time selection view */}
                           {currentView === 'time' && selectedReturnDate && (
                             <div>
-                              <div className="text-sm text-[#2E4F54]/70 dark:text-[#E0F4F5]/70 mb-2">
+                              <div className="text-sm text-[black]/70 dark:text-[white]/70 mb-2">
                                 {new Date(selectedReturnDate).toLocaleDateString('en-US', { 
                                   weekday: 'long', 
                                   month: 'long', 
@@ -1172,7 +1172,7 @@ export default function BookingForm({ user }) {
                                       key={index}
                                       type="button"
                                       onClick={() => handleTimeSelect(slot, true)}
-                                      className="p-2 rounded-md border border-[#DDE5E7] dark:border-[#3F5E63] hover:bg-[#7CCFD0]/10 text-center"
+                                      className="p-2 rounded-md border border-[#DDE5E7] dark:border-[#333333] hover:bg-[#5fbfc0]/10 text-center"
                                     >
                                       {slot.label}
                                     </button>
@@ -1180,14 +1180,14 @@ export default function BookingForm({ user }) {
                                 })}
                               </div>
                               
-                              <div className="text-xs text-[#2E4F54]/60 dark:text-[#E0F4F5]/60 mt-2 italic">
+                              <div className="text-xs text-[black]/60 dark:text-[white]/60 mt-2 italic">
                                 All times shown are in your local timezone
                               </div>
                             </div>
                           )}
                           
                           {/* Optional hint */}
-                          <div className="mt-4 pt-2 border-t border-[#DDE5E7] dark:border-[#3F5E63] text-xs text-[#3B5B63] dark:text-[#84CED3]">
+                          <div className="mt-4 pt-2 border-t border-[#DDE5E7] dark:border-[#333333] text-xs text-[#3B5B63] dark:text-[#84CED3]">
                             <p>Select a date and then choose an available time slot for your return trip</p>
                           </div>
                         </div>
@@ -1197,14 +1197,14 @@ export default function BookingForm({ user }) {
                 </div>
               )}
 
-              <div className="col-span-1 md:col-span-2 border-t border-[#DDE5E7] dark:border-[#3F5E63] pt-4">
-                <h3 className="text-md font-medium text-[#2E4F54] dark:text-[#E0F4F5] mb-2">Ride Details</h3>
+              <div className="col-span-1 md:col-span-2 border-t border-[#DDE5E7] dark:border-[#333333] pt-4">
+                <h3 className="text-md font-medium text-[black] dark:text-[white] mb-2">Ride Details</h3>
                 
                 <div className="grid grid-cols-2 gap-4 mb-4">
                   <div>
-                    <p className="text-sm text-[#2E4F54]/70 dark:text-[#E0F4F5]/70">Pickup Time</p>
+                    <p className="text-sm text-[black]/70 dark:text-[white]/70">Pickup Time</p>
                     {formData.pickupTime ? (
-                      <p className="font-medium text-[#2E4F54] dark:text-[#E0F4F5]">
+                      <p className="font-medium text-[black] dark:text-[white]">
                         {new Date(formData.pickupTime).toLocaleDateString('en-US', { 
                           weekday: 'short', 
                           month: 'short', 
@@ -1212,16 +1212,16 @@ export default function BookingForm({ user }) {
                         })}, {formatTimeAmPm(formData.pickupTime)}
                       </p>
                     ) : (
-                      <p className="font-medium text-[#2E4F54]/50 dark:text-[#E0F4F5]/50">Select a time</p>
+                      <p className="font-medium text-[black]/50 dark:text-[white]/50">Select a time</p>
                     )}
                   </div>
                   
                   {/* Return Pickup Time - Only show in summary if round trip is selected */}
                   {formData.isRoundTrip && (
                     <div>
-                      <p className="text-sm text-[#2E4F54]/70 dark:text-[#E0F4F5]/70">Return Pickup Time</p>
+                      <p className="text-sm text-[black]/70 dark:text-[white]/70">Return Pickup Time</p>
                       {formData.returnPickupTime ? (
-                        <p className="font-medium text-[#2E4F54] dark:text-[#E0F4F5]">
+                        <p className="font-medium text-[black] dark:text-[white]">
                           {new Date(formData.returnPickupTime).toLocaleDateString('en-US', { 
                             weekday: 'short', 
                             month: 'short', 
@@ -1229,84 +1229,84 @@ export default function BookingForm({ user }) {
                           })}, {formatTimeAmPm(formData.returnPickupTime)}
                         </p>
                       ) : (
-                        <p className="font-medium text-[#2E4F54]/50 dark:text-[#E0F4F5]/50">Select a time</p>
+                        <p className="font-medium text-[black]/50 dark:text-[white]/50">Select a time</p>
                       )}
                     </div>
                   )}
                   
                   <div className="col-span-2">
-                    <p className="text-sm text-[#2E4F54]/70 dark:text-[#E0F4F5]/70">Estimated Fare</p>
+                    <p className="text-sm text-[black]/70 dark:text-[white]/70">Estimated Fare</p>
                     {pickupLocation && destinationLocation ? (
                       <div>
-                        <p className="font-medium text-[#2E4F54] dark:text-[#E0F4F5] text-lg">
+                        <p className="font-medium text-[black] dark:text-[white] text-lg">
                           {estimatedFare ? `$${estimatedFare.toFixed(2)}` : 'Calculating...'}
                         </p>
                         
                         {/* Pricing Breakdown */}
                         {pricingBreakdown && (
-                          <div className="mt-3 p-3 bg-[#F8F9FA] dark:bg-[#1C2C2F] rounded-md border border-[#DDE5E7] dark:border-[#3F5E63]">
-                            <p className="text-xs font-medium text-[#2E4F54] dark:text-[#E0F4F5] mb-2">Pricing Breakdown:</p>
+                          <div className="mt-3 p-3 bg-[#F8F9FA] dark:bg-[black] rounded-md border border-[#DDE5E7] dark:border-[#333333]">
+                            <p className="text-xs font-medium text-[black] dark:text-[white] mb-2">Pricing Breakdown:</p>
                             <div className="space-y-1 text-xs">
                               <div className="flex justify-between">
-                                <span className="text-[#2E4F54]/70 dark:text-[#E0F4F5]/70">Base fare ({formData.isRoundTrip ? 'round trip' : 'one-way'}):</span>
-                                <span className="text-[#2E4F54] dark:text-[#E0F4F5]">${pricingBreakdown.baseRate.toFixed(2)}</span>
+                                <span className="text-[black]/70 dark:text-[white]/70">Base fare ({formData.isRoundTrip ? 'round trip' : 'one-way'}):</span>
+                                <span className="text-[black] dark:text-[white]">${pricingBreakdown.baseRate.toFixed(2)}</span>
                               </div>
                               <div className="flex justify-between">
-                                <span className="text-[#2E4F54]/70 dark:text-[#E0F4F5]/70">Mileage ({pricingBreakdown.totalMiles.toFixed(1)} miles × ${pricingBreakdown.mileageRate}/mi):</span>
-                                <span className="text-[#2E4F54] dark:text-[#E0F4F5]">${pricingBreakdown.mileageCharge.toFixed(2)}</span>
+                                <span className="text-[black]/70 dark:text-[white]/70">Mileage ({pricingBreakdown.totalMiles.toFixed(1)} miles × ${pricingBreakdown.mileageRate}/mi):</span>
+                                <span className="text-[black] dark:text-[white]">${pricingBreakdown.mileageCharge.toFixed(2)}</span>
                               </div>
                               {pricingBreakdown.weekendAdjustment > 0 && (
                                 <div className="flex justify-between">
-                                  <span className="text-[#2E4F54]/70 dark:text-[#E0F4F5]/70">Weekend premium:</span>
-                                  <span className="text-[#2E4F54] dark:text-[#E0F4F5]">+${pricingBreakdown.weekendAdjustment.toFixed(2)}</span>
+                                  <span className="text-[black]/70 dark:text-[white]/70">Weekend premium:</span>
+                                  <span className="text-[black] dark:text-[white]">+${pricingBreakdown.weekendAdjustment.toFixed(2)}</span>
                                 </div>
                               )}
                               {pricingBreakdown.offHoursAdjustment > 0 && (
                                 <div className="flex justify-between">
-                                  <span className="text-[#2E4F54]/70 dark:text-[#E0F4F5]/70">Off-hours premium:</span>
-                                  <span className="text-[#2E4F54] dark:text-[#E0F4F5]">+${pricingBreakdown.offHoursAdjustment.toFixed(2)}</span>
+                                  <span className="text-[black]/70 dark:text-[white]/70">Off-hours premium:</span>
+                                  <span className="text-[black] dark:text-[white]">+${pricingBreakdown.offHoursAdjustment.toFixed(2)}</span>
                                 </div>
                               )}
                               {pricingBreakdown.wheelchairAdjustment > 0 && (
                                 <div className="flex justify-between">
-                                  <span className="text-[#2E4F54]/70 dark:text-[#E0F4F5]/70">Wheelchair accessibility:</span>
-                                  <span className="text-[#2E4F54] dark:text-[#E0F4F5]">+${pricingBreakdown.wheelchairAdjustment.toFixed(2)}</span>
+                                  <span className="text-[black]/70 dark:text-[white]/70">Wheelchair accessibility:</span>
+                                  <span className="text-[black] dark:text-[white]">+${pricingBreakdown.wheelchairAdjustment.toFixed(2)}</span>
                                 </div>
                               )}
-                              <div className="flex justify-between pt-1 mt-1 border-t border-[#DDE5E7] dark:border-[#3F5E63]">
-                                <span className="text-[#2E4F54]/70 dark:text-[#E0F4F5]/70">Subtotal:</span>
-                                <span className="text-[#2E4F54] dark:text-[#E0F4F5]">${pricingBreakdown.subtotal.toFixed(2)}</span>
+                              <div className="flex justify-between pt-1 mt-1 border-t border-[#DDE5E7] dark:border-[#333333]">
+                                <span className="text-[black]/70 dark:text-[white]/70">Subtotal:</span>
+                                <span className="text-[black] dark:text-[white]">${pricingBreakdown.subtotal.toFixed(2)}</span>
                               </div>
-                              <div className="flex justify-between text-[#7CCFD0]">
+                              <div className="flex justify-between text-[#5fbfc0]">
                                 <span>{profileData?.is_veteran ? 'Veteran discount (20%)' : 'Individual discount (10%)'}:</span>
                                 <span>- ${pricingBreakdown.discountAmount.toFixed(2)}</span>
                               </div>
-                              <div className="flex justify-between pt-1 mt-1 border-t border-[#DDE5E7] dark:border-[#3F5E63] font-medium text-sm">
-                                <span className="text-[#2E4F54] dark:text-[#E0F4F5]">Total:</span>
-                                <span className="text-[#2E4F54] dark:text-[#E0F4F5]">${pricingBreakdown.finalPrice.toFixed(2)}</span>
+                              <div className="flex justify-between pt-1 mt-1 border-t border-[#DDE5E7] dark:border-[#333333] font-medium text-sm">
+                                <span className="text-[black] dark:text-[white]">Total:</span>
+                                <span className="text-[black] dark:text-[white]">${pricingBreakdown.finalPrice.toFixed(2)}</span>
                               </div>
                             </div>
                           </div>
                         )}
                       </div>
                     ) : (
-                      <p className="font-medium text-[#2E4F54]/50 dark:text-[#E0F4F5]/50">Enter addresses</p>
+                      <p className="font-medium text-[black]/50 dark:text-[white]/50">Enter addresses</p>
                     )}
                   </div>
                   
                   <div>
-                    <p className="text-sm text-[#2E4F54]/70 dark:text-[#E0F4F5]/70">Estimated Duration</p>
+                    <p className="text-sm text-[black]/70 dark:text-[white]/70">Estimated Duration</p>
                     {pickupLocation && destinationLocation ? (
-                      <p className="font-medium text-[#2E4F54] dark:text-[#E0F4F5]">{formData.isRoundTrip ? `${estimatedDuration} × 2` : estimatedDuration}</p>
+                      <p className="font-medium text-[black] dark:text-[white]">{formData.isRoundTrip ? `${estimatedDuration} × 2` : estimatedDuration}</p>
                     ) : (
-                      <p className="font-medium text-[#2E4F54]/50 dark:text-[#E0F4F5]/50">Enter addresses</p>
+                      <p className="font-medium text-[black]/50 dark:text-[white]/50">Enter addresses</p>
                     )}
                   </div>
                   
                   <div>
-                    <p className="text-sm text-[#2E4F54]/70 dark:text-[#E0F4F5]/70">Distance</p>
+                    <p className="text-sm text-[black]/70 dark:text-[white]/70">Distance</p>
                     {pickupLocation && destinationLocation ? (
-                      <p className="font-medium text-[#2E4F54] dark:text-[#E0F4F5]">
+                      <p className="font-medium text-[black] dark:text-[white]">
                         {distanceMiles > 0 ? (
                           formData.isRoundTrip 
                             ? `${(distanceMiles * 2).toFixed(1)} miles (${distanceMiles.toFixed(1)} each way)`
@@ -1314,15 +1314,15 @@ export default function BookingForm({ user }) {
                         ) : 'Calculating...'}
                       </p>
                     ) : (
-                      <p className="font-medium text-[#2E4F54]/50 dark:text-[#E0F4F5]/50">Enter addresses</p>
+                      <p className="font-medium text-[black]/50 dark:text-[white]/50">Enter addresses</p>
                     )}
                   </div>
                   
                   {/* For round trips, show wait time between pickup and return */}
                   {formData.isRoundTrip && formData.pickupTime && formData.returnPickupTime && (
                     <div>
-                      <p className="text-sm text-[#2E4F54]/70 dark:text-[#E0F4F5]/70">Wait Time</p>
-                      <p className="font-medium text-[#2E4F54] dark:text-[#E0F4F5]">
+                      <p className="text-sm text-[black]/70 dark:text-[white]/70">Wait Time</p>
+                      <p className="font-medium text-[black] dark:text-[white]">
                         {(() => {
                           const pickupTime = new Date(formData.pickupTime);
                           const returnTime = new Date(formData.returnPickupTime);
@@ -1343,24 +1343,24 @@ export default function BookingForm({ user }) {
                   )}
                 </div>
                 
-                <div className="bg-[#7CCFD0]/10 dark:bg-[#7CCFD0]/20 p-3 rounded-md text-sm mb-4">
-                  <p className="text-[#2E4F54] dark:text-[#E0F4F5]">
+                <div className="bg-[#5fbfc0]/10 dark:bg-[#5fbfc0]/20 p-3 rounded-md text-sm mb-4">
+                  <p className="text-[black] dark:text-[white]">
                     <strong>Note:</strong> Your ride request will be reviewed and approved by a dispatcher. Once approved, it will be assigned to a compassionate driver who specializes in supportive transportation.
                   </p>
-                  <p className="text-[#2E4F54] dark:text-[#E0F4F5] mt-2">
+                  <p className="text-[black] dark:text-[white] mt-2">
                     <strong>Discount:</strong> {profileData?.is_veteran
                       ? (
-                        <>Thank you for your service! As a veteran, you receive a <span className="text-[#7CCFD0] font-semibold">20% discount</span> on all rides.</>
+                        <>Thank you for your service! As a veteran, you receive a <span className="text-[#5fbfc0] font-semibold">20% discount</span> on all rides.</>
                       )
                       : (
-                        <>A <span className="text-[#7CCFD0] font-semibold">10% discount</span> is automatically applied to all individual rides. Veterans receive a 20% discount.</>
+                        <>A <span className="text-[#5fbfc0] font-semibold">10% discount</span> is automatically applied to all individual rides. Veterans receive a 20% discount.</>
                     )}
                   </p>
-                  <p className="text-[#2E4F54] dark:text-[#E0F4F5] mt-2">
+                  <p className="text-[black] dark:text-[white] mt-2">
                     <strong>Cancellation Policy:</strong> You may cancel without penalty up until the day of the ride. Same-day cancellations will be charged the base fare only.
                   </p>
                   {formData.isRoundTrip && (
-                    <p className="text-[#2E4F54] dark:text-[#E0F4F5] mt-2">
+                    <p className="text-[black] dark:text-[white] mt-2">
                       <strong>Round Trip:</strong> Your driver will wait at the destination and bring you back to your pickup location.
                     </p>
                   )}
@@ -1371,43 +1371,43 @@ export default function BookingForm({ user }) {
               <div className="col-span-1 md:col-span-2 mb-8">
                 <div className="space-y-4">
                   <div className="flex justify-between items-center">
-                    <label className="block text-sm font-medium text-[#2E4F54] dark:text-[#E0F4F5]">
+                    <label className="block text-sm font-medium text-[black] dark:text-[white]">
                       Payment Method
                     </label>
                   </div>
                   
                   {paymentMethodsLoading ? (
-                    <div className="flex items-center justify-center py-8 border-2 border-dashed border-[#DDE5E7] dark:border-[#3F5E63] rounded-lg">
-                      <svg className="animate-spin h-6 w-6 text-[#7CCFD0] mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <div className="flex items-center justify-center py-8 border-2 border-dashed border-[#DDE5E7] dark:border-[#333333] rounded-lg">
+                      <svg className="animate-spin h-6 w-6 text-[#5fbfc0] mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                         <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                       </svg>
-                      <span className="text-[#2E4F54]/70 dark:text-[#E0F4F5]/70">Loading payment methods...</span>
+                      <span className="text-[black]/70 dark:text-[white]/70">Loading payment methods...</span>
                     </div>
                   ) : defaultPaymentMethod ? (
-                    <div className="bg-[#F8F9FA] dark:bg-[#24393C] border border-[#DDE5E7] dark:border-[#3F5E63] rounded-lg p-4">
+                    <div className="bg-[#F8F9FA] dark:bg-[#1A1A1A] border border-[#DDE5E7] dark:border-[#333333] rounded-lg p-4">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center space-x-3">
                           <div className="text-xl">💳</div>
                           <div>
-                            <p className="font-medium text-[#2E4F54] dark:text-[#E0F4F5] text-sm">
+                            <p className="font-medium text-[black] dark:text-[white] text-sm">
                               Default Payment Method
                             </p>
-                            <p className="text-sm text-[#2E4F54]/70 dark:text-[#E0F4F5]/70">
+                            <p className="text-sm text-[black]/70 dark:text-[white]/70">
                               {getCardBrandDisplay(defaultPaymentMethod.card.brand)} {formatCardNumber(defaultPaymentMethod.card.last4)}
                             </p>
                           </div>
                         </div>
                         <div className="text-right">
-                          <div className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-[#7CCFD0]/10 text-[#2E4F54] dark:text-[#E0F4F5]">
+                          <div className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-[#5fbfc0]/10 text-[black] dark:text-[white]">
                             ✓ Default
                           </div>
                         </div>
                       </div>
                       
-                      <div className="mt-3 pt-3 border-t border-[#DDE5E7] dark:border-[#3F5E63]">
-                        <div className="bg-[#7CCFD0]/10 dark:bg-[#7CCFD0]/20 p-3 rounded-md">
-                          <p className="text-sm text-[#2E4F54] dark:text-[#E0F4F5]">
+                      <div className="mt-3 pt-3 border-t border-[#DDE5E7] dark:border-[#333333]">
+                        <div className="bg-[#5fbfc0]/10 dark:bg-[#5fbfc0]/20 p-3 rounded-md">
+                          <p className="text-sm text-[black] dark:text-[white]">
                             <strong>Payment Notice:</strong> Your card ending in {defaultPaymentMethod.card.last4} will be charged after your booking is approved by our dispatchers. You will not be charged immediately upon booking submission.
                           </p>
                         </div>
@@ -1415,7 +1415,7 @@ export default function BookingForm({ user }) {
                         <div className="mt-3 text-center">
                           <a 
                             href="/dashboard/payment-methods"
-                            className="text-sm text-[#7CCFD0] hover:text-[#60BFC0] font-medium inline-flex items-center"
+                            className="text-sm text-[#5fbfc0] hover:text-[#4aa5a6] font-medium inline-flex items-center"
                           >
                             <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.349 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.349a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.349 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.349a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
@@ -1427,17 +1427,17 @@ export default function BookingForm({ user }) {
                       </div>
                     </div>
                   ) : (
-                    <div className="text-center py-8 border-2 border-dashed border-[#DDE5E7] dark:border-[#3F5E63] rounded-lg">
-                      <svg className="mx-auto h-12 w-12 text-[#7CCFD0]/50 dark:text-[#7CCFD0]/40 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <div className="text-center py-8 border-2 border-dashed border-[#DDE5E7] dark:border-[#333333] rounded-lg">
+                      <svg className="mx-auto h-12 w-12 text-[#5fbfc0]/50 dark:text-[#5fbfc0]/40 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
                       </svg>
-                      <h4 className="text-lg font-medium text-[#2E4F54] dark:text-[#E0F4F5] mb-2">Payment Method Required</h4>
-                      <p className="text-sm text-[#2E4F54]/70 dark:text-[#E0F4F5]/70 mb-4 max-w-md mx-auto">
+                      <h4 className="text-lg font-medium text-[black] dark:text-[white] mb-2">Payment Method Required</h4>
+                      <p className="text-sm text-[black]/70 dark:text-[white]/70 mb-4 max-w-md mx-auto">
                         Please add a payment method to your account before booking a ride. You will not be charged immediately and will only be charged once your booking is approved by our dispatchers.
                       </p>
                       <a 
                         href="/dashboard/payment-methods"
-                        className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-[#7CCFD0] hover:bg-[#60BFC0] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#7CCFD0]"
+                        className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-[#5fbfc0] hover:bg-[#4aa5a6] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#5fbfc0]"
                       >
                         <svg className="-ml-1 mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
@@ -1452,24 +1452,24 @@ export default function BookingForm({ user }) {
               <button
                 type="submit"
                 disabled={isLoading || !defaultPaymentMethod || paymentMethodsLoading}
-                className="w-full py-3 px-4 bg-[#7CCFD0] hover:bg-[#60BFC0] text-white dark:text-[#1C2C2F] font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#7CCFD0] disabled:opacity-50 disabled:cursor-not-allowed relative overflow-hidden mt-4"
+                className="w-full py-3 px-4 bg-[#5fbfc0] hover:bg-[#4aa5a6] text-white dark:text-[black] font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#5fbfc0] disabled:opacity-50 disabled:cursor-not-allowed relative overflow-hidden mt-4"
               >
                 {bookingStatus === 'loading' && (
-                  <span className="absolute inset-0 flex items-center justify-center bg-[#7CCFD0]">
-                    <svg className="animate-spin h-5 w-5 text-white dark:text-[#1C2C2F]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <span className="absolute inset-0 flex items-center justify-center bg-[#5fbfc0]">
+                    <svg className="animate-spin h-5 w-5 text-white dark:text-[black]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                     </svg>
                   </span>
                 )}
                 {bookingStatus === 'submitting' && (
-                  <span className="absolute inset-0 flex items-center justify-center bg-[#7CCFD0]">
+                  <span className="absolute inset-0 flex items-center justify-center bg-[#5fbfc0]">
                     <div className="flex items-center space-x-2">
-                      <svg className="animate-spin h-5 w-5 text-white dark:text-[#1C2C2F]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <svg className="animate-spin h-5 w-5 text-white dark:text-[black]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                         <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                       </svg>
-                      <span className="text-white dark:text-[#1C2C2F]">Booking your trip...</span>
+                      <span className="text-white dark:text-[black]">Booking your trip...</span>
                     </div>
                   </span>
                 )}
@@ -1481,9 +1481,9 @@ export default function BookingForm({ user }) {
           </form>
 
           {success && (
-            <div className="bg-[#7CCFD0]/20 dark:bg-[#7CCFD0]/30 text-[#2E4F54] dark:text-[#E0F4F5] p-4 rounded mb-6">
+            <div className="bg-[#5fbfc0]/20 dark:bg-[#5fbfc0]/30 text-[black] dark:text-[white] p-4 rounded mb-6">
               <div className="flex items-center">
-                <svg className="w-6 h-6 text-[#3B5B63] dark:text-[#7CCFD0] mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <svg className="w-6 h-6 text-[#3B5B63] dark:text-[#5fbfc0] mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
                 </svg>
                 <span>Your trip request has been submitted successfully! It is pending dispatcher approval. Redirecting to your trips...</span>

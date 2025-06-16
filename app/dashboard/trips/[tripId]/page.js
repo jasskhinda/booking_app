@@ -185,7 +185,7 @@ export default function TripDetailsPage() {
       case 'in_progress':
         return 'status-in-progress';
       default:
-        return 'bg-gray-100 text-[#2E4F54] dark:bg-gray-800 dark:text-[#E0F4F5]';
+        return 'bg-gray-100 text-[black] dark:bg-gray-800 dark:text-[white]';
     }
   };
 
@@ -193,7 +193,7 @@ export default function TripDetailsPage() {
     return (
       <DashboardLayout user={null} activeTab="trips">
         <div className="flex justify-center items-center h-64">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#7CCFD0]"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#5fbfc0]"></div>
         </div>
       </DashboardLayout>
     );
@@ -204,10 +204,10 @@ export default function TripDetailsPage() {
       <DashboardLayout user={user} activeTab="trips">
         <div className="bg-[#F8F9FA] dark:bg-[#24393C] rounded-lg shadow-md border border-[#DDE5E7] dark:border-[#3F5E63] p-6">
           <div className="flex justify-between items-center mb-6">
-            <h2 className="text-xl font-semibold text-[#2E4F54] dark:text-[#E0F4F5]">Trip Details</h2>
+            <h2 className="text-xl font-semibold text-[black] dark:text-[white]">Trip Details</h2>
             <Link 
               href="/dashboard/trips" 
-              className="text-[#7CCFD0] hover:text-[#60BFC0]"
+              className="text-[#5fbfc0] hover:text-[#60BFC0]"
             >
               Back to All Trips
             </Link>
@@ -217,7 +217,7 @@ export default function TripDetailsPage() {
             <p>{error}</p>
             <button 
               onClick={() => window.location.reload()} 
-              className="mt-3 px-4 py-2 bg-[#7CCFD0] text-white rounded-md hover:bg-[#60BFC0]"
+              className="mt-3 px-4 py-2 bg-[#5fbfc0] text-white rounded-md hover:bg-[#60BFC0]"
             >
               Try Again
             </button>
@@ -232,10 +232,10 @@ export default function TripDetailsPage() {
       <DashboardLayout user={user} activeTab="trips">
         <div className="bg-[#F8F9FA] dark:bg-[#24393C] rounded-lg shadow-md border border-[#DDE5E7] dark:border-[#3F5E63] p-6">
           <div className="flex justify-between items-center mb-6">
-            <h2 className="text-xl font-semibold text-[#2E4F54] dark:text-[#E0F4F5]">Trip Details</h2>
+            <h2 className="text-xl font-semibold text-[black] dark:text-[white]">Trip Details</h2>
             <Link 
               href="/dashboard/trips" 
-              className="text-[#7CCFD0] hover:text-[#60BFC0]"
+              className="text-[#5fbfc0] hover:text-[#60BFC0]"
             >
               Back to All Trips
             </Link>
@@ -253,10 +253,10 @@ export default function TripDetailsPage() {
     <DashboardLayout user={user} activeTab="trips">
       <div className="bg-[#F8F9FA] dark:bg-[#24393C] rounded-lg shadow-md border border-[#DDE5E7] dark:border-[#3F5E63] p-6">
         <div className="flex justify-between items-center mb-6">
-          <h2 className="text-xl font-semibold text-[#2E4F54] dark:text-[#E0F4F5]">Trip Details</h2>
+          <h2 className="text-xl font-semibold text-[black] dark:text-[white]">Trip Details</h2>
           <Link 
             href="/dashboard/trips" 
-            className="text-[#7CCFD0] hover:text-[#60BFC0] flex items-center"
+            className="text-[#5fbfc0] hover:text-[#60BFC0] flex items-center"
           >
             <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
@@ -266,7 +266,7 @@ export default function TripDetailsPage() {
         </div>
         
         {successMessage && (
-          <div className="p-4 mb-6 rounded-md bg-[#7CCFD0]/20 text-[#2E4F54] dark:bg-[#7CCFD0]/30 dark:text-[#E0F4F5]">
+          <div className="p-4 mb-6 rounded-md bg-[#5fbfc0]/20 text-[black] dark:bg-[#5fbfc0]/30 dark:text-[white]">
             {successMessage}
           </div>
         )}
@@ -279,60 +279,60 @@ export default function TripDetailsPage() {
              trip.status === 'completed' ? 'Completed' : 
              trip.status === 'in_progress' ? 'In Progress' : 'Cancelled'}
           </span>
-          <p className="mt-2 text-sm text-[#2E4F54]/70 dark:text-[#E0F4F5]/70">
+          <p className="mt-2 text-sm text-[black]/70 dark:text-[white]/70">
             Trip ID: {trip.id}
           </p>
         </div>
         
         {/* Trip Details Card */}
         <div className="bg-white dark:bg-[#1C2C2F] rounded-lg p-5 shadow-sm border border-[#DDE5E7] dark:border-[#3F5E63] mb-6">
-          <h3 className="text-lg font-medium mb-4 text-[#2E4F54] dark:text-[#E0F4F5]">Trip Information</h3>
+          <h3 className="text-lg font-medium mb-4 text-[black] dark:text-[white]">Trip Information</h3>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <p className="text-sm font-medium text-[#2E4F54] dark:text-[#E0F4F5]">Pickup Time</p>
-              <p className="text-sm text-[#2E4F54]/90 dark:text-[#E0F4F5]/90">{formatDate(trip.pickup_time)}</p>
+              <p className="text-sm font-medium text-[black] dark:text-[white]">Pickup Time</p>
+              <p className="text-sm text-[black]/90 dark:text-[white]/90">{formatDate(trip.pickup_time)}</p>
             </div>
             
             <div>
-              <p className="text-sm font-medium text-[#2E4F54] dark:text-[#E0F4F5]">Booking Date</p>
-              <p className="text-sm text-[#2E4F54]/90 dark:text-[#E0F4F5]/90">{formatDate(trip.created_at)}</p>
+              <p className="text-sm font-medium text-[black] dark:text-[white]">Booking Date</p>
+              <p className="text-sm text-[black]/90 dark:text-[white]/90">{formatDate(trip.created_at)}</p>
             </div>
             
             <div>
-              <p className="text-sm font-medium text-[#2E4F54] dark:text-[#E0F4F5]">From</p>
-              <p className="text-sm text-[#2E4F54]/90 dark:text-[#E0F4F5]/90">{trip.pickup_address}</p>
+              <p className="text-sm font-medium text-[black] dark:text-[white]">From</p>
+              <p className="text-sm text-[black]/90 dark:text-[white]/90">{trip.pickup_address}</p>
             </div>
             
             <div>
-              <p className="text-sm font-medium text-[#2E4F54] dark:text-[#E0F4F5]">To</p>
-              <p className="text-sm text-[#2E4F54]/90 dark:text-[#E0F4F5]/90">{trip.destination_address}</p>
+              <p className="text-sm font-medium text-[black] dark:text-[white]">To</p>
+              <p className="text-sm text-[black]/90 dark:text-[white]/90">{trip.destination_address}</p>
             </div>
             
             <div>
-              <p className="text-sm font-medium text-[#2E4F54] dark:text-[#E0F4F5]">Wheelchair Required</p>
-              <p className="text-sm text-[#2E4F54]/90 dark:text-[#E0F4F5]/90">
+              <p className="text-sm font-medium text-[black] dark:text-[white]">Wheelchair Required</p>
+              <p className="text-sm text-[black]/90 dark:text-[white]/90">
                 {trip.wheelchair_type === 'wheelchair' ? 'Yes' : 'No'}
               </p>
             </div>
             
             <div>
-              <p className="text-sm font-medium text-[#2E4F54] dark:text-[#E0F4F5]">Round Trip</p>
-              <p className="text-sm text-[#2E4F54]/90 dark:text-[#E0F4F5]/90">
+              <p className="text-sm font-medium text-[black] dark:text-[white]">Round Trip</p>
+              <p className="text-sm text-[black]/90 dark:text-[white]/90">
                 {trip.is_round_trip ? 'Yes' : 'No'}
               </p>
             </div>
             
             {trip.distance && (
               <div>
-                <p className="text-sm font-medium text-[#2E4F54] dark:text-[#E0F4F5]">Distance</p>
-                <p className="text-sm text-[#2E4F54]/90 dark:text-[#E0F4F5]/90">{trip.distance} miles</p>
+                <p className="text-sm font-medium text-[black] dark:text-[white]">Distance</p>
+                <p className="text-sm text-[black]/90 dark:text-[white]/90">{trip.distance} miles</p>
               </div>
             )}
             
             <div>
-              <p className="text-sm font-medium text-[#2E4F54] dark:text-[#E0F4F5]">Price</p>
-              <p className="text-sm text-[#2E4F54]/90 dark:text-[#E0F4F5]/90">${trip.price?.toFixed(2) || 'N/A'}</p>
+              <p className="text-sm font-medium text-[black] dark:text-[white]">Price</p>
+              <p className="text-sm text-[black]/90 dark:text-[white]/90">${trip.price?.toFixed(2) || 'N/A'}</p>
             </div>
           </div>
         </div>
@@ -340,12 +340,12 @@ export default function TripDetailsPage() {
         {/* Driver Information (if assigned) */}
         {(trip.driver_id || trip.driver) && (
           <div className="bg-white dark:bg-[#1C2C2F] rounded-lg p-5 shadow-sm border border-[#DDE5E7] dark:border-[#3F5E63] mb-6">
-            <h3 className="text-lg font-medium mb-4 text-[#2E4F54] dark:text-[#E0F4F5]">Driver Information</h3>
+            <h3 className="text-lg font-medium mb-4 text-[black] dark:text-[white]">Driver Information</h3>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <p className="text-sm font-medium text-[#2E4F54] dark:text-[#E0F4F5]">Driver Name</p>
-                <p className="text-sm text-[#2E4F54]/90 dark:text-[#E0F4F5]/90">
+                <p className="text-sm font-medium text-[black] dark:text-[white]">Driver Name</p>
+                <p className="text-sm text-[black]/90 dark:text-[white]/90">
                   {trip.driver 
                     ? (trip.driver.profile?.full_name || `${trip.driver.profile?.first_name || ''} ${trip.driver.profile?.last_name || ''}`.trim() || trip.driver_name || trip.driver.email) 
                     : (trip.driver_name || 'Not assigned')
@@ -354,14 +354,14 @@ export default function TripDetailsPage() {
               </div>
               
               <div>
-                <p className="text-sm font-medium text-[#2E4F54] dark:text-[#E0F4F5]">Vehicle</p>
-                <p className="text-sm text-[#2E4F54]/90 dark:text-[#E0F4F5]/90">{trip.vehicle || 'Not available'}</p>
+                <p className="text-sm font-medium text-[black] dark:text-[white]">Vehicle</p>
+                <p className="text-sm text-[black]/90 dark:text-[white]/90">{trip.vehicle || 'Not available'}</p>
               </div>
               
               {trip.driver?.profile?.phone_number && (
                 <div>
-                  <p className="text-sm font-medium text-[#2E4F54] dark:text-[#E0F4F5]">Contact</p>
-                  <p className="text-sm text-[#2E4F54]/90 dark:text-[#E0F4F5]/90">{trip.driver.profile.phone_number}</p>
+                  <p className="text-sm font-medium text-[black] dark:text-[white]">Contact</p>
+                  <p className="text-sm text-[black]/90 dark:text-[white]/90">{trip.driver.profile.phone_number}</p>
                 </div>
               )}
             </div>
@@ -371,7 +371,7 @@ export default function TripDetailsPage() {
         {/* Status-specific sections */}
         {trip.status === 'completed' && trip.rating && (
           <div className="bg-white dark:bg-[#1C2C2F] rounded-lg p-5 shadow-sm border border-[#DDE5E7] dark:border-[#3F5E63] mb-6">
-            <h3 className="text-lg font-medium mb-4 text-[#2E4F54] dark:text-[#E0F4F5]">Your Rating</h3>
+            <h3 className="text-lg font-medium mb-4 text-[black] dark:text-[white]">Your Rating</h3>
             
             <div className="flex items-center mb-3">
               <div className="flex items-center">
@@ -386,13 +386,13 @@ export default function TripDetailsPage() {
                   </svg>
                 ))}
               </div>
-              <span className="ml-2 text-sm text-[#2E4F54] dark:text-[#E0F4F5]">{trip.rating} out of 5</span>
+              <span className="ml-2 text-sm text-[black] dark:text-[white]">{trip.rating} out of 5</span>
             </div>
             
             {trip.review && (
               <div>
-                <p className="text-sm font-medium text-[#2E4F54] dark:text-[#E0F4F5]">Your Review</p>
-                <p className="text-sm text-[#2E4F54]/90 dark:text-[#E0F4F5]/90">{trip.review}</p>
+                <p className="text-sm font-medium text-[black] dark:text-[white]">Your Review</p>
+                <p className="text-sm text-[black]/90 dark:text-[white]/90">{trip.review}</p>
               </div>
             )}
           </div>
@@ -400,19 +400,19 @@ export default function TripDetailsPage() {
         
         {trip.status === 'cancelled' && (
           <div className="bg-white dark:bg-[#1C2C2F] rounded-lg p-5 shadow-sm border border-[#DDE5E7] dark:border-[#3F5E63] mb-6">
-            <h3 className="text-lg font-medium mb-4 text-[#2E4F54] dark:text-[#E0F4F5]">Cancellation Details</h3>
+            <h3 className="text-lg font-medium mb-4 text-[black] dark:text-[white]">Cancellation Details</h3>
             
             <div>
-              <p className="text-sm font-medium text-[#2E4F54] dark:text-[#E0F4F5]">Reason</p>
-              <p className="text-sm text-[#2E4F54]/90 dark:text-[#E0F4F5]/90">{trip.cancellation_reason || 'Customer cancelled'}</p>
+              <p className="text-sm font-medium text-[black] dark:text-[white]">Reason</p>
+              <p className="text-sm text-[black]/90 dark:text-[white]/90">{trip.cancellation_reason || 'Customer cancelled'}</p>
             </div>
             
             {trip.refund_status && (
               <div className="mt-3">
-                <p className="text-sm font-medium text-[#2E4F54] dark:text-[#E0F4F5]">Refund Status</p>
-                <p className="text-sm text-[#2E4F54]/90 dark:text-[#E0F4F5]/90">{trip.refund_status}</p>
+                <p className="text-sm font-medium text-[black] dark:text-[white]">Refund Status</p>
+                <p className="text-sm text-[black]/90 dark:text-[white]/90">{trip.refund_status}</p>
                 {trip.refund_amount > 0 && (
-                  <p className="text-sm text-[#2E4F54]/90 dark:text-[#E0F4F5]/90 mt-1">
+                  <p className="text-sm text-[black]/90 dark:text-[white]/90 mt-1">
                     Refund Amount: ${trip.refund_amount?.toFixed(2)}
                   </p>
                 )}
@@ -435,7 +435,7 @@ export default function TripDetailsPage() {
           {trip.status === 'in_progress' && (
             <Link
               href={`/dashboard/track/${trip.id}`}
-              className="px-4 py-2 bg-[#7CCFD0] hover:bg-[#60BFC0] text-white rounded-md inline-flex items-center"
+              className="px-4 py-2 bg-[#5fbfc0] hover:bg-[#60BFC0] text-white rounded-md inline-flex items-center"
             >
               <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
@@ -469,20 +469,20 @@ export default function TripDetailsPage() {
       {cancellingTrip && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
           <div className="bg-white dark:bg-[#24393C] rounded-lg p-6 w-full max-w-md mx-4 border border-[#DDE5E7] dark:border-[#3F5E63]">
-            <h3 className="text-lg font-medium mb-4 text-[#2E4F54] dark:text-[#E0F4F5]">Cancel Trip</h3>
-            <p className="text-[#2E4F54]/80 dark:text-[#E0F4F5]/80 mb-4">
+            <h3 className="text-lg font-medium mb-4 text-[black] dark:text-[white]">Cancel Trip</h3>
+            <p className="text-[black]/80 dark:text-[white]/80 mb-4">
               Are you sure you want to cancel this trip? This action cannot be undone.
             </p>
             
             <div className="mb-4">
-              <label htmlFor="cancelReason" className="block text-sm font-medium text-[#2E4F54] dark:text-[#E0F4F5] mb-1">
+              <label htmlFor="cancelReason" className="block text-sm font-medium text-[black] dark:text-[white] mb-1">
                 Reason for cancellation (optional)
               </label>
               <textarea
                 id="cancelReason"
                 value={cancelReason}
                 onChange={(e) => setCancelReason(e.target.value)}
-                className="w-full p-2 border border-[#DDE5E7] dark:border-[#3F5E63] rounded-md dark:bg-[#1C2C2F] text-[#2E4F54] dark:text-[#E0F4F5]"
+                className="w-full p-2 border border-[#DDE5E7] dark:border-[#3F5E63] rounded-md dark:bg-[#1C2C2F] text-[black] dark:text-[white]"
                 placeholder="Please provide a reason..."
                 rows={3}
               ></textarea>
@@ -491,14 +491,14 @@ export default function TripDetailsPage() {
             <div className="flex justify-end space-x-3">
               <button
                 onClick={() => setCancellingTrip(false)}
-                className="px-4 py-2 text-sm font-medium text-[#2E4F54] dark:text-[#E0F4F5] bg-[#F8F9FA] dark:bg-[#1C2C2F] rounded-md hover:bg-[#DDE5E7] dark:hover:bg-[#3F5E63]/50 border border-[#DDE5E7] dark:border-[#3F5E63]"
+                className="px-4 py-2 text-sm font-medium text-[black] dark:text-[white] bg-[#F8F9FA] dark:bg-[#1C2C2F] rounded-md hover:bg-[#DDE5E7] dark:hover:bg-[#3F5E63]/50 border border-[#DDE5E7] dark:border-[#3F5E63]"
                 disabled={isSubmitting}
               >
                 Keep Trip
               </button>
               <button
                 onClick={handleCancelTrip}
-                className="px-4 py-2 text-sm font-medium text-white bg-[#7CCFD0] rounded-md hover:bg-[#60BFC0] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#7CCFD0]"
+                className="px-4 py-2 text-sm font-medium text-white bg-[#5fbfc0] rounded-md hover:bg-[#60BFC0] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#5fbfc0]"
                 disabled={isSubmitting}
               >
                 {isSubmitting ? 'Cancelling...' : 'Confirm Cancellation'}

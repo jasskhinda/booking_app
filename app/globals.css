@@ -5,19 +5,19 @@
   /* --background: #ffffff;
   --foreground: #171717; */
   
-  /* Compassionate Transportation Color Palette - Light Mode */
+  /* Compassionate Care Transportation Color Palette - Light Mode */
   --background: #FFFFFF;
-  --foreground: #2E4F54;
-  --accent: #7CCFD0;
+  --foreground: #000000;
+  --accent: #5fbfc0;
   --button-text: #FFFFFF;
   --card-background: #F8F9FA;
   --border-color: #DDE5E7;
   
   /* Tailwind CSS custom colors */
-  --primary: #2E4F54;
-  --primary-hover: #1A3438;
-  --secondary: #7CCFD0;
-  --secondary-hover: #60BFC0;
+  --primary: #000000;
+  --primary-hover: #1A1A1A;
+  --secondary: #5fbfc0;
+  --secondary-hover: #4aa5a6;
 }
 
 @theme inline {
@@ -33,19 +33,19 @@
     /* --background: #0a0a0a;
     --foreground: #ededed; */
     
-    /* Compassionate Transportation Color Palette - Dark Mode */
-    --background: #1C2C2F;
-    --foreground: #E0F4F5;
-    --accent: #7CCFD0;
-    --button-text: #1C2C2F;
-    --card-background: #24393C;
-    --border-color: #3F5E63;
+    /* Compassionate Care Transportation Color Palette - Dark Mode */
+    --background: #000000;
+    --foreground: #FFFFFF;
+    --accent: #5fbfc0;
+    --button-text: #000000;
+    --card-background: #1A1A1A;
+    --border-color: #333333;
     
     /* Tailwind CSS custom colors */
-    --primary: #E0F4F5;
-    --primary-hover: #C0E4E5;
-    --secondary: #7CCFD0;
-    --secondary-hover: #60BFC0;
+    --primary: #FFFFFF;
+    --primary-hover: #E5E5E5;
+    --secondary: #5fbfc0;
+    --secondary-hover: #4aa5a6;
   }
 }
 
@@ -55,22 +55,22 @@ body {
   font-family: Arial, Helvetica, sans-serif;
 }
 
-/* Custom utility classes for the Compassionate Transportation color scheme */
+/* Custom utility classes for the Compassionate Care Transportation color scheme */
 .btn-primary {
-  @apply bg-[#7CCFD0] text-white hover:bg-[#60BFC0] focus:ring-[#7CCFD0]/50;
+  @apply bg-[#5fbfc0] text-white hover:bg-[#4aa5a6] focus:ring-[#5fbfc0]/50;
 }
 
 .btn-secondary {
-  @apply bg-transparent border border-[#7CCFD0] text-[#7CCFD0] hover:bg-[#7CCFD0]/10 focus:ring-[#7CCFD0]/50;
+  @apply bg-transparent border border-[#5fbfc0] text-[#5fbfc0] hover:bg-[#5fbfc0]/10 focus:ring-[#5fbfc0]/50;
 }
 
 .card {
-  @apply bg-[#F8F9FA] dark:bg-[#24393C] border border-[#DDE5E7] dark:border-[#3F5E63] rounded-lg shadow-sm;
+  @apply bg-[#F8F9FA] dark:bg-[#1A1A1A] border border-[#DDE5E7] dark:border-[#333333] rounded-lg shadow-sm;
 }
 
 /* Status colors */
 .status-pending {
-  @apply bg-[#7CCFD0]/20 text-[#7CCFD0] dark:bg-[#7CCFD0]/30 dark:text-[#E0F4F5];
+  @apply bg-[#5fbfc0]/20 text-[#5fbfc0] dark:bg-[#5fbfc0]/30 dark:text-[#FFFFFF];
 }
 
 .status-upcoming {
@@ -101,5 +101,58 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator {
   input[type="datetime-local"]::-webkit-calendar-picker-indicator {
     filter: invert(95%) sepia(12%) saturate(529%) hue-rotate(167deg) brightness(103%) contrast(96%);
     opacity: 0.9;
+  }
+}
+
+/* Hero Section with Parallax Effect */
+.hero-parallax {
+  position: relative;
+  height: calc(100vh - 80px); /* Subtract header height */
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.hero-background {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 120%;
+  background: url('/cctapphomebg.jpeg') center center;
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
+  z-index: -2;
+}
+
+.hero-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.6);
+  z-index: -1;
+}
+
+.hero-content {
+  position: relative;
+  text-align: center;
+  color: white;
+  z-index: 1;
+  max-width: 800px;
+  padding: 0 2rem;
+}
+
+/* Responsive hero */
+@media (max-width: 768px) {
+  .hero-parallax {
+    height: 70vh;
+  }
+  
+  .hero-background {
+    background-attachment: scroll;
   }
 }

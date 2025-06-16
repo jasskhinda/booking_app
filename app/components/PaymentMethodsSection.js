@@ -34,7 +34,7 @@ function EmbeddedCardSetupForm({ clientSecret, onSuccess, onError, onCancel, pro
           style: {
             base: {
               fontSize: '16px',
-              color: '#2E4F54',
+              color: 'black',
               '::placeholder': {
                 color: '#7a8c91',
               },
@@ -126,21 +126,21 @@ function EmbeddedCardSetupForm({ clientSecret, onSuccess, onError, onCancel, pro
   return (
     <div className="space-y-4">
       <div>
-        <label className="block text-sm font-medium text-[#2E4F54] dark:text-[#E0F4F5] mb-2">
+        <label className="block text-sm font-medium text-[black] dark:text-[white] mb-2">
           Card Information
         </label>
-        <div className="p-3 border border-[#DDE5E7] dark:border-[#3F5E63] rounded-md bg-[#F8F9FA] dark:bg-[#24393C]">
+        <div className="p-3 border border-[#DDE5E7] dark:border-[#333333] rounded-md bg-[#F8F9FA] dark:bg-[#1A1A1A]">
           <div id="embedded-card-element-container" className="min-h-[40px]"></div>
         </div>
         {!stripeReady && (
-          <p className="mt-2 text-xs text-[#2E4F54]/70 dark:text-[#E0F4F5]/70">
+          <p className="mt-2 text-xs text-[black]/70 dark:text-[white]/70">
             Loading payment form...
           </p>
         )}
         {stripeError && (
           <p className="mt-2 text-xs text-red-600 dark:text-red-400">{stripeError}</p>
         )}
-        <p className="mt-2 text-xs text-[#2E4F54]/70 dark:text-[#E0F4F5]/70">
+        <p className="mt-2 text-xs text-[black]/70 dark:text-[white]/70">
           Your card information is securely processed by Stripe.
         </p>
       </div>
@@ -149,7 +149,7 @@ function EmbeddedCardSetupForm({ clientSecret, onSuccess, onError, onCancel, pro
           type="button"
           onClick={handleSubmit}
           disabled={processing || !stripeReady || !cardReady}
-          className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-[#7CCFD0] hover:bg-[#60BFC0] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#7CCFD0] disabled:opacity-50"
+          className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-[#5fbfc0] hover:bg-[#4aa5a6] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#5fbfc0] disabled:opacity-50"
         >
           {processing ? (
             <>
@@ -164,7 +164,7 @@ function EmbeddedCardSetupForm({ clientSecret, onSuccess, onError, onCancel, pro
         <button
           type="button"
           onClick={onCancel}
-          className="inline-flex items-center px-4 py-2 border border-[#DDE5E7] dark:border-[#3F5E63] rounded-md shadow-sm text-sm font-medium text-[#2E4F54] dark:text-[#E0F4F5] bg-white dark:bg-[#1C2C2F] hover:bg-gray-50 dark:hover:bg-[#24393C] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#7CCFD0]"
+          className="inline-flex items-center px-4 py-2 border border-[#DDE5E7] dark:border-[#333333] rounded-md shadow-sm text-sm font-medium text-[black] dark:text-[white] bg-white dark:bg-[black] hover:bg-gray-50 dark:hover:bg-[#1A1A1A] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#5fbfc0]"
         >
           Cancel
         </button>
@@ -455,7 +455,7 @@ export default function PaymentMethodsSection({ user, profile, onPaymentMethodCh
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center">
-        <label className="block text-sm font-medium text-[#2E4F54] dark:text-[#E0F4F5]">
+        <label className="block text-sm font-medium text-[black] dark:text-[white]">
           Payment Method
         </label>
       </div>
@@ -471,18 +471,18 @@ export default function PaymentMethodsSection({ user, profile, onPaymentMethodCh
       )}
       
       {isLoading ? (
-        <div className="flex items-center justify-center py-8 border-2 border-dashed border-[#DDE5E7] dark:border-[#3F5E63] rounded-lg">
-          <svg className="animate-spin h-6 w-6 text-[#7CCFD0] mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+        <div className="flex items-center justify-center py-8 border-2 border-dashed border-[#DDE5E7] dark:border-[#333333] rounded-lg">
+          <svg className="animate-spin h-6 w-6 text-[#5fbfc0] mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
             <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
             <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
           </svg>
-          <span className="text-[#2E4F54]/70 dark:text-[#E0F4F5]/70">Loading payment methods...</span>
+          <span className="text-[black]/70 dark:text-[white]/70">Loading payment methods...</span>
         </div>
       ) : (
         <div>
           {isAddingMethod && clientSecret ? (
-            <div className="border border-[#DDE5E7] dark:border-[#3F5E63] rounded-lg p-4 bg-[#F8F9FA] dark:bg-[#24393C]">
-              <h4 className="text-sm font-medium text-[#2E4F54] dark:text-[#E0F4F5] mb-3">Add New Payment Method</h4>
+            <div className="border border-[#DDE5E7] dark:border-[#333333] rounded-lg p-4 bg-[#F8F9FA] dark:bg-[#1A1A1A]">
+              <h4 className="text-sm font-medium text-[black] dark:text-[white] mb-3">Add New Payment Method</h4>
               <EmbeddedCardSetupForm 
                 clientSecret={clientSecret} 
                 onSuccess={handleSetupSuccess} 
@@ -495,18 +495,18 @@ export default function PaymentMethodsSection({ user, profile, onPaymentMethodCh
           ) : (
             <>
               {paymentMethods.length === 0 ? (
-                <div className="text-center py-8 border-2 border-dashed border-[#DDE5E7] dark:border-[#3F5E63] rounded-lg">
-                  <svg className="mx-auto h-8 w-8 text-[#7CCFD0]/50 dark:text-[#7CCFD0]/40 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <div className="text-center py-8 border-2 border-dashed border-[#DDE5E7] dark:border-[#333333] rounded-lg">
+                  <svg className="mx-auto h-8 w-8 text-[#5fbfc0]/50 dark:text-[#5fbfc0]/40 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
                   </svg>
-                  <h4 className="text-sm font-medium text-[#2E4F54] dark:text-[#E0F4F5] mb-1">No payment methods</h4>
-                  <p className="text-xs text-[#2E4F54]/70 dark:text-[#E0F4F5]/70 mb-3">
+                  <h4 className="text-sm font-medium text-[black] dark:text-[white] mb-1">No payment methods</h4>
+                  <p className="text-xs text-[black]/70 dark:text-[white]/70 mb-3">
                     Add a payment method to complete your booking
                   </p>
                   <button
                     type="button"
                     onClick={handleAddPaymentMethod}
-                    className="inline-flex items-center px-3 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-[#7CCFD0] hover:bg-[#60BFC0] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#7CCFD0]"
+                    className="inline-flex items-center px-3 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-[#5fbfc0] hover:bg-[#4aa5a6] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#5fbfc0]"
                   >
                     <svg className="-ml-1 mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
@@ -521,8 +521,8 @@ export default function PaymentMethodsSection({ user, profile, onPaymentMethodCh
                       key={method.id} 
                       className={`flex items-center justify-between p-3 border rounded-lg cursor-pointer transition-colors ${
                         method.id === selectedPaymentMethod 
-                          ? 'border-[#7CCFD0] bg-[#7CCFD0]/10 dark:bg-[#7CCFD0]/20' 
-                          : 'border-[#DDE5E7] dark:border-[#3F5E63] hover:border-[#7CCFD0]/50'
+                          ? 'border-[#5fbfc0] bg-[#5fbfc0]/10 dark:bg-[#5fbfc0]/20' 
+                          : 'border-[#DDE5E7] dark:border-[#333333] hover:border-[#5fbfc0]/50'
                       }`}
                       onClick={() => handlePaymentMethodSelect(method.id)}
                     >
@@ -533,12 +533,12 @@ export default function PaymentMethodsSection({ user, profile, onPaymentMethodCh
                           value={method.id}
                           checked={method.id === selectedPaymentMethod}
                           onChange={() => handlePaymentMethodSelect(method.id)}
-                          className="h-4 w-4 text-[#7CCFD0] focus:ring-[#7CCFD0] border-[#DDE5E7] dark:border-[#3F5E63]"
+                          className="h-4 w-4 text-[#5fbfc0] focus:ring-[#5fbfc0] border-[#DDE5E7] dark:border-[#333333]"
                         />
                         <div className="text-xl">{getCardBrandLogo(method.card.brand)}</div>
                         <div>
-                          <p className="font-medium text-[#2E4F54] dark:text-[#E0F4F5] text-sm">{formatCardNumber(method.card.last4)}</p>
-                          <p className="text-xs text-[#2E4F54]/70 dark:text-[#E0F4F5]/70">
+                          <p className="font-medium text-[black] dark:text-[white] text-sm">{formatCardNumber(method.card.last4)}</p>
+                          <p className="text-xs text-[black]/70 dark:text-[white]/70">
                             Expires {formatExpiry(method.card.exp_month, method.card.exp_year)}
                           </p>
                         </div>
@@ -560,7 +560,7 @@ export default function PaymentMethodsSection({ user, profile, onPaymentMethodCh
                     type="button"
                     onClick={handleAddPaymentMethod}
                     disabled={isAddingMethod}
-                    className="w-full flex items-center justify-center px-3 py-2 border border-dashed border-[#DDE5E7] dark:border-[#3F5E63] rounded-md text-sm font-medium text-[#7CCFD0] hover:text-[#60BFC0] hover:border-[#7CCFD0] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#7CCFD0] disabled:opacity-50"
+                    className="w-full flex items-center justify-center px-3 py-2 border border-dashed border-[#DDE5E7] dark:border-[#333333] rounded-md text-sm font-medium text-[#5fbfc0] hover:text-[#4aa5a6] hover:border-[#5fbfc0] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#5fbfc0] disabled:opacity-50"
                   >
                     {isAddingMethod ? (
                       <>

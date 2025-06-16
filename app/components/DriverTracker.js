@@ -186,31 +186,31 @@ export default function DriverTracker({ trip, driverLocation, user }) {
 
   return (
     <DashboardLayout user={user} activeTab="trips">
-      <div className="bg-[#F8F9FA] dark:bg-[#24393C] rounded-lg shadow-md border border-[#DDE5E7] dark:border-[#3F5E63] p-6 mb-6">
+      <div className="bg-[#F8F9FA] dark:bg-[#1A1A1A] rounded-lg shadow-md border border-[#DDE5E7] dark:border-[#333333] p-6 mb-6">
         <div className="flex justify-between items-center mb-6">
-          <h2 className="text-xl font-semibold text-[#2E4F54] dark:text-[#E0F4F5]">Track Your Ride</h2>
+          <h2 className="text-xl font-semibold text-[black] dark:text-[white]">Track Your Ride</h2>
           <Link 
             href="/dashboard/trips" 
-            className="text-[#7CCFD0] hover:text-[#60BFC0]"
+            className="text-[#5fbfc0] hover:text-[#4aa5a6]"
           >
             Back to Trips
           </Link>
         </div>
         
         {/* Trip Details */}
-        <div className="mb-6 p-4 bg-white dark:bg-[#1C2C2F] rounded-lg border border-[#DDE5E7] dark:border-[#3F5E63]">
+        <div className="mb-6 p-4 bg-white dark:bg-[black] rounded-lg border border-[#DDE5E7] dark:border-[#333333]">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <p className="text-sm font-medium text-[#2E4F54] dark:text-[#E0F4F5]">From</p>
-              <p className="text-sm text-[#2E4F54]/70 dark:text-[#E0F4F5]/70">{trip.pickup_address}</p>
+              <p className="text-sm font-medium text-[black] dark:text-[white]">From</p>
+              <p className="text-sm text-[black]/70 dark:text-[white]/70">{trip.pickup_address}</p>
             </div>
             <div>
-              <p className="text-sm font-medium text-[#2E4F54] dark:text-[#E0F4F5]">To</p>
-              <p className="text-sm text-[#2E4F54]/70 dark:text-[#E0F4F5]/70">{trip.destination_address}</p>
+              <p className="text-sm font-medium text-[black] dark:text-[white]">To</p>
+              <p className="text-sm text-[black]/70 dark:text-[white]/70">{trip.destination_address}</p>
             </div>
             <div>
-              <p className="text-sm font-medium text-[#2E4F54] dark:text-[#E0F4F5]">Driver</p>
-              <p className="text-sm text-[#2E4F54]/70 dark:text-[#E0F4F5]/70">
+              <p className="text-sm font-medium text-[black] dark:text-[white]">Driver</p>
+              <p className="text-sm text-[black]/70 dark:text-[white]/70">
                 {trip.driver 
                   ? (trip.driver.profile?.full_name || `${trip.driver.profile?.first_name || ''} ${trip.driver.profile?.last_name || ''}`.trim() || trip.driver_name || trip.driver.email) 
                   : (trip.driver_name || 'Not assigned yet')
@@ -218,17 +218,17 @@ export default function DriverTracker({ trip, driverLocation, user }) {
               </p>
             </div>
             <div>
-              <p className="text-sm font-medium text-[#2E4F54] dark:text-[#E0F4F5]">Vehicle</p>
-              <p className="text-sm text-[#2E4F54]/70 dark:text-[#E0F4F5]/70">{trip.vehicle || 'Not specified'}</p>
+              <p className="text-sm font-medium text-[black] dark:text-[white]">Vehicle</p>
+              <p className="text-sm text-[black]/70 dark:text-[white]/70">{trip.vehicle || 'Not specified'}</p>
             </div>
             <div>
-              <p className="text-sm font-medium text-[#2E4F54] dark:text-[#E0F4F5]">Pickup Time</p>
-              <p className="text-sm text-[#2E4F54]/70 dark:text-[#E0F4F5]/70">{formatDate(trip.pickup_time)}</p>
+              <p className="text-sm font-medium text-[black] dark:text-[white]">Pickup Time</p>
+              <p className="text-sm text-[black]/70 dark:text-[white]/70">{formatDate(trip.pickup_time)}</p>
             </div>
             {eta && (
               <div>
-                <p className="text-sm font-medium text-[#2E4F54] dark:text-[#E0F4F5]">Estimated Arrival</p>
-                <p className="text-sm text-[#2E4F54]/70 dark:text-[#E0F4F5]/70">{eta}</p>
+                <p className="text-sm font-medium text-[black] dark:text-[white]">Estimated Arrival</p>
+                <p className="text-sm text-[black]/70 dark:text-[white]/70">{eta}</p>
               </div>
             )}
           </div>
@@ -236,22 +236,22 @@ export default function DriverTracker({ trip, driverLocation, user }) {
         
         {/* Live Map */}
         <div>
-          <h3 className="text-lg font-medium mb-3 text-[#2E4F54] dark:text-[#E0F4F5]">Live Location</h3>
+          <h3 className="text-lg font-medium mb-3 text-[black] dark:text-[white]">Live Location</h3>
           <div 
             ref={mapRef} 
-            className="w-full h-96 rounded-lg border border-[#DDE5E7] dark:border-[#3F5E63] shadow-inner mb-4"
+            className="w-full h-96 rounded-lg border border-[#DDE5E7] dark:border-[#333333] shadow-inner mb-4"
             style={{ background: '#F8F9FA' }} // Placeholder color until map loads
           >
             {!mapLoaded && (
               <div className="flex items-center justify-center h-full">
-                <p className="text-[#2E4F54]/70 dark:text-[#E0F4F5]/70">Loading map...</p>
+                <p className="text-[black]/70 dark:text-[white]/70">Loading map...</p>
               </div>
             )}
           </div>
           
-          <div className="text-sm text-[#2E4F54]/70 dark:text-[#E0F4F5]/70">
+          <div className="text-sm text-[black]/70 dark:text-[white]/70">
             <div className="flex items-center mb-2">
-              <div className="w-4 h-4 rounded-full bg-[#7CCFD0] mr-2"></div>
+              <div className="w-4 h-4 rounded-full bg-[#5fbfc0] mr-2"></div>
               <span>Driver Location</span>
             </div>
             <div className="flex items-center">
@@ -260,7 +260,7 @@ export default function DriverTracker({ trip, driverLocation, user }) {
             </div>
           </div>
           
-          <p className="mt-4 text-sm text-[#2E4F54]/70 dark:text-[#E0F4F5]/70">
+          <p className="mt-4 text-sm text-[black]/70 dark:text-[white]/70">
             Last updated: {new Date(driverLocation.lastUpdated).toLocaleTimeString()}
           </p>
         </div>
@@ -268,7 +268,7 @@ export default function DriverTracker({ trip, driverLocation, user }) {
         {/* Action Buttons */}
         <div className="mt-6 flex gap-4">
           <button
-            className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-[#7CCFD0] hover:bg-[#60BFC0] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#7CCFD0]"
+            className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-[#5fbfc0] hover:bg-[#4aa5a6] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#5fbfc0]"
           >
             <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
@@ -291,21 +291,21 @@ export default function DriverTracker({ trip, driverLocation, user }) {
       {/* Cancel Trip Modal */}
       {showCancelModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-[#F8F9FA] dark:bg-[#24393C] rounded-lg p-6 w-full max-w-md mx-4 border border-[#DDE5E7] dark:border-[#3F5E63]">
-            <h3 className="text-lg font-medium mb-4 text-[#2E4F54] dark:text-[#E0F4F5]">Cancel Trip</h3>
-            <p className="text-[#2E4F54]/80 dark:text-[#E0F4F5]/80 mb-4">
+          <div className="bg-[#F8F9FA] dark:bg-[#1A1A1A] rounded-lg p-6 w-full max-w-md mx-4 border border-[#DDE5E7] dark:border-[#333333]">
+            <h3 className="text-lg font-medium mb-4 text-[black] dark:text-[white]">Cancel Trip</h3>
+            <p className="text-[black]/80 dark:text-[white]/80 mb-4">
               Are you sure you want to cancel this trip? This action cannot be undone.
             </p>
             
             <div className="mb-4">
-              <label htmlFor="cancelReason" className="block text-sm font-medium text-[#2E4F54] dark:text-[#E0F4F5] mb-1">
+              <label htmlFor="cancelReason" className="block text-sm font-medium text-[black] dark:text-[white] mb-1">
                 Reason for cancellation (optional)
               </label>
               <textarea
                 id="cancelReason"
                 value={cancelReason}
                 onChange={(e) => setCancelReason(e.target.value)}
-                className="w-full p-2 border border-[#DDE5E7] dark:border-[#3F5E63] rounded-md dark:bg-[#1C2C2F] text-[#2E4F54] dark:text-[#E0F4F5]"
+                className="w-full p-2 border border-[#DDE5E7] dark:border-[#333333] rounded-md dark:bg-[black] text-[black] dark:text-[white]"
                 placeholder="Please provide a reason..."
                 rows={3}
               ></textarea>
@@ -314,7 +314,7 @@ export default function DriverTracker({ trip, driverLocation, user }) {
             <div className="flex justify-end space-x-3">
               <button
                 onClick={() => setShowCancelModal(false)}
-                className="px-4 py-2 text-sm font-medium text-[#2E4F54] dark:text-[#E0F4F5] bg-[#F8F9FA] dark:bg-[#1C2C2F] rounded-md hover:bg-[#DDE5E7] dark:hover:bg-[#3F5E63]/50 border border-[#DDE5E7] dark:border-[#3F5E63]"
+                className="px-4 py-2 text-sm font-medium text-[black] dark:text-[white] bg-[#F8F9FA] dark:bg-[black] rounded-md hover:bg-[#DDE5E7] dark:hover:bg-[#333333]/50 border border-[#DDE5E7] dark:border-[#333333]"
                 disabled={isSubmitting}
               >
                 Keep Trip
