@@ -365,3 +365,5 @@ export default function DriverTracker({ trip, driverLocation, user }) {
     }
   }
 }
+
+// NOTE: Set NEXT_PUBLIC_GOOGLE_MAPS_API_KEY in .env.local for LIVE deployments. Never hardcode keys here.

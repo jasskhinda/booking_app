@@ -5,6 +5,7 @@ import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { useRouter } from 'next/navigation';
 import DashboardLayout from './DashboardLayout';
 import Script from 'next/script';
+import PaymentMethodsManager from './PaymentMethodsManager';
 
 // Helper function to format date in AM/PM format
 function formatTimeAmPm(dateStr) {
@@ -824,6 +825,87 @@ export default function BookingForm({ user }) {
     }
   };
 
+  const [paymentMethods, setPaymentMethods] = useState([]);
+  const [defaultPaymentMethod, setDefaultPaymentMethod] = useState(null);
+  const [isLoadingPayments, setIsLoadingPayments] = useState(true);
+  const [isAddingPayment, setIsAddingPayment] = useState(false);
+  const [clientSecret, setClientSecret] = useState(null);
+  const [paymentMessage, setPaymentMessage] = useState('');
+
+  // Fetch payment methods and default on mount
+  useEffect(() => {
+    const fetchPaymentMethods = async () => {
+      setIsLoadingPayments(true);
+      try {
+        const response = await fetch('/api/stripe/payment-methods');
+        const data = await response.json();
+        setPaymentMethods(data.paymentMethods || []);
+        // Find default from profile or fallback to first
+        let defaultId = null;
+        if (data.profile && data.profile.default_payment_method_id) {
+          defaultId = data.profile.default_payment_method_id;
+        } else if (data.paymentMethods && data.paymentMethods.length > 0) {
+          defaultId = data.paymentMethods[0].id;
+        }
+        setDefaultPaymentMethod(defaultId);
+      } catch (e) {
+        setPaymentMessage('Failed to load payment methods');
+      } finally {
+        setIsLoadingPayments(false);
+      }
+    };
+    fetchPaymentMethods();
+  }, [user]);
+
+  // Handler to add a new payment method
+  const handleAddPaymentMethod = async () => {
+    setIsAddingPayment(true);
+    setPaymentMessage('');
+    try {
+      const response = await fetch('/api/stripe/setup-intent', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+      });
+      const { clientSecret, error } = await response.json();
+      if (error) throw new Error(error);
+      setClientSecret(clientSecret);
+    } catch (e) {
+      setPaymentMessage(e.message || 'Failed to start payment method setup');
+      setIsAddingPayment(false);
+    }
+  };
+
+  // Handler for successful card setup
+  const handleSetupSuccess = async () => {
+    setClientSecret(null);
+    setIsAddingPayment(false);
+    setPaymentMessage('Payment method added successfully!');
+    // Refresh payment methods
+    setIsLoadingPayments(true);
+    const response = await fetch('/api/stripe/payment-methods');
+    const data = await response.json();
+    setPaymentMethods(data.paymentMethods || []);
+    let defaultId = null;
+    if (data.profile && data.profile.default_payment_method_id) {
+      defaultId = data.profile.default_payment_method_id;
+    } else if (data.paymentMethods && data.paymentMethods.length > 0) {
+      defaultId = data.paymentMethods[0].id;
+    }
+    setDefaultPaymentMethod(defaultId);
+    setIsLoadingPayments(false);
+  };
+
+  // Handler for card setup error/cancel
+  const handleSetupError = (error) => {
+    setPaymentMessage(error.message || 'Failed to add payment method');
+    setIsAddingPayment(false);
+    setClientSecret(null);
+  };
+  const handleSetupCancel = () => {
+    setIsAddingPayment(false);
+    setClientSecret(null);
+  };
+
   return (
     <>
       {/* Load Google Maps JavaScript API with Places and Directions libraries */}
@@ -844,7 +926,67 @@ export default function BookingForm({ user }) {
       <DashboardLayout user={user} activeTab="book">
         <div className="bg-[#F8F9FA] dark:bg-[#24393C] rounded-lg shadow-md border border-[#DDE5E7] dark:border-[#3F5E63] p-6 mb-6">
           <h2 className="text-xl font-semibold text-[#2E4F54] dark:text-[#E0F4F5] mb-4">Book a Ride</h2>
-          
+
+          {/* Payment Method Section */}
+          <div className="mb-8">
+            <h3 className="text-md font-medium text-[#2E4F54] dark:text-[#E0F4F5] mb-2">Payment Method</h3>
+            {isLoadingPayments ? (
+              <div className="text-[#2E4F54]/70 dark:text-[#E0F4F5]/70">Loading payment methods...</div>
+            ) : paymentMethods.length === 0 ? (
+              <div className="mb-4">
+                <div className="text-[#2E4F54]/70 dark:text-[#E0F4F5]/70 mb-2">No payment method found. Please add a card to continue.</div>
+                {isAddingPayment && clientSecret ? (
+                  <PaymentMethodsManager.CardSetupForm
+                    clientSecret={clientSecret}
+                    onSuccess={handleSetupSuccess}
+                    onError={handleSetupError}
+                    onCancel={handleSetupCancel}
+                    profile={{}}
+                    user={user}
+                  />
+                ) : (
+                  <button
+                    onClick={handleAddPaymentMethod}
+                    className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-[#7CCFD0] hover:bg-[#60BFC0] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#7CCFD0]"
+                  >
+                    Add Payment Method
+                  </button>
+                )}
+                {paymentMessage && <div className="text-red-600 mt-2">{paymentMessage}</div>}
+              </div>
+            ) : (
+              <div className="mb-4 flex items-center justify-between">
+                <div>
+                  <span className="font-medium text-[#2E4F54] dark:text-[#E0F4F5]">Default Card:</span>
+                  <span className="ml-2 text-[#2E4F54]/80 dark:text-[#E0F4F5]/80">
+                    {(() => {
+                      const card = paymentMethods.find(pm => pm.id === defaultPaymentMethod) || paymentMethods[0];
+                      return card ? `•••• ${card.card.last4} (${card.card.brand.toUpperCase()})` : 'N/A';
+                    })()}
+                  </span>
+                </div>
+                <button
+                  onClick={handleAddPaymentMethod}
+                  className="inline-flex items-center px-3 py-1 border border-transparent rounded-md shadow-sm text-xs font-medium text-white bg-[#7CCFD0] hover:bg-[#60BFC0] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#7CCFD0]"
+                >
+                  Add New Card
+                </button>
+              </div>
+            )}
+            {isAddingPayment && clientSecret && paymentMethods.length > 0 && (
+              <div className="mb-4">
+                <PaymentMethodsManager.CardSetupForm
+                  clientSecret={clientSecret}
+                  onSuccess={handleSetupSuccess}
+                  onError={handleSetupError}
+                  onCancel={handleSetupCancel}
+                  profile={{}}
+                  user={user}
+                />
+              </div>
+            )}
+          </div>
+
           {success ? (
             <div className="bg-[#7CCFD0]/20 dark:bg-[#7CCFD0]/30 text-[#2E4F54] dark:text-[#E0F4F5] p-4 rounded mb-6">
               <div className="flex items-center">
@@ -1492,3 +1634,5 @@ export default function BookingForm({ user }) {
     </>
   );
 }
+
+// NOTE: Set NEXT_PUBLIC_GOOGLE_MAPS_API_KEY in .env.local for LIVE deployments. Never hardcode keys here.
