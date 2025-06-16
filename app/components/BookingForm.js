@@ -5,7 +5,7 @@ import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { useRouter } from 'next/navigation';
 import DashboardLayout from './DashboardLayout';
 import Script from 'next/script';
-import PaymentMethodsManager from './PaymentMethodsManager';
+import PaymentMethodsManager, { CardSetupForm } from './PaymentMethodsManager';
 
 // Helper function to format date in AM/PM format
 function formatTimeAmPm(dateStr) {
@@ -528,7 +528,7 @@ export default function BookingForm({ user }) {
       }
       
       if (destinationAutocompleteRef.current) {
-        window.google?.maps?.event?.clearInstanceListeners(destinationAutocompleteRef.current);
+        window?.google?.maps?.event?.clearInstanceListeners(destinationAutocompleteRef.current);
         destinationAutocompleteRef.current = null;
       }
     };
@@ -936,7 +936,7 @@ export default function BookingForm({ user }) {
               <div className="mb-4">
                 <div className="text-[#2E4F54]/70 dark:text-[#E0F4F5]/70 mb-2">No payment method found. Please add a card to continue.</div>
                 {isAddingPayment && clientSecret ? (
-                  <PaymentMethodsManager.CardSetupForm
+                  <CardSetupForm
                     clientSecret={clientSecret}
                     onSuccess={handleSetupSuccess}
                     onError={handleSetupError}
@@ -975,7 +975,7 @@ export default function BookingForm({ user }) {
             )}
             {isAddingPayment && clientSecret && paymentMethods.length > 0 && (
               <div className="mb-4">
-                <PaymentMethodsManager.CardSetupForm
+                <CardSetupForm
                   clientSecret={clientSecret}
                   onSuccess={handleSetupSuccess}
                   onError={handleSetupError}
