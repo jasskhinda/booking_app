@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { getSupabaseClient } from '@/lib/client-supabase';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -193,9 +193,9 @@ export default function PaymentMethodsManager({ user, profile }) {
   // Fetch payment methods when component mounts
   useEffect(() => {
     fetchPaymentMethods();
-  }, []);
+  }, [fetchPaymentMethods]);
 
-  const fetchPaymentMethods = async () => {
+  const fetchPaymentMethods = useCallback(async () => {
     setIsLoading(true);
     try {
       const response = await fetch('/api/stripe/payment-methods');
@@ -229,7 +229,7 @@ export default function PaymentMethodsManager({ user, profile }) {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [defaultPaymentMethod]);
 
   const handleAddPaymentMethod = async () => {
     setMessage({ text: '', type: '' });

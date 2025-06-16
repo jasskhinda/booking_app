@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import Link from 'next/link';
 import DashboardLayout from './DashboardLayout';
@@ -52,10 +52,10 @@ export default function ProfileForm({ user, profile = {} }) {
     
     // Fetch default payment method
     fetchDefaultPaymentMethod();
-  }, [profile, user]);
+  }, [profile, user, fetchDefaultPaymentMethod]);
 
   // Function to fetch the default payment method
-  const fetchDefaultPaymentMethod = async () => {
+  const fetchDefaultPaymentMethod = useCallback(async () => {
     setLoadingPaymentMethod(true);
     try {
       const response = await fetch('/api/stripe/payment-methods');
@@ -77,7 +77,7 @@ export default function ProfileForm({ user, profile = {} }) {
     } finally {
       setLoadingPaymentMethod(false);
     }
-  };
+  }, [profile?.default_payment_method_id]);
 
   // Helper functions for payment method display
   const formatCardNumber = (last4) => {

@@ -67,7 +67,7 @@ function LoginContent() {
                 Sign in to your account
               </p>
               <p className="mt-2 text-sm text-gray-600">
-                Don't have an account?{' '}
+                Don&apos;t have an account?{' '}
                 <Link href="/signup" className="font-medium text-[#5fbfc0] hover:text-[#4aa5a6] transition-colors">
                   Create one here
                 </Link>

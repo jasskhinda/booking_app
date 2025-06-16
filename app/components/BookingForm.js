@@ -275,7 +275,7 @@ export default function BookingForm({ user }) {
         console.error('Error calculating route:', status);
       }
     });
-  }, [mapInstance, directionsRenderer, formData.isRoundTrip, formData.pickupTime, formData.wheelchairType]);
+  }, [mapInstance, directionsRenderer, formData.isRoundTrip, formData.pickupTime, formData.wheelchairType, supabase, user.id]);
 
   // References to PlaceAutocompleteElement containers
   const pickupAutocompleteContainerRef = useRef(null);
@@ -494,7 +494,7 @@ export default function BookingForm({ user }) {
       
       return () => clearTimeout(timer);
     }
-  }, [pickupLocation, destinationLocation, mapInstance, directionsRenderer, calculateRoute, formData]);
+  }, [pickupLocation, destinationLocation, mapInstance, directionsRenderer, calculateRoute]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -763,7 +763,7 @@ export default function BookingForm({ user }) {
   };
 
   // Fetch default payment method
-  const fetchDefaultPaymentMethod = async () => {
+  const fetchDefaultPaymentMethod = useCallback(async () => {
     setPaymentMethodsLoading(true);
     try {
       const response = await fetch('/api/stripe/payment-methods');
@@ -788,14 +788,14 @@ export default function BookingForm({ user }) {
     } finally {
       setPaymentMethodsLoading(false);
     }
-  };
+  }, [profileData?.default_payment_method_id]);
 
   // Fetch payment methods when component mounts or profile data changes
   useEffect(() => {
     if (profileData) {
       fetchDefaultPaymentMethod();
     }
-  }, [profileData]);
+  }, [profileData, fetchDefaultPaymentMethod]);
 
   // Helper functions for payment method display
   const formatCardNumber = (last4) => {

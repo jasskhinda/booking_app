@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { getSupabaseClient } from '@/lib/client-supabase';
 import { getStripe } from '@/lib/stripe';
 
@@ -184,7 +184,7 @@ export default function PaymentMethodsSection({ user, profile, onPaymentMethodCh
   // Fetch payment methods when component mounts
   useEffect(() => {
     fetchPaymentMethods();
-  }, []);
+  }, [fetchPaymentMethods]);
 
   // Notify parent component when payment method changes
   useEffect(() => {
@@ -193,7 +193,7 @@ export default function PaymentMethodsSection({ user, profile, onPaymentMethodCh
     }
   }, [selectedPaymentMethod, onPaymentMethodChange]);
 
-  const fetchPaymentMethods = async () => {
+  const fetchPaymentMethods = useCallback(async () => {
     setIsLoading(true);
     try {
       const response = await fetch('/api/stripe/payment-methods');
@@ -235,7 +235,7 @@ export default function PaymentMethodsSection({ user, profile, onPaymentMethodCh
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [profile?.default_payment_method_id, selectedPaymentMethod]);
 
   const handleAddPaymentMethod = async () => {
     setMessage({ text: '', type: '' });
