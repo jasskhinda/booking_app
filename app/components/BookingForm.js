@@ -1524,13 +1524,13 @@ export default function BookingForm({ user }) {
                 </div>
               </div>
               
-              {/* Payment Method Section - Moved here, just above the Request Ride button */}
+              {/* Payment Method Section - moved here above the submit button */}
               <div className="mb-8">
                 <h3 className="text-md font-medium text-[#2E4F54] dark:text-[#E0F4F5] mb-2">Payment Method</h3>
                 {isLoadingPayments ? (
-                  <div className="text-[#2E4F54]/70 dark:text-[#E0F4F5]/70">Loading payment methods...</div>
+                  <div className="text-[#2E4F54]/70 dark:text-[#E0F4F5]/70 mb-8">Loading payment methods...</div>
                 ) : paymentMethods.length === 0 ? (
-                  <div className="mb-4">
+                  <div className="mb-8">
                     <div className="text-[#2E4F54]/70 dark:text-[#E0F4F5]/70 mb-2">No payment method found. Please add a card to continue.</div>
                     {isAddingPayment && clientSecret ? (
                       <CardSetupForm
@@ -1544,6 +1544,7 @@ export default function BookingForm({ user }) {
                     ) : (
                       <button
                         onClick={handleAddPaymentMethod}
+                        type="button"
                         className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-[#7CCFD0] hover:bg-[#60BFC0] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#7CCFD0]"
                       >
                         Add Payment Method
@@ -1552,7 +1553,7 @@ export default function BookingForm({ user }) {
                     {paymentMessage && <div className="text-red-600 mt-2">{paymentMessage}</div>}
                   </div>
                 ) : (
-                  <div className="mb-4 flex items-center justify-between">
+                  <div className="mb-8 flex items-center justify-between">
                     <div>
                       <span className="font-medium text-[#2E4F54] dark:text-[#E0F4F5]">Default Card:</span>
                       <span className="ml-2 text-[#2E4F54]/80 dark:text-[#E0F4F5]/80">
@@ -1564,6 +1565,7 @@ export default function BookingForm({ user }) {
                     </div>
                     <button
                       onClick={handleAddPaymentMethod}
+                      type="button"
                       className="inline-flex items-center px-3 py-1 border border-transparent rounded-md shadow-sm text-xs font-medium text-white bg-[#7CCFD0] hover:bg-[#60BFC0] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#7CCFD0]"
                     >
                       Add New Card
@@ -1571,7 +1573,7 @@ export default function BookingForm({ user }) {
                   </div>
                 )}
                 {isAddingPayment && clientSecret && paymentMethods.length > 0 && (
-                  <div className="mb-4">
+                  <div className="mb-8">
                     <CardSetupForm
                       clientSecret={clientSecret}
                       onSuccess={handleSetupSuccess}
