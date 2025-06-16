@@ -70,9 +70,6 @@ export default function BookingForm({ user }) {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
   const [isGoogleLoaded, setIsGoogleLoaded] = useState(false);
-  const [favoriteAddresses, setFavoriteAddresses] = useState([]);
-  const [showFavoritePickupDropdown, setShowFavoritePickupDropdown] = useState(false);
-  const [showFavoriteDestinationDropdown, setShowFavoriteDestinationDropdown] = useState(false);
   
   // Date/time picker state
   const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
@@ -131,70 +128,6 @@ export default function BookingForm({ user }) {
     setSelectedReturnDate(returnTime);
   }, []);
   
-  // Fetch user's favorite addresses
-  useEffect(() => {
-    const fetchFavoriteAddresses = async () => {
-      if (!user?.id) return;
-      
-      try {
-        const { data, error } = await supabase
-          .from('profiles')
-          .select('favorite_addresses')
-          .eq('id', user.id)
-          .single();
-          
-        if (error) {
-          console.error('Error fetching favorite addresses:', error);
-          return;
-        }
-        
-        if (data?.favorite_addresses) {
-          setFavoriteAddresses(data.favorite_addresses);
-        }
-      } catch (error) {
-        console.error('Failed to fetch favorite addresses:', error);
-      }
-    };
-    
-    fetchFavoriteAddresses();
-  }, [user, supabase]);
-  
-  // Handle click outside date picker and favorite address dropdowns to close them
-  useEffect(() => {
-    function handleClickOutside(event) {
-      // Close date picker if clicking outside
-      if (datePickerRef.current && !datePickerRef.current.contains(event.target)) {
-        setIsDatePickerOpen(false);
-      }
-      
-      // Close return date picker if clicking outside
-      if (returnDatePickerRef.current && !returnDatePickerRef.current.contains(event.target)) {
-        setIsReturnDatePickerOpen(false);
-      }
-      
-      // Close pickup favorites dropdown when clicking outside
-      if (showFavoritePickupDropdown && 
-          !event.target.closest('.favorite-pickup-dropdown') && 
-          !event.target.closest('.favorite-pickup-button')) {
-        setShowFavoritePickupDropdown(false);
-      }
-      
-      // Close destination favorites dropdown when clicking outside
-      if (showFavoriteDestinationDropdown && 
-          !event.target.closest('.favorite-destination-dropdown') && 
-          !event.target.closest('.favorite-destination-button')) {
-        setShowFavoriteDestinationDropdown(false);
-      }
-    }
-    
-    // Add event listener
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      // Remove event listener on cleanup
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, [datePickerRef, returnDatePickerRef, showFavoritePickupDropdown, showFavoriteDestinationDropdown]);
-
   const mapRef = useRef(null);
   const [mapInstance, setMapInstance] = useState(null);
   const [directionsRenderer, setDirectionsRenderer] = useState(null);
@@ -572,38 +505,6 @@ export default function BookingForm({ user }) {
     }));
   };
   
-  const handleSelectFavoritePickup = (address) => {
-    // Update pickup address with the selected favorite
-    setFormData(prev => ({
-      ...prev,
-      pickupAddress: address.address
-    }));
-    
-    // If using Google places autocomplete, manually update the input field
-    if (pickupAutocompleteContainerRef.current?.firstChild) {
-      pickupAutocompleteContainerRef.current.firstChild.value = address.address;
-    }
-    
-    // Close the dropdown
-    setShowFavoritePickupDropdown(false);
-  };
-  
-  const handleSelectFavoriteDestination = (address) => {
-    // Update destination address with the selected favorite
-    setFormData(prev => ({
-      ...prev,
-      destinationAddress: address.address
-    }));
-    
-    // If using Google places autocomplete, manually update the input field
-    if (destinationAutocompleteContainerRef.current?.firstChild) {
-      destinationAutocompleteContainerRef.current.firstChild.value = address.address;
-    }
-    
-    // Close the dropdown
-    setShowFavoriteDestinationDropdown(false);
-  };
-  
   // Generate an array of dates for the next 30 days
   const getDateOptions = () => {
     const dates = [];
@@ -964,18 +865,6 @@ export default function BookingForm({ user }) {
                   <label htmlFor="pickupAddress" className="block text-sm font-medium text-[#2E4F54] dark:text-[#E0F4F5]">
                     Pickup Address
                   </label>
-                  {favoriteAddresses.filter(addr => addr.type === 'pickup' || addr.type === 'both').length > 0 && (
-                    <button
-                      type="button"
-                      onClick={() => setShowFavoritePickupDropdown(!showFavoritePickupDropdown)}
-                      className="text-xs text-[#7CCFD0] hover:text-[#60BFC0] flex items-center favorite-pickup-button"
-                    >
-                      <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
-                      </svg>
-                      Favorites
-                    </button>
-                  )}
                 </div>
                 
                 <div className="relative">
@@ -992,31 +881,6 @@ export default function BookingForm({ user }) {
                     value={formData.pickupAddress} 
                     required
                   />
-                  
-                  {/* Favorite Addresses Dropdown for Pickup */}
-                  {showFavoritePickupDropdown && favoriteAddresses.length > 0 && (
-                    <div className="absolute z-40 mt-1 w-full bg-white dark:bg-[#1C2C2F] border border-[#DDE5E7] dark:border-[#3F5E63] rounded-md shadow-lg max-h-60 overflow-y-auto favorite-pickup-dropdown">
-                    <ul className="py-1">
-                      {favoriteAddresses
-                        .filter(addr => addr.type === 'pickup' || addr.type === 'both')
-                        .map((address) => (
-                          <li 
-                            key={address.id}
-                            className="px-3 py-2 hover:bg-[#7CCFD0]/10 cursor-pointer"
-                            onClick={() => handleSelectFavoritePickup(address)}
-                          >
-                            <div className="font-medium text-[#2E4F54] dark:text-[#E0F4F5]">
-                              {address.name}
-                            </div>
-                            <div className="text-sm text-[#2E4F54]/70 dark:text-[#E0F4F5]/70">
-                              {address.address}
-                            </div>
-                          </li>
-                        ))
-                      }
-                    </ul>
-                    </div>
-                  )}
                 </div>
               </div>
               
@@ -1026,18 +890,6 @@ export default function BookingForm({ user }) {
                   <label htmlFor="destinationAddress" className="block text-sm font-medium text-[#2E4F54] dark:text-[#E0F4F5]">
                     Destination Address
                   </label>
-                  {favoriteAddresses.filter(addr => addr.type === 'destination' || addr.type === 'both').length > 0 && (
-                    <button
-                      type="button"
-                      onClick={() => setShowFavoriteDestinationDropdown(!showFavoriteDestinationDropdown)}
-                      className="text-xs text-[#7CCFD0] hover:text-[#60BFC0] flex items-center favorite-destination-button"
-                    >
-                      <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
-                      </svg>
-                      Favorites
-                    </button>
-                  )}
                 </div>
                 
                 <div className="relative">
@@ -1054,31 +906,6 @@ export default function BookingForm({ user }) {
                     value={formData.destinationAddress} 
                     required
                   />
-                  
-                  {/* Favorite Addresses Dropdown for Destination */}
-                  {showFavoriteDestinationDropdown && favoriteAddresses.length > 0 && (
-                    <div className="absolute z-40 mt-1 w-full bg-white dark:bg-[#1C2C2F] border border-[#DDE5E7] dark:border-[#3F5E63] rounded-md shadow-lg max-h-60 overflow-y-auto favorite-destination-dropdown">
-                    <ul className="py-1">
-                      {favoriteAddresses
-                        .filter(addr => addr.type === 'destination' || addr.type === 'both')
-                        .map((address) => (
-                          <li 
-                            key={address.id}
-                            className="px-3 py-2 hover:bg-[#7CCFD0]/10 cursor-pointer"
-                            onClick={() => handleSelectFavoriteDestination(address)}
-                          >
-                            <div className="font-medium text-[#2E4F54] dark:text-[#E0F4F5]">
-                              {address.name}
-                            </div>
-                            <div className="text-sm text-[#2E4F54]/70 dark:text-[#E0F4F5]/70">
-                              {address.address}
-                            </div>
-                          </li>
-                        ))
-                      }
-                    </ul>
-                    </div>
-                  )}
                 </div>
               </div>
               
@@ -1623,7 +1450,7 @@ export default function BookingForm({ user }) {
                     <span className="absolute inset-0 flex items-center justify-center bg-[#7CCFD0]">
                       <svg className="animate-spin h-5 w-5 text-white dark:text-[#1C2C2F]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                       </svg>
                     </span>
                   )}
