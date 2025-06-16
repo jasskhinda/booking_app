@@ -275,7 +275,7 @@ export default function BookingForm({ user }) {
         console.error('Error calculating route:', status);
       }
     });
-  }, [mapInstance, directionsRenderer, formData.isRoundTrip, formData.pickupTime]);
+  }, [mapInstance, directionsRenderer, formData.isRoundTrip, formData.pickupTime, formData.wheelchairType]);
 
   // References to PlaceAutocompleteElement containers
   const pickupAutocompleteContainerRef = useRef(null);
