@@ -414,6 +414,7 @@ export default function PaymentMethodsSection({ user, profile, onPaymentMethodCh
                     Add a payment method to complete your booking
                   </p>
                   <button
+                    type="button"
                     onClick={handleAddPaymentMethod}
                     className="inline-flex items-center px-3 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-[#7CCFD0] hover:bg-[#60BFC0] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#7CCFD0]"
                   >
@@ -453,6 +454,7 @@ export default function PaymentMethodsSection({ user, profile, onPaymentMethodCh
                         </div>
                       </div>
                       <button
+                        type="button"
                         onClick={(e) => {
                           e.stopPropagation();
                           handleRemovePaymentMethod(method.id);
@@ -465,6 +467,7 @@ export default function PaymentMethodsSection({ user, profile, onPaymentMethodCh
                   ))}
                   
                   <button
+                    type="button"
                     onClick={handleAddPaymentMethod}
                     disabled={isAddingMethod}
                     className="w-full flex items-center justify-center px-3 py-2 border border-dashed border-[#DDE5E7] dark:border-[#3F5E63] rounded-md text-sm font-medium text-[#7CCFD0] hover:text-[#60BFC0] hover:border-[#7CCFD0] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#7CCFD0] disabled:opacity-50"
