@@ -74,7 +74,7 @@ class ErrorBoundary extends React.Component {
             </h1>
             
             <p className="text-gray-600 dark:text-gray-300 text-center mb-6">
-              We encountered an unexpected error. This has been logged and we'll look into it.
+              We encountered an unexpected error. This has been logged and we&apos;ll look into it.
             </p>
 
             <div className="flex flex-col space-y-3">
