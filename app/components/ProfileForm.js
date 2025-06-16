@@ -23,6 +23,31 @@ export default function ProfileForm({ user, profile = {} }) {
   const [defaultPaymentMethod, setDefaultPaymentMethod] = useState(null);
   const [loadingPaymentMethod, setLoadingPaymentMethod] = useState(true);
 
+  // Function to fetch the default payment method
+  const fetchDefaultPaymentMethod = useCallback(async () => {
+    setLoadingPaymentMethod(true);
+    try {
+      const response = await fetch('/api/stripe/payment-methods');
+      const data = await response.json();
+      
+      if (response.ok && data.paymentMethods && data.paymentMethods.length > 0) {
+        // Find the default payment method or use the first one
+        const defaultMethod = data.paymentMethods.find(method => 
+          method.id === profile?.default_payment_method_id
+        ) || data.paymentMethods[0];
+        
+        setDefaultPaymentMethod(defaultMethod);
+      } else {
+        setDefaultPaymentMethod(null);
+      }
+    } catch (error) {
+      console.error('Error fetching payment methods:', error);
+      setDefaultPaymentMethod(null);
+    } finally {
+      setLoadingPaymentMethod(false);
+    }
+  }, [profile?.default_payment_method_id]);
+
   // Initialize form data with profile data
   useEffect(() => {
     if (profile) {
@@ -53,31 +78,6 @@ export default function ProfileForm({ user, profile = {} }) {
     // Fetch default payment method
     fetchDefaultPaymentMethod();
   }, [profile, user, fetchDefaultPaymentMethod]);
-
-  // Function to fetch the default payment method
-  const fetchDefaultPaymentMethod = useCallback(async () => {
-    setLoadingPaymentMethod(true);
-    try {
-      const response = await fetch('/api/stripe/payment-methods');
-      const data = await response.json();
-      
-      if (response.ok && data.paymentMethods && data.paymentMethods.length > 0) {
-        // Find the default payment method or use the first one
-        const defaultMethod = data.paymentMethods.find(method => 
-          method.id === profile?.default_payment_method_id
-        ) || data.paymentMethods[0];
-        
-        setDefaultPaymentMethod(defaultMethod);
-      } else {
-        setDefaultPaymentMethod(null);
-      }
-    } catch (error) {
-      console.error('Error fetching payment methods:', error);
-      setDefaultPaymentMethod(null);
-    } finally {
-      setLoadingPaymentMethod(false);
-    }
-  }, [profile?.default_payment_method_id]);
 
   // Helper functions for payment method display
   const formatCardNumber = (last4) => {

@@ -66,11 +66,15 @@ export async function POST(request) {
       clearTimeout(notificationTimeout);
       
       if (!result.success) {
+        // Don't fail the API call if it's just a dispatcher notification issue
         console.error('Failed to notify dispatchers:', result.error);
-        return NextResponse.json(
-          { error: 'Failed to notify dispatchers', details: result.error },
-          { status: 500 }
-        );
+        
+        // Log but continue - the trip was still created successfully
+        return NextResponse.json({
+          success: true,
+          message: 'Trip created successfully. Dispatcher notification issue logged.',
+          warning: result.error || 'Dispatcher notification failed'
+        });
       }
       
       return NextResponse.json({
