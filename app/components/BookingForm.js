@@ -1396,27 +1396,68 @@ export default function BookingForm({ user }) {
                       >
                         Add Payment Method
                       </button>
-                    ) : null}
+                    ) : (
+                      <div className="mt-4">
+                        <h4 className="text-md font-medium text-[#2E4F54] dark:text-[#E0F4F5] mb-3">Add New Payment Method</h4>
+                        <CardSetupForm
+                          clientSecret={clientSecret}
+                          onSuccess={handleSetupSuccess}
+                          onError={handleSetupError}
+                          onCancel={handleSetupCancel}
+                          profile={{}}
+                          user={user}
+                        />
+                      </div>
+                    )}
                     {paymentMessage && <div className="text-red-600 mt-2">{paymentMessage}</div>}
                   </div>
                 ) : (
-                  <div className="mb-8 flex items-center justify-between">
-                    <div>
-                      <span className="font-medium text-[#2E4F54] dark:text-[#E0F4F5]">Default Card:</span>
-                      <span className="ml-2 text-[#2E4F54]/80 dark:text-[#E0F4F5]/80">
-                        {(() => {
-                          const card = paymentMethods.find(pm => pm.id === defaultPaymentMethod) || paymentMethods[0];
-                          return card ? `•••• ${card.card.last4} (${card.card.brand.toUpperCase()})` : 'N/A';
-                        })()}
-                      </span>
-                    </div>
-                    <button
-                      onClick={handleAddPaymentMethod}
-                      type="button"
-                      className="inline-flex items-center px-3 py-1 border border-transparent rounded-md shadow-sm text-xs font-medium text-white bg-[#7CCFD0] hover:bg-[#60BFC0] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#7CCFD0]"
-                    >
-                      Add New Card
-                    </button>
+                  <div className="mb-8">
+                    {!isAddingPayment || !clientSecret ? (
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <span className="font-medium text-[#2E4F54] dark:text-[#E0F4F5]">Default Card:</span>
+                          <span className="ml-2 text-[#2E4F54]/80 dark:text-[#E0F4F5]/80">
+                            {(() => {
+                              const card = paymentMethods.find(pm => pm.id === defaultPaymentMethod) || paymentMethods[0];
+                              return card ? `•••• ${card.card.last4} (${card.card.brand.toUpperCase()})` : 'N/A';
+                            })()}
+                          </span>
+                        </div>
+                        <button
+                          onClick={handleAddPaymentMethod}
+                          type="button"
+                          className="inline-flex items-center px-3 py-1 border border-transparent rounded-md shadow-sm text-xs font-medium text-white bg-[#7CCFD0] hover:bg-[#60BFC0] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#7CCFD0]"
+                        >
+                          Add New Card
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="space-y-4">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <span className="font-medium text-[#2E4F54] dark:text-[#E0F4F5]">Default Card:</span>
+                            <span className="ml-2 text-[#2E4F54]/80 dark:text-[#E0F4F5]/80">
+                              {(() => {
+                                const card = paymentMethods.find(pm => pm.id === defaultPaymentMethod) || paymentMethods[0];
+                                return card ? `•••• ${card.card.last4} (${card.card.brand.toUpperCase()})` : 'N/A';
+                              })()}
+                            </span>
+                          </div>
+                        </div>
+                        <div>
+                          <h4 className="text-md font-medium text-[#2E4F54] dark:text-[#E0F4F5] mb-3">Add New Payment Method</h4>
+                          <CardSetupForm
+                            clientSecret={clientSecret}
+                            onSuccess={handleSetupSuccess}
+                            onError={handleSetupError}
+                            onCancel={handleSetupCancel}
+                            profile={{}}
+                            user={user}
+                          />
+                        </div>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
