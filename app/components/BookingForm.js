@@ -86,6 +86,24 @@ export default function BookingForm({ user }) {
 
   const router = useRouter();
   const supabase = createClientComponentClient();
+  const [profileData, setProfileData] = useState(null);
+
+  useEffect(() => {
+    async function fetchProfile() {
+      if (!user?.id) return;
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', user.id)
+        .single();
+      if (!error && data) {
+        setProfileData(data);
+      } else {
+        setProfileData({}); // fallback to empty object to avoid undefined
+      }
+    }
+    fetchProfile();
+  }, [user, supabase]);
 
   // Format datetime default value
   useEffect(() => {
