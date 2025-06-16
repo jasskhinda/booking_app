@@ -8,6 +8,7 @@ CREATE TABLE trips (
   pickup_address TEXT NOT NULL,
   destination_address TEXT NOT NULL,
   pickup_time TIMESTAMPTZ NOT NULL,
+  return_pickup_time TIMESTAMPTZ, -- Pickup time for return journey in round trips
   status TEXT NOT NULL CHECK (status IN ('pending', 'upcoming', 'completed', 'cancelled', 'in_progress')),
   driver_name TEXT,
   vehicle TEXT,
@@ -20,6 +21,7 @@ CREATE TABLE trips (
   wheelchair_type TEXT,
   is_round_trip BOOLEAN DEFAULT FALSE,
   distance DECIMAL(10,1),
+  payment_method_id TEXT, -- Stripe payment method ID used for this trip
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
@@ -70,6 +72,7 @@ CREATE TABLE profiles (
   preferred_payment_method TEXT,
   stripe_customer_id TEXT,
   default_payment_method_id TEXT,
+  is_veteran BOOLEAN DEFAULT FALSE, -- Whether the user is a veteran (for discount eligibility)
   role TEXT DEFAULT 'client',
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()

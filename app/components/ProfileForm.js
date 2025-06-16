@@ -20,6 +20,8 @@ export default function ProfileForm({ user, profile = {} }) {
   });
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState({ text: '', type: '' });
+  const [defaultPaymentMethod, setDefaultPaymentMethod] = useState(null);
+  const [loadingPaymentMethod, setLoadingPaymentMethod] = useState(true);
 
   // Initialize form data with profile data
   useEffect(() => {
@@ -47,7 +49,59 @@ export default function ProfileForm({ user, profile = {} }) {
         is_veteran: profile.is_veteran || false,
       }));
     }
+    
+    // Fetch default payment method
+    fetchDefaultPaymentMethod();
   }, [profile, user]);
+
+  // Function to fetch the default payment method
+  const fetchDefaultPaymentMethod = async () => {
+    setLoadingPaymentMethod(true);
+    try {
+      const response = await fetch('/api/stripe/payment-methods');
+      const data = await response.json();
+      
+      if (response.ok && data.paymentMethods && data.paymentMethods.length > 0) {
+        // Find the default payment method or use the first one
+        const defaultMethod = data.paymentMethods.find(method => 
+          method.id === profile?.default_payment_method_id
+        ) || data.paymentMethods[0];
+        
+        setDefaultPaymentMethod(defaultMethod);
+      } else {
+        setDefaultPaymentMethod(null);
+      }
+    } catch (error) {
+      console.error('Error fetching payment methods:', error);
+      setDefaultPaymentMethod(null);
+    } finally {
+      setLoadingPaymentMethod(false);
+    }
+  };
+
+  // Helper functions for payment method display
+  const formatCardNumber = (last4) => {
+    return `•••• •••• •••• ${last4}`;
+  };
+
+  const formatExpiry = (month, year) => {
+    return `${month.toString().padStart(2, '0')}/${year.toString().slice(-2)}`;
+  };
+
+  const getCardBrandLogo = (brand) => {
+    switch (brand.toLowerCase()) {
+      case 'visa':
+        return '💳';
+      case 'mastercard':
+        return '💳';
+      case 'amex':
+        return '💳';
+      case 'discover':
+        return '💳';
+      default:
+        return '💳';
+    }
+  };
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -305,28 +359,55 @@ export default function ProfileForm({ user, profile = {} }) {
               <h3 className="text-lg font-medium text-[#2E4F54] dark:text-[#E0F4F5] mb-4">Payment Preferences</h3>
               <div className="space-y-4">
                 <div>
-                  <label htmlFor="preferred_payment_method" className="block text-sm font-medium text-[#2E4F54] dark:text-[#E0F4F5] mb-1">
-                    Preferred Payment Method Type
+                  <label className="block text-sm font-medium text-[#2E4F54] dark:text-[#E0F4F5] mb-2">
+                    Default Payment Method
                   </label>
-                  <select
-                    id="preferred_payment_method"
-                    name="preferred_payment_method"
-                    value={formData.preferred_payment_method}
-                    onChange={handleChange}
-                    className="w-full p-2 border border-[#DDE5E7] dark:border-[#3F5E63] rounded-md dark:bg-[#1C2C2F] text-[#2E4F54] dark:text-[#E0F4F5]"
-                  >
-                    <option value="">Select a payment method</option>
-                    <option value="credit_card">Credit Card</option>
-                  </select>
+                  
+                  {loadingPaymentMethod ? (
+                    <div className="flex items-center p-3 border border-[#DDE5E7] dark:border-[#3F5E63] rounded-md bg-[#F8F9FA] dark:bg-[#24393C]">
+                      <svg className="animate-spin h-4 w-4 text-[#7CCFD0] mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                      <span className="text-sm text-[#2E4F54]/70 dark:text-[#E0F4F5]/70">Loading payment method...</span>
+                    </div>
+                  ) : defaultPaymentMethod ? (
+                    <div className="flex items-center justify-between p-3 border border-[#DDE5E7] dark:border-[#3F5E63] rounded-md bg-[#F8F9FA] dark:bg-[#24393C]">
+                      <div className="flex items-center space-x-3">
+                        <div className="text-xl">{getCardBrandLogo(defaultPaymentMethod.card.brand)}</div>
+                        <div>
+                          <p className="font-medium text-[#2E4F54] dark:text-[#E0F4F5] text-sm">
+                            {formatCardNumber(defaultPaymentMethod.card.last4)}
+                          </p>
+                          <p className="text-xs text-[#2E4F54]/70 dark:text-[#E0F4F5]/70">
+                            {defaultPaymentMethod.card.brand.charAt(0).toUpperCase() + defaultPaymentMethod.card.brand.slice(1)} • Expires {formatExpiry(defaultPaymentMethod.card.exp_month, defaultPaymentMethod.card.exp_year)}
+                          </p>
+                        </div>
+                      </div>
+                      <span className="text-xs bg-[#7CCFD0]/20 text-[#2E4F54] dark:text-[#E0F4F5] px-2 py-1 rounded-full">
+                        Default
+                      </span>
+                    </div>
+                  ) : (
+                    <div className="flex items-center p-3 border-2 border-dashed border-[#DDE5E7] dark:border-[#3F5E63] rounded-md">
+                      <svg className="h-5 w-5 text-[#7CCFD0]/50 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                      </svg>
+                      <span className="text-sm text-[#2E4F54]/70 dark:text-[#E0F4F5]/70">No payment method set up</span>
+                    </div>
+                  )}
                 </div>
                 
-                <div className="mt-2">
-                  <p className="text-sm text-[#2E4F54]/70 dark:text-[#E0F4F5]/70 mb-2">
-                    Manage your payment cards for automatic billing
+                <div className="bg-[#7CCFD0]/10 dark:bg-[#7CCFD0]/20 p-4 rounded-md">
+                  <h4 className="text-sm font-medium text-[#2E4F54] dark:text-[#E0F4F5] mb-2">
+                    Managing Your Payment Methods
+                  </h4>
+                  <p className="text-sm text-[#2E4F54]/70 dark:text-[#E0F4F5]/70 mb-3">
+                    To add, remove, or change your default payment method, please use the dedicated payment management page. This ensures secure handling of your payment information.
                   </p>
                   <Link
                     href="/dashboard/payment-methods"
-                    className="inline-flex items-center px-4 py-2 border border-[#DDE5E7] shadow-sm text-sm font-medium rounded-md text-[#2E4F54] bg-white hover:bg-[#F8F9FA] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#7CCFD0] dark:bg-[#1C2C2F] dark:text-[#E0F4F5] dark:border-[#3F5E63] dark:hover:bg-[#24393C]"
+                    className="inline-flex items-center px-4 py-2 border border-[#7CCFD0] shadow-sm text-sm font-medium rounded-md text-[#2E4F54] bg-white hover:bg-[#7CCFD0]/10 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#7CCFD0] dark:bg-[#1C2C2F] dark:text-[#E0F4F5] dark:border-[#7CCFD0] dark:hover:bg-[#7CCFD0]/20 transition-colors"
                   >
                     <svg className="-ml-1 mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
