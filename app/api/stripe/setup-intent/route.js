@@ -4,7 +4,7 @@ import { cookies } from 'next/headers';
 import Stripe from 'stripe';
 
 // Initialize Stripe with the secret key
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || 'sk_test_51OlJ2zLkdIwU2RZE1z0zrUWvEJ3XbXxFGm7n8s');
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
 export async function POST() {
   try {

@@ -241,7 +241,7 @@ export default function ProfileForm({ user, profile = {} }) {
                     required
                     value={formData.first_name}
                     onChange={handleChange}
-                    className="w-full p-3 border border-[#DDE5E7] rounded-md bg-black text-white text-base placeholder-white"
+                    className="w-full p-3 border border-[#DDE5E7] rounded-md bg-white text-black text-base placeholder-gray-500"
                   />
                 </div>
                 
@@ -256,7 +256,7 @@ export default function ProfileForm({ user, profile = {} }) {
                     required
                     value={formData.last_name}
                     onChange={handleChange}
-                    className="w-full p-3 border border-[#DDE5E7] rounded-md bg-black text-white text-base placeholder-white"
+                    className="w-full p-3 border border-[#DDE5E7] rounded-md bg-white text-black text-base placeholder-gray-500"
                   />
                 </div>
                 
@@ -270,7 +270,7 @@ export default function ProfileForm({ user, profile = {} }) {
                     type="tel"
                     value={formData.phone_number}
                     onChange={handleChange}
-                    className="w-full p-3 border border-[#DDE5E7] rounded-md bg-black text-white text-base placeholder-white"
+                    className="w-full p-3 border border-[#DDE5E7] rounded-md bg-white text-black text-base placeholder-gray-500"
                   />
                 </div>
                 
@@ -284,7 +284,7 @@ export default function ProfileForm({ user, profile = {} }) {
                     type="text"
                     value={formData.address}
                     onChange={handleChange}
-                    className="w-full p-3 border border-[#DDE5E7] rounded-md bg-black text-white text-base placeholder-white"
+                    className="w-full p-3 border border-[#DDE5E7] rounded-md bg-white text-black text-base placeholder-gray-500"
                   />
                 </div>
                 
@@ -298,7 +298,7 @@ export default function ProfileForm({ user, profile = {} }) {
                     type="text"
                     value={formData.emergency_contact}
                     onChange={handleChange}
-                    className="w-full p-3 border border-[#DDE5E7] rounded-md bg-black text-white text-base placeholder-white"
+                    className="w-full p-3 border border-[#DDE5E7] rounded-md bg-white text-black text-base placeholder-gray-500"
                   />
                 </div>
                 
@@ -332,7 +332,7 @@ export default function ProfileForm({ user, profile = {} }) {
                     rows={3}
                     value={formData.accessibility_needs}
                     onChange={handleChange}
-                    className="w-full p-3 border border-[#DDE5E7] rounded-md bg-black text-white text-base placeholder-white"
+                    className="w-full p-3 border border-[#DDE5E7] rounded-md bg-white text-black text-base placeholder-gray-500"
                     placeholder="e.g., Wheelchair accessible, Assistance getting in/out of vehicle"
                   ></textarea>
                 </div>
@@ -347,7 +347,7 @@ export default function ProfileForm({ user, profile = {} }) {
                     rows={3}
                     value={formData.medical_requirements}
                     onChange={handleChange}
-                    className="w-full p-3 border border-[#DDE5E7] rounded-md bg-black text-white text-base placeholder-white"
+                    className="w-full p-3 border border-[#DDE5E7] rounded-md bg-white text-black text-base placeholder-gray-500"
                     placeholder="e.g., Oxygen tank, Medical equipment storage"
                   ></textarea>
                 </div>

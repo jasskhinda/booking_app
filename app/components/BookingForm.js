@@ -379,13 +379,13 @@ export default function BookingForm({ user }) {
 
       // Create traditional input fields for autocomplete
       const pickupInput = document.createElement('input');
-      pickupInput.className = 'w-full px-3 py-2 border border-[#DDE5E7] dark:border-[#333333] rounded-md shadow-sm focus:outline-none focus:ring-[#5fbfc0] focus:border-[#5fbfc0] dark:bg-[black]';
+      pickupInput.className = 'w-full px-3 py-2 border border-[#DDE5E7] dark:border-[#333333] rounded-md shadow-sm focus:outline-none focus:ring-[#5fbfc0] focus:border-[#5fbfc0] bg-white dark:bg-[#1A1A1A] text-black dark:text-white';
       pickupInput.placeholder = 'Enter your pickup location';
       pickupInput.value = formData.pickupAddress || '';
       pickupInput.id = 'pickup-autocomplete-input';
       
       const destinationInput = document.createElement('input');
-      destinationInput.className = 'w-full px-3 py-2 border border-[#DDE5E7] dark:border-[#333333] rounded-md shadow-sm focus:outline-none focus:ring-[#5fbfc0] focus:border-[#5fbfc0] dark:bg-[black]';
+      destinationInput.className = 'w-full px-3 py-2 border border-[#DDE5E7] dark:border-[#333333] rounded-md shadow-sm focus:outline-none focus:ring-[#5fbfc0] focus:border-[#5fbfc0] bg-white dark:bg-[#1A1A1A] text-black dark:text-white';
       destinationInput.placeholder = 'Enter your destination';
       destinationInput.value = formData.destinationAddress || '';
       destinationInput.id = 'destination-autocomplete-input';
@@ -907,9 +907,9 @@ export default function BookingForm({ user }) {
                       type="button"
                       id="pickupDateTime"
                       onClick={openDatePicker}
-                      className="w-full px-3 py-2 border border-[#DDE5E7] dark:border-[#333333] rounded-md shadow-sm focus:outline-none focus:ring-[#5fbfc0] focus:border-[#5fbfc0] dark:bg-[black] text-left flex justify-between items-center"
+                      className="w-full px-3 py-2 border border-[#DDE5E7] dark:border-[#333333] rounded-md shadow-sm focus:outline-none focus:ring-[#5fbfc0] focus:border-[#5fbfc0] bg-white dark:bg-[#1A1A1A] text-black dark:text-white text-left flex justify-between items-center"
                     >
-                      <span className={formData.pickupTime ? "text-[black] dark:text-[white]" : "text-[black]/50 dark:text-[white]/50"}>
+                      <span className={formData.pickupTime ? "text-black dark:text-white" : "text-black/50 dark:text-white/50"}>
                         {formData.pickupTime 
                           ? `${formatMonthDay(formData.pickupTime)}, ${getDayName(formData.pickupTime)} - ${formatTimeAmPm(formData.pickupTime)}`
                           : "Select pickup date and time"}
@@ -1024,12 +1024,12 @@ export default function BookingForm({ user }) {
                     name="wheelchairType"
                     value={formData.wheelchairType}
                     onChange={handleChange}
-                    className="w-full appearance-none px-3 py-2 border border-[#DDE5E7] dark:border-[#333333] rounded-md shadow-sm focus:outline-none focus:ring-[#5fbfc0] focus:border-[#5fbfc0] dark:bg-[black] text-[black] dark:text-[white] pr-10"
+                    className="w-full appearance-none px-3 py-2 border border-[#DDE5E7] dark:border-[#333333] rounded-md shadow-sm focus:outline-none focus:ring-[#5fbfc0] focus:border-[#5fbfc0] bg-white dark:bg-[#1A1A1A] text-black dark:text-white pr-10"
                   >
                     <option value="no_wheelchair">No Wheelchair</option>
                     <option value="wheelchair">Wheelchair (+$25)</option>
                   </select>
-                  <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-[black] dark:text-[white]">
+                  <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-black dark:text-white">
                     <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
                       <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" />
                     </svg>
@@ -1083,9 +1083,9 @@ export default function BookingForm({ user }) {
                         type="button"
                         id="returnPickupTime"
                         onClick={openReturnDatePicker}
-                        className="w-full px-3 py-2 border border-[#DDE5E7] dark:border-[#333333] rounded-md shadow-sm focus:outline-none focus:ring-[#5fbfc0] focus:border-[#5fbfc0] dark:bg-[black] text-left flex justify-between items-center"
+                        className="w-full px-3 py-2 border border-[#DDE5E7] dark:border-[#333333] rounded-md shadow-sm focus:outline-none focus:ring-[#5fbfc0] focus:border-[#5fbfc0] bg-white dark:bg-[#1A1A1A] text-black dark:text-white text-left flex justify-between items-center"
                       >
-                        <span className={formData.returnPickupTime ? "text-[black] dark:text-[white]" : "text-[black]/50 dark:text-[white]/50"}>
+                        <span className={formData.returnPickupTime ? "text-black dark:text-white" : "text-black/50 dark:text-white/50"}>
                           {formData.returnPickupTime 
                             ? `${formatMonthDay(formData.returnPickupTime)}, ${getDayName(formData.returnPickupTime)} - ${formatTimeAmPm(formData.returnPickupTime)}`
                             : "Select return pickup time"}
@@ -1383,16 +1383,16 @@ export default function BookingForm({ user }) {
                         <div className="flex items-center space-x-3">
                           <div className="text-xl">💳</div>
                           <div>
-                            <p className="font-medium text-[black] dark:text-[white] text-sm">
+                            <p className="font-medium text-black dark:text-white text-sm">
                               Default Payment Method
                             </p>
-                            <p className="text-sm text-[black]/70 dark:text-[white]/70">
+                            <p className="text-sm text-black/70 dark:text-white/70">
                               {getCardBrandDisplay(defaultPaymentMethod.card.brand)} {formatCardNumber(defaultPaymentMethod.card.last4)}
                             </p>
                           </div>
                         </div>
                         <div className="text-right">
-                          <div className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-[#5fbfc0]/10 text-[black] dark:text-[white]">
+                          <div className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-[#5fbfc0]/10 text-black dark:text-white">
                             ✓ Default
                           </div>
                         </div>
@@ -1400,9 +1400,9 @@ export default function BookingForm({ user }) {
                       
                       <div className="mt-3 pt-3 border-t border-[#DDE5E7] dark:border-[#333333]">
                         <div className="bg-[#5fbfc0]/10 dark:bg-[#5fbfc0]/20 p-3 rounded-md">
-                          <p className="text-sm text-[black] dark:text-[white]">
-                            <strong>Payment Notice:</strong> Your card ending in {defaultPaymentMethod.card.last4} will be charged after your booking is approved by our dispatchers. You will not be charged immediately upon booking submission.
-                          </p>
+                            <p className="text-sm text-black dark:text-white">
+                              <strong>Payment Notice:</strong> Your card ending in {defaultPaymentMethod.card.last4} will be charged after your booking is approved by our dispatchers. You will not be charged immediately upon booking submission.
+                            </p>
                         </div>
                         
                         <div className="mt-3 text-center">

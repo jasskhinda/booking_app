@@ -73,11 +73,17 @@ function EmbeddedCardSetupForm({ clientSecret, onSuccess, onError, onCancel, pro
           style: {
             base: {
               fontSize: '16px',
-              color: 'black',
+              color: '#ffffff',
+              backgroundColor: 'transparent',
+              fontFamily: 'Arial, sans-serif',
               '::placeholder': {
-                color: '#7a8c91',
+                color: '#bbb',
               },
             },
+            invalid: {
+              color: '#fa755a',
+              iconColor: '#fa755a'
+            }
           },
         });
         console.log('Card element created:', !!cardElement.current);
@@ -168,7 +174,7 @@ function EmbeddedCardSetupForm({ clientSecret, onSuccess, onError, onCancel, pro
         <label className="block text-sm font-medium text-[black] dark:text-[white] mb-2">
           Card Information
         </label>
-        <div className="p-3 border border-[#DDE5E7] dark:border-[#333333] rounded-md bg-[#F8F9FA] dark:bg-[#1A1A1A]">
+        <div className="p-3 border border-[#DDE5E7] dark:border-[#333333] rounded-md bg-[#1A1A1A] border-[#333333]">
           <div id="embedded-card-element-container" className="min-h-[40px]"></div>
         </div>
         {!stripeReady && (
@@ -203,7 +209,7 @@ function EmbeddedCardSetupForm({ clientSecret, onSuccess, onError, onCancel, pro
         <button
           type="button"
           onClick={onCancel}
-          className="inline-flex items-center px-4 py-2 border border-[#DDE5E7] dark:border-[#333333] rounded-md shadow-sm text-sm font-medium text-[black] dark:text-[white] bg-white dark:bg-[black] hover:bg-gray-50 dark:hover:bg-[#1A1A1A] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#5fbfc0]"
+          className="inline-flex items-center px-4 py-2 border border-[#DDE5E7] dark:border-[#333333] rounded-md shadow-sm text-sm font-medium text-black dark:text-white bg-white dark:bg-black hover:bg-gray-50 dark:hover:bg-[#1A1A1A] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#5fbfc0]"
         >
           Cancel
         </button>
