@@ -335,3 +335,20 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator {
 .StripeElement input::placeholder {
   color: #bbb !important;
 }
+
+/* Profile form input styling */
+.profile-form input[type="text"],
+.profile-form input[type="tel"],
+.profile-form input[type="email"],
+.profile-form textarea {
+  background-color: #000000 !important;
+  color: #ffffff !important;
+}
+
+.profile-form input[type="text"]::placeholder,
+.profile-form input[type="tel"]::placeholder,
+.profile-form input[type="email"]::placeholder,
+.profile-form textarea::placeholder {
+  color: #ffffff !important;
+  opacity: 0.7 !important;
+}
