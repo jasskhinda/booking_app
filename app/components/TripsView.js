@@ -167,9 +167,9 @@ export default function TripsView({ user, trips: initialTrips = [], successMessa
 
   return (
     <DashboardLayout user={user} activeTab="trips">
-      <div className="bg-[#F8F9FA] dark:bg-[#1A1A1A] rounded-lg shadow-md border border-[#DDE5E7] dark:border-[#333333] p-6 mb-6">
+      <div className="bg-white/60 backdrop-blur-sm rounded-lg shadow-md border border-white/20 p-8 mb-8 mt-8">
         <div className="flex justify-between items-center mb-6">
-          <h2 className="text-xl font-semibold text-[black] dark:text-[white]">Your Trips</h2>
+          <h2 className="text-xl font-semibold text-black">Your Trips</h2>
           <Link 
             href="/dashboard/book" 
             className="bg-[#5fbfc0] text-white px-4 py-2 rounded-md text-sm hover:bg-[#4aa5a6]"
@@ -186,45 +186,45 @@ export default function TripsView({ user, trips: initialTrips = [], successMessa
         )}
 
         {/* Filter tabs */}
-        <div className="border-b border-[#DDE5E7] dark:border-[#333333] mb-6">
+        <div className="border-b border-white/20 mb-6">
           <nav className="-mb-px flex space-x-6">
             <button
               onClick={() => setFilter('all')}
-              className={`pb-3 px-1 ${filter === 'all' 
-                ? 'border-b-2 border-[#5fbfc0] text-[#5fbfc0] font-medium' 
-                : 'border-b-2 border-transparent text-[black] hover:text-[#5fbfc0] dark:text-[white]/70 dark:hover:text-[#5fbfc0]'}`}
+              className={`pb-3 px-1 font-bold ${filter === 'all' 
+                ? 'border-b-2 border-black text-black' 
+                : 'border-b-2 border-transparent text-black hover:text-[#5fbfc0]'}`}
             >
               All
             </button>
             <button
               onClick={() => setFilter('pending')}
-              className={`pb-3 px-1 ${filter === 'pending' 
-                ? 'border-b-2 border-[#5fbfc0] text-[#5fbfc0] font-medium' 
-                : 'border-b-2 border-transparent text-[black] hover:text-[#5fbfc0] dark:text-[white]/70 dark:hover:text-[#5fbfc0]'}`}
+              className={`pb-3 px-1 font-bold ${filter === 'pending' 
+                ? 'border-b-2 border-black text-black' 
+                : 'border-b-2 border-transparent text-black hover:text-[#5fbfc0]'}`}
             >
               Pending
             </button>
             <button
               onClick={() => setFilter('upcoming')}
-              className={`pb-3 px-1 ${filter === 'upcoming' 
-                ? 'border-b-2 border-[#5fbfc0] text-[#5fbfc0] font-medium' 
-                : 'border-b-2 border-transparent text-[black] hover:text-[#5fbfc0] dark:text-[white]/70 dark:hover:text-[#5fbfc0]'}`}
+              className={`pb-3 px-1 font-bold ${filter === 'upcoming' 
+                ? 'border-b-2 border-black text-black' 
+                : 'border-b-2 border-transparent text-black hover:text-[#5fbfc0]'}`}
             >
               Upcoming
             </button>
             <button
               onClick={() => setFilter('completed')}
-              className={`pb-3 px-1 ${filter === 'completed' 
-                ? 'border-b-2 border-[#5fbfc0] text-[#5fbfc0] font-medium' 
-                : 'border-b-2 border-transparent text-[black] hover:text-[#5fbfc0] dark:text-[white]/70 dark:hover:text-[#5fbfc0]'}`}
+              className={`pb-3 px-1 font-bold ${filter === 'completed' 
+                ? 'border-b-2 border-black text-black' 
+                : 'border-b-2 border-transparent text-black hover:text-[#5fbfc0]'}`}
             >
               Completed
             </button>
             <button
               onClick={() => setFilter('cancelled')}
-              className={`pb-3 px-1 ${filter === 'cancelled' 
-                ? 'border-b-2 border-[#5fbfc0] text-[#5fbfc0] font-medium' 
-                : 'border-b-2 border-transparent text-[black] hover:text-[#5fbfc0] dark:text-[white]/70 dark:hover:text-[#5fbfc0]'}`}
+              className={`pb-3 px-1 font-bold ${filter === 'cancelled' 
+                ? 'border-b-2 border-black text-black' 
+                : 'border-b-2 border-transparent text-black hover:text-[#5fbfc0]'}`}
             >
               Cancelled
             </button>
@@ -253,8 +253,8 @@ export default function TripsView({ user, trips: initialTrips = [], successMessa
                 d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0" 
               />
             </svg>
-            <h3 className="mt-2 text-sm font-medium text-[black] dark:text-[white]">No trips found</h3>
-            <p className="mt-1 text-sm text-[black]/70 dark:text-[white]/70">
+            <h3 className="mt-2 text-sm font-medium text-black">No trips found</h3>
+            <p className="mt-1 text-sm text-black/70">
               {trips.length === 0 
                 ? "You haven't booked any trips yet." 
                 : `No ${filter !== 'all' ? filter : ''} trips found.`}
@@ -274,7 +274,7 @@ export default function TripsView({ user, trips: initialTrips = [], successMessa
               {displayTrips.map((trip) => (
                 <div 
                   key={trip.id} 
-                  className="bg-white dark:bg-[black] rounded-lg p-4 shadow-sm border border-[#DDE5E7] dark:border-[#333333]"
+                  className="bg-white rounded-lg p-4 shadow-sm border border-gray-200"
                 >
                   <div className="flex flex-col sm:flex-row justify-between">
                     <div className="mb-2 sm:mb-0">
@@ -284,13 +284,13 @@ export default function TripsView({ user, trips: initialTrips = [], successMessa
                          trip.status === 'completed' ? 'Completed' : 
                          trip.status === 'in_progress' ? 'In Progress' : 'Cancelled'}
                       </span>
-                      <p className="mt-2 text-sm text-[black]/70 dark:text-[white]/70">
+                      <p className="mt-2 text-sm text-gray-700">
                         {formatDate(trip.pickup_time)}
                       </p>
                     </div>
                     {trip.status === 'completed' && (
                       <div className="flex items-center">
-                        <span className="text-sm text-[black]/70 dark:text-[white]/70 mr-2">Rating:</span>
+                        <span className="text-sm text-gray-700 mr-2">Rating:</span>
                         <div className="flex items-center">
                           {[...Array(5)].map((_, i) => (
                             <svg 
@@ -309,12 +309,12 @@ export default function TripsView({ user, trips: initialTrips = [], successMessa
                   
                   <div className="mt-3 space-y-2">
                     <div>
-                      <p className="text-sm font-medium text-[black] dark:text-[white]">From</p>
-                      <p className="text-sm text-[black]/90 dark:text-[white]/90">{trip.pickup_address}</p>
+                      <p className="text-sm font-medium text-gray-800">From</p>
+                      <p className="text-sm text-gray-700">{trip.pickup_address}</p>
                     </div>
                     <div>
-                      <p className="text-sm font-medium text-[black] dark:text-[white]">To</p>
-                      <p className="text-sm text-[black]/90 dark:text-[white]/90">{trip.destination_address}</p>
+                      <p className="text-sm font-medium text-gray-800">To</p>
+                      <p className="text-sm text-gray-700">{trip.destination_address}</p>
                     </div>
                   </div>
                   
@@ -322,38 +322,38 @@ export default function TripsView({ user, trips: initialTrips = [], successMessa
                     <div className="mt-4">
                       <div className="flex justify-between items-center">
                         <div>
-                          <p className="text-sm font-medium">Wheelchair</p>
-                          <p className="text-sm text-gray-600 dark:text-gray-300">
+                          <p className="text-sm font-medium text-black">Wheelchair</p>
+                          <p className="text-sm text-gray-600">
                             {trip.wheelchair_type === 'wheelchair' ? 'Yes' : 'No'}
                           </p>
                           {trip.distance && (
-                            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                            <p className="text-xs text-gray-500 mt-1">
                               Distance: {trip.distance} miles
                             </p>
                           )}
                         </div>
                         <div>
-                          <p className="text-sm font-medium">Round Trip</p>
-                          <p className="text-sm text-gray-600 dark:text-gray-300">
+                          <p className="text-sm font-medium text-black">Round Trip</p>
+                          <p className="text-sm text-gray-600">
                             {trip.is_round_trip ? 'Yes' : 'No'}
                           </p>
                         </div>
                         <div className="flex space-x-2">
                           <Link
                             href={`/dashboard/trips/${trip.id}`}
-                            className="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded text-blue-700 bg-blue-100 hover:bg-blue-200 dark:bg-blue-900/30 dark:text-blue-300 dark:hover:bg-blue-900/50"
+                            className="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded text-white bg-[#5fbfc0] hover:bg-[#4aa5a6]"
                           >
                             Details
                           </Link>
                           <button
                             onClick={() => startCancellation(trip.id)}
-                            className="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded text-red-700 bg-red-100 hover:bg-red-200 dark:bg-red-900/30 dark:text-red-300 dark:hover:bg-red-900/50"
+                            className="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded text-white bg-red-600 hover:bg-red-700"
                           >
                             Cancel
                           </button>
                         </div>
                       </div>
-                      <div className="mt-2 text-xs text-purple-600 dark:text-purple-400">
+                      <div className="mt-2 text-xs text-purple-600">
                         Your request is pending approval from a dispatcher
                       </div>
                     </div>
@@ -362,8 +362,8 @@ export default function TripsView({ user, trips: initialTrips = [], successMessa
                   {trip.status === 'upcoming' && (
                     <div className="mt-4 flex justify-between">
                       <div>
-                        <p className="text-sm font-medium">Driver</p>
-                        <p className="text-sm text-gray-600 dark:text-gray-300">
+                        <p className="text-sm font-medium text-black">Driver</p>
+                        <p className="text-sm text-gray-600">
                           {trip.driver 
                             ? (trip.driver.profile?.full_name || `${trip.driver.profile?.first_name || ''} ${trip.driver.profile?.last_name || ''}`.trim() || trip.driver_name || trip.driver.email) 
                             : (trip.driver_name || 'Not assigned yet')}
@@ -372,13 +372,13 @@ export default function TripsView({ user, trips: initialTrips = [], successMessa
                       <div className="flex space-x-2">
                         <Link
                           href={`/dashboard/trips/${trip.id}`}
-                          className="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded text-blue-700 bg-blue-100 hover:bg-blue-200 dark:bg-blue-900/30 dark:text-blue-300 dark:hover:bg-blue-900/50"
+                          className="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded text-white bg-[#5fbfc0] hover:bg-[#4aa5a6]"
                         >
                           Details
                         </Link>
                         <button
                           onClick={() => startCancellation(trip.id)}
-                          className="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded text-red-700 bg-red-100 hover:bg-red-200 dark:bg-red-900/30 dark:text-red-300 dark:hover:bg-red-900/50"
+                          className="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded text-white bg-red-600 hover:bg-red-700"
                         >
                           Cancel
                         </button>
@@ -390,8 +390,8 @@ export default function TripsView({ user, trips: initialTrips = [], successMessa
                     <div className="mt-4">
                       <div className="flex justify-between items-center mb-3">
                         <div>
-                          <p className="text-sm font-medium">Price</p>
-                          <p className="text-sm text-gray-600 dark:text-gray-300">${trip.price?.toFixed(2) || 'N/A'}</p>
+                          <p className="text-sm font-medium text-black">Price</p>
+                          <p className="text-sm text-gray-600">${trip.price?.toFixed(2) || 'N/A'}</p>
                         </div>
                         <div className="flex space-x-2">
                           {!trip.rating && (
@@ -429,7 +429,7 @@ export default function TripsView({ user, trips: initialTrips = [], successMessa
                           </button>
                           <Link
                             href={`/dashboard/trips/${trip.id}`}
-                            className="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded text-blue-700 bg-blue-100 hover:bg-blue-200 dark:bg-blue-900/30 dark:text-blue-300 dark:hover:bg-blue-900/50"
+                            className="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded text-white bg-[#5fbfc0] hover:bg-[#4aa5a6]"
                           >
                             Details
                           </Link>
@@ -447,12 +447,12 @@ export default function TripsView({ user, trips: initialTrips = [], successMessa
                   
                   {trip.status === 'cancelled' && (
                     <div className="mt-4">
-                      <p className="text-sm font-medium">Cancellation reason</p>
-                      <p className="text-sm text-gray-600 dark:text-gray-300">{trip.cancellation_reason || 'Not specified'}</p>
+                      <p className="text-sm font-medium text-black">Cancellation reason</p>
+                      <p className="text-sm text-gray-600">{trip.cancellation_reason || 'Not specified'}</p>
                       {trip.refund_status && (
                         <div className="mt-2">
-                          <p className="text-sm font-medium">Refund status</p>
-                          <p className="text-sm text-gray-600 dark:text-gray-300">{trip.refund_status}</p>
+                          <p className="text-sm font-medium text-black">Refund status</p>
+                          <p className="text-sm text-gray-600">{trip.refund_status}</p>
                         </div>
                       )}
                     </div>
@@ -461,8 +461,8 @@ export default function TripsView({ user, trips: initialTrips = [], successMessa
                   {trip.status === 'in_progress' && (
                     <div className="mt-4 flex justify-between items-center">
                       <div>
-                        <p className="text-sm font-medium">Driver</p>
-                        <p className="text-sm text-gray-600 dark:text-gray-300">
+                        <p className="text-sm font-medium text-black">Driver</p>
+                        <p className="text-sm text-gray-600">
                           {trip.driver 
                             ? (trip.driver.profile?.full_name || `${trip.driver.profile?.first_name || ''} ${trip.driver.profile?.last_name || ''}`.trim() || trip.driver_name || trip.driver.email) 
                             : (trip.driver_name || 'Not assigned')}
@@ -471,7 +471,7 @@ export default function TripsView({ user, trips: initialTrips = [], successMessa
                       <div className="flex space-x-2">
                         <Link
                           href={`/dashboard/trips/${trip.id}`}
-                          className="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded text-blue-700 bg-blue-100 hover:bg-blue-200 dark:bg-blue-900/30 dark:text-blue-300 dark:hover:bg-blue-900/50"
+                          className="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded text-white bg-[#5fbfc0] hover:bg-[#4aa5a6]"
                         >
                           Details
                         </Link>

@@ -211,8 +211,8 @@ export default function ProfileForm({ user, profile = {} }) {
 
   return (
     <DashboardLayout user={user} activeTab="settings">
-      <div className="bg-[#F8F9FA] dark:bg-[#1A1A1A] rounded-lg shadow-md border border-[#DDE5E7] dark:border-[#333333] p-6 mb-6">
-        <h2 className="text-xl font-semibold text-[black] dark:text-[white] mb-6">Account Settings</h2>
+      <div className="bg-white/60 backdrop-blur-sm rounded-lg shadow-md border border-white/20 p-8 mb-8 mt-8">
+        <h2 className="text-xl font-semibold text-black mb-6">Account Settings</h2>
         
         {message.text && (
           <div className={`p-4 mb-6 rounded-md ${

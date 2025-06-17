@@ -835,8 +835,8 @@ export default function BookingForm({ user }) {
       />
 
       <DashboardLayout user={user} activeTab="book">
-        <div className="bg-[#F8F9FA] dark:bg-[#1A1A1A] rounded-lg shadow-md border border-[#DDE5E7] dark:border-[#333333] p-6 mb-6">
-          <h2 className="text-xl font-semibold text-black dark:text-white mb-4">Book a Ride</h2>
+        <div className="bg-white/60 backdrop-blur-sm rounded-lg shadow-md border border-white/20 p-8 mb-8 mt-8">
+          <h2 className="text-3xl font-semibold text-black mb-6">Book a Ride</h2>
 
           <form onSubmit={handleSubmit} className="space-y-6">
             {error && (
@@ -849,7 +849,7 @@ export default function BookingForm({ user }) {
               {/* Pickup Address */}
               <div className="col-span-1 md:col-span-2">
                 <div className="flex justify-between items-center mb-1">
-                  <label htmlFor="pickupAddress" className="block text-sm font-medium text-[black] dark:text-[white]">
+                  <label htmlFor="pickupAddress" className="block text-base font-bold text-black">
                     Pickup Address
                   </label>
                 </div>
@@ -874,7 +874,7 @@ export default function BookingForm({ user }) {
               {/* Destination Address */}
               <div className="col-span-1 md:col-span-2">
                 <div className="flex justify-between items-center mb-1">
-                  <label htmlFor="destinationAddress" className="block text-sm font-medium text-[black] dark:text-[white]">
+                  <label htmlFor="destinationAddress" className="block text-base font-bold text-black">
                     Destination Address
                   </label>
                 </div>
@@ -899,7 +899,7 @@ export default function BookingForm({ user }) {
               {/* Pickup Date and Time - Popup Picker */}
               <div className="space-y-4">
                 <div>
-                  <label htmlFor="pickupDateTime" className="block text-sm font-medium text-[black] dark:text-[white] mb-1">
+                  <label htmlFor="pickupDateTime" className="block text-base font-bold text-black mb-1">
                     Pickup Date & Time
                   </label>
                   <div className="relative">
@@ -925,16 +925,15 @@ export default function BookingForm({ user }) {
                         ref={datePickerRef}
                         className="absolute z-50 mt-2 w-full bg-white dark:bg-[black] border border-[#DDE5E7] dark:border-[#333333] rounded-md shadow-lg p-4"
                       >
-                        {/* Header with back button for time view */}
-                        <div className="flex justify-between items-center mb-2">
-                          <h4 className="text-[black] dark:text-[white] font-medium">
-                            {currentView === 'date' ? 'Select Date' : 'Select Time'}
-                          </h4>
+                        {/* Header with back button for time view */}                          <div className="flex justify-between items-center mb-2">
+                            <h4 className="text-black font-bold">
+                              {currentView === 'date' ? 'Select Date' : 'Select Time'}
+                            </h4>
                           {currentView === 'time' && (
                             <button 
                               type="button"
                               onClick={() => setCurrentView('date')}
-                              className="text-[#3B5B63] dark:text-[#84CED3] hover:text-[#5fbfc0] flex items-center text-sm"
+                              className="text-[#3B5B63] dark:text-[#84CED3] hover:text-[#5fbfc0] flex items-center text-sm font-bold"
                             >
                               <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -974,15 +973,14 @@ export default function BookingForm({ user }) {
                         
                         {/* Time selection view */}
                         {currentView === 'time' && selectedDate && (
-                          <div>
-                            <div className="text-sm text-[black]/70 dark:text-[white]/70 mb-2">
-                              {new Date(selectedDate).toLocaleDateString('en-US', { 
-                                weekday: 'long', 
-                                month: 'long', 
-                                day: 'numeric',
-                                year: 'numeric'
-                              })}
-                            </div>
+                          <div>                              <div className="text-sm text-black font-bold mb-2">
+                                {new Date(selectedDate).toLocaleDateString('en-US', { 
+                                  weekday: 'long', 
+                                  month: 'long', 
+                                  day: 'numeric',
+                                  year: 'numeric'
+                                })}
+                              </div>
                             
                             <div className="grid grid-cols-3 sm:grid-cols-4 gap-2 max-h-60 overflow-y-auto">
                               {availableTimeSlots.map((slot, index) => {
@@ -1000,18 +998,15 @@ export default function BookingForm({ user }) {
                                   </button>
                                 );
                               })}
-                            </div>
-                            
-                            <div className="text-xs text-[black]/60 dark:text-[white]/60 mt-2 italic">
-                              All times shown are in your local timezone
-                            </div>
+                            </div>                                <div className="text-xs text-black font-bold mt-2 italic">
+                                  All times shown are in your local timezone
+                                </div>
                           </div>
                         )}
                         
-                        {/* Optional hint for future availability feature */}
-                        <div className="mt-4 pt-2 border-t border-[#DDE5E7] dark:border-[#333333] text-xs text-[#3B5B63] dark:text-[#84CED3]">
-                          <p>Select a date and then choose an available time slot</p>
-                        </div>
+                        {/* Optional hint for future availability feature */}                          <div className="mt-4 pt-2 border-t border-[#DDE5E7] dark:border-[#333333] text-xs text-black font-bold">
+                            <p>Select a date and then choose an available time slot</p>
+                          </div>
                       </div>
                     )}
                   </div>
@@ -1020,7 +1015,7 @@ export default function BookingForm({ user }) {
               
               {/* Wheelchair Type */}
               <div>
-                <label htmlFor="wheelchairType" className="block text-sm font-medium text-[black] dark:text-[white] mb-1">
+                <label htmlFor="wheelchairType" className="block text-base font-bold text-black mb-1">
                   Wheelchair Requirements
                 </label>
                 <div className="relative">
@@ -1059,18 +1054,18 @@ export default function BookingForm({ user }) {
                     id="isRoundTrip"
                     checked={formData.isRoundTrip}
                     onChange={(e) => setFormData({...formData, isRoundTrip: e.target.checked})}
-                    className="absolute block w-6 h-6 rounded-full bg-white border-4 border-[#DDE5E7] appearance-none cursor-pointer checked:right-0 checked:border-[#5fbfc0] transition-all duration-200 focus:outline-none"
+                    className="absolute block w-6 h-6 rounded-full bg-white border-4 border-black appearance-none cursor-pointer checked:right-0 checked:border-black transition-all duration-200 focus:outline-none"
                   />
                   <label 
                     htmlFor="isRoundTrip"
-                    className={`block overflow-hidden h-6 rounded-full bg-[#DDE5E7] cursor-pointer ${formData.isRoundTrip ? 'bg-[#5fbfc0]' : ''}`}
+                    className={`block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer ${formData.isRoundTrip ? 'bg-black' : ''}`}
                   ></label>
                 </div>
-                <label htmlFor="isRoundTrip" className="text-sm font-medium cursor-pointer">
+                <label htmlFor="isRoundTrip" className="text-base font-bold text-black cursor-pointer">
                   Round Trip
                 </label>
                 {formData.isRoundTrip && (
-                  <span className="ml-2 text-xs text-[black] dark:text-[#5fbfc0]">
+                  <span className="ml-2 text-xs text-black font-bold">
                     The vehicle will wait for you and take you back to your pickup location.
                   </span>
                 )}
@@ -1080,7 +1075,7 @@ export default function BookingForm({ user }) {
               {formData.isRoundTrip && (
                 <div className="col-span-1 md:col-span-2 pt-4 border-t border-[#DDE5E7] dark:border-[#333333] mt-4">
                   <div>
-                    <label htmlFor="returnPickupTime" className="block text-sm font-medium text-[black] dark:text-[white] mb-1">
+                    <label htmlFor="returnPickupTime" className="block text-base font-bold text-black mb-1">
                       Return Pickup Time
                     </label>
                     <div className="relative">
@@ -1108,14 +1103,14 @@ export default function BookingForm({ user }) {
                         >
                           {/* Header with back button for time view */}
                           <div className="flex justify-between items-center mb-2">
-                            <h4 className="text-[black] dark:text-[white] font-medium">
+                            <h4 className="text-black font-bold">
                               {currentView === 'date' ? 'Select Return Date' : 'Select Return Time'}
                             </h4>
                             {currentView === 'time' && (
                               <button 
                                 type="button"
                                 onClick={() => setCurrentView('date')}
-                                className="text-[#3B5B63] dark:text-[#84CED3] hover:text-[#5fbfc0] flex items-center text-sm"
+                                className="text-[#3B5B63] dark:text-[#84CED3] hover:text-[#5fbfc0] flex items-center text-sm font-bold"
                               >
                                 <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -1155,15 +1150,14 @@ export default function BookingForm({ user }) {
                           
                           {/* Time selection view */}
                           {currentView === 'time' && selectedReturnDate && (
-                            <div>
-                              <div className="text-sm text-[black]/70 dark:text-[white]/70 mb-2">
-                                {new Date(selectedReturnDate).toLocaleDateString('en-US', { 
-                                  weekday: 'long', 
-                                  month: 'long', 
-                                  day: 'numeric',
-                                  year: 'numeric'
-                                })}
-                              </div>
+                            <div>                                <div className="text-sm text-black font-bold mb-2">
+                                  {new Date(selectedReturnDate).toLocaleDateString('en-US', { 
+                                    weekday: 'long', 
+                                    month: 'long', 
+                                    day: 'numeric',
+                                    year: 'numeric'
+                                  })}
+                                </div>
                               
                               <div className="grid grid-cols-3 sm:grid-cols-4 gap-2 max-h-60 overflow-y-auto">
                                 {availableTimeSlots.map((slot, index) => {
@@ -1180,16 +1174,15 @@ export default function BookingForm({ user }) {
                                 })}
                               </div>
                               
-                              <div className="text-xs text-[black]/60 dark:text-[white]/60 mt-2 italic">
+                              <div className="text-xs text-black font-bold mt-2 italic">
                                 All times shown are in your local timezone
                               </div>
                             </div>
                           )}
                           
-                          {/* Optional hint */}
-                          <div className="mt-4 pt-2 border-t border-[#DDE5E7] dark:border-[#333333] text-xs text-[#3B5B63] dark:text-[#84CED3]">
-                            <p>Select a date and then choose an available time slot for your return trip</p>
-                          </div>
+                          {/* Optional hint */}                            <div className="mt-4 pt-2 border-t border-[#DDE5E7] dark:border-[#333333] text-xs text-black font-bold">
+                              <p>Select a date and then choose an available time slot for your return trip</p>
+                            </div>
                         </div>
                       )}
                     </div>
@@ -1198,11 +1191,11 @@ export default function BookingForm({ user }) {
               )}
 
               <div className="col-span-1 md:col-span-2 border-t border-[#DDE5E7] dark:border-[#333333] pt-4">
-                <h3 className="text-md font-medium text-[black] dark:text-[white] mb-2">Ride Details</h3>
+                <h3 className="text-md font-bold text-black mb-2">Ride Details</h3>
                 
                 <div className="grid grid-cols-2 gap-4 mb-4">
                   <div>
-                    <p className="text-sm text-[black]/70 dark:text-[white]/70">Pickup Time</p>
+                    <p className="text-sm font-bold text-black">Pickup Time</p>
                     {formData.pickupTime ? (
                       <p className="font-medium text-[black] dark:text-[white]">
                         {new Date(formData.pickupTime).toLocaleDateString('en-US', { 
@@ -1212,14 +1205,14 @@ export default function BookingForm({ user }) {
                         })}, {formatTimeAmPm(formData.pickupTime)}
                       </p>
                     ) : (
-                      <p className="font-medium text-[black]/50 dark:text-[white]/50">Select a time</p>
+                      <p className="font-bold text-black">Select a time</p>
                     )}
                   </div>
                   
                   {/* Return Pickup Time - Only show in summary if round trip is selected */}
                   {formData.isRoundTrip && (
                     <div>
-                      <p className="text-sm text-[black]/70 dark:text-[white]/70">Return Pickup Time</p>
+                      <p className="text-sm font-bold text-black">Return Pickup Time</p>
                       {formData.returnPickupTime ? (
                         <p className="font-medium text-[black] dark:text-[white]">
                           {new Date(formData.returnPickupTime).toLocaleDateString('en-US', { 
@@ -1229,13 +1222,13 @@ export default function BookingForm({ user }) {
                           })}, {formatTimeAmPm(formData.returnPickupTime)}
                         </p>
                       ) : (
-                        <p className="font-medium text-[black]/50 dark:text-[white]/50">Select a time</p>
+                        <p className="font-bold text-black">Select a time</p>
                       )}
                     </div>
                   )}
                   
                   <div className="col-span-2">
-                    <p className="text-sm text-[black]/70 dark:text-[white]/70">Estimated Fare</p>
+                    <p className="text-sm font-bold text-black">Estimated Fare</p>
                     {pickupLocation && destinationLocation ? (
                       <div>
                         <p className="font-medium text-[black] dark:text-[white] text-lg">
@@ -1245,66 +1238,66 @@ export default function BookingForm({ user }) {
                         {/* Pricing Breakdown */}
                         {pricingBreakdown && (
                           <div className="mt-3 p-3 bg-[#F8F9FA] dark:bg-[black] rounded-md border border-[#DDE5E7] dark:border-[#333333]">
-                            <p className="text-xs font-medium text-[black] dark:text-[white] mb-2">Pricing Breakdown:</p>
+                            <p className="text-xs font-bold text-black mb-2">Pricing Breakdown:</p>
                             <div className="space-y-1 text-xs">
                               <div className="flex justify-between">
-                                <span className="text-[black]/70 dark:text-[white]/70">Base fare ({formData.isRoundTrip ? 'round trip' : 'one-way'}):</span>
-                                <span className="text-[black] dark:text-[white]">${pricingBreakdown.baseRate.toFixed(2)}</span>
+                                <span className="text-black font-bold">Base fare ({formData.isRoundTrip ? 'round trip' : 'one-way'}):</span>
+                                <span className="text-black font-bold">${pricingBreakdown.baseRate.toFixed(2)}</span>
                               </div>
                               <div className="flex justify-between">
-                                <span className="text-[black]/70 dark:text-[white]/70">Mileage ({pricingBreakdown.totalMiles.toFixed(1)} miles × ${pricingBreakdown.mileageRate}/mi):</span>
-                                <span className="text-[black] dark:text-[white]">${pricingBreakdown.mileageCharge.toFixed(2)}</span>
+                                <span className="text-black font-bold">Mileage ({pricingBreakdown.totalMiles.toFixed(1)} miles × ${pricingBreakdown.mileageRate}/mi):</span>
+                                <span className="text-black font-bold">${pricingBreakdown.mileageCharge.toFixed(2)}</span>
                               </div>
                               {pricingBreakdown.weekendAdjustment > 0 && (
                                 <div className="flex justify-between">
-                                  <span className="text-[black]/70 dark:text-[white]/70">Weekend premium:</span>
-                                  <span className="text-[black] dark:text-[white]">+${pricingBreakdown.weekendAdjustment.toFixed(2)}</span>
+                                  <span className="text-black font-bold">Weekend premium:</span>
+                                  <span className="text-black font-bold">+${pricingBreakdown.weekendAdjustment.toFixed(2)}</span>
                                 </div>
                               )}
                               {pricingBreakdown.offHoursAdjustment > 0 && (
                                 <div className="flex justify-between">
-                                  <span className="text-[black]/70 dark:text-[white]/70">Off-hours premium:</span>
-                                  <span className="text-[black] dark:text-[white]">+${pricingBreakdown.offHoursAdjustment.toFixed(2)}</span>
+                                  <span className="text-black font-bold">Off-hours premium:</span>
+                                  <span className="text-black font-bold">+${pricingBreakdown.offHoursAdjustment.toFixed(2)}</span>
                                 </div>
                               )}
                               {pricingBreakdown.wheelchairAdjustment > 0 && (
                                 <div className="flex justify-between">
-                                  <span className="text-[black]/70 dark:text-[white]/70">Wheelchair accessibility:</span>
-                                  <span className="text-[black] dark:text-[white]">+${pricingBreakdown.wheelchairAdjustment.toFixed(2)}</span>
+                                  <span className="text-black font-bold">Wheelchair accessibility:</span>
+                                  <span className="text-black font-bold">+${pricingBreakdown.wheelchairAdjustment.toFixed(2)}</span>
                                 </div>
                               )}
                               <div className="flex justify-between pt-1 mt-1 border-t border-[#DDE5E7] dark:border-[#333333]">
-                                <span className="text-[black]/70 dark:text-[white]/70">Subtotal:</span>
-                                <span className="text-[black] dark:text-[white]">${pricingBreakdown.subtotal.toFixed(2)}</span>
+                                <span className="text-black font-bold">Subtotal:</span>
+                                <span className="text-black font-bold">${pricingBreakdown.subtotal.toFixed(2)}</span>
                               </div>
-                              <div className="flex justify-between text-[#5fbfc0]">
+                              <div className="flex justify-between text-black font-bold text-base">
                                 <span>{profileData?.is_veteran ? 'Veteran discount (20%)' : 'Individual discount (10%)'}:</span>
                                 <span>- ${pricingBreakdown.discountAmount.toFixed(2)}</span>
                               </div>
                               <div className="flex justify-between pt-1 mt-1 border-t border-[#DDE5E7] dark:border-[#333333] font-medium text-sm">
-                                <span className="text-[black] dark:text-[white]">Total:</span>
-                                <span className="text-[black] dark:text-[white]">${pricingBreakdown.finalPrice.toFixed(2)}</span>
+                                <span className="text-black font-bold">Total:</span>
+                                <span className="text-black font-bold">${pricingBreakdown.finalPrice.toFixed(2)}</span>
                               </div>
                             </div>
                           </div>
                         )}
                       </div>
                     ) : (
-                      <p className="font-medium text-[black]/50 dark:text-[white]/50">Enter addresses</p>
+                      <p className="font-bold text-black">Enter addresses</p>
                     )}
                   </div>
                   
                   <div>
-                    <p className="text-sm text-[black]/70 dark:text-[white]/70">Estimated Duration</p>
+                    <p className="text-sm font-bold text-black">Estimated Duration</p>
                     {pickupLocation && destinationLocation ? (
                       <p className="font-medium text-[black] dark:text-[white]">{formData.isRoundTrip ? `${estimatedDuration} × 2` : estimatedDuration}</p>
                     ) : (
-                      <p className="font-medium text-[black]/50 dark:text-[white]/50">Enter addresses</p>
+                      <p className="font-bold text-black">Enter addresses</p>
                     )}
                   </div>
                   
                   <div>
-                    <p className="text-sm text-[black]/70 dark:text-[white]/70">Distance</p>
+                    <p className="text-sm font-bold text-black">Distance</p>
                     {pickupLocation && destinationLocation ? (
                       <p className="font-medium text-[black] dark:text-[white]">
                         {distanceMiles > 0 ? (
@@ -1314,14 +1307,14 @@ export default function BookingForm({ user }) {
                         ) : 'Calculating...'}
                       </p>
                     ) : (
-                      <p className="font-medium text-[black]/50 dark:text-[white]/50">Enter addresses</p>
+                      <p className="font-bold text-black">Enter addresses</p>
                     )}
                   </div>
                   
                   {/* For round trips, show wait time between pickup and return */}
                   {formData.isRoundTrip && formData.pickupTime && formData.returnPickupTime && (
                     <div>
-                      <p className="text-sm text-[black]/70 dark:text-[white]/70">Wait Time</p>
+                      <p className="text-sm font-bold text-black">Wait Time</p>
                       <p className="font-medium text-[black] dark:text-[white]">
                         {(() => {
                           const pickupTime = new Date(formData.pickupTime);
@@ -1344,23 +1337,23 @@ export default function BookingForm({ user }) {
                 </div>
                 
                 <div className="bg-[#5fbfc0]/10 dark:bg-[#5fbfc0]/20 p-3 rounded-md text-sm mb-4">
-                  <p className="text-[black] dark:text-[white]">
+                  <p className="text-black font-bold">
                     <strong>Note:</strong> Your ride request will be reviewed and approved by a dispatcher. Once approved, it will be assigned to a compassionate driver who specializes in supportive transportation.
                   </p>
-                  <p className="text-[black] dark:text-[white] mt-2">
+                  <p className="text-black font-bold mt-2">
                     <strong>Discount:</strong> {profileData?.is_veteran
                       ? (
-                        <>Thank you for your service! As a veteran, you receive a <span className="text-[#5fbfc0] font-semibold">20% discount</span> on all rides.</>
+                        <>Thank you for your service! As a veteran, you receive a <span className="text-black font-bold text-lg">20% discount</span> on all rides.</>
                       )
                       : (
-                        <>A <span className="text-[#5fbfc0] font-semibold">10% discount</span> is automatically applied to all individual rides. Veterans receive a 20% discount.</>
+                        <>A <span className="text-black font-bold text-lg">10% discount</span> is automatically applied to all individual rides. Veterans receive a <span className="text-black font-bold text-lg">20% discount</span>.</>
                     )}
                   </p>
-                  <p className="text-[black] dark:text-[white] mt-2">
+                  <p className="text-black font-bold mt-2">
                     <strong>Cancellation Policy:</strong> You may cancel without penalty up until the day of the ride. Same-day cancellations will be charged the base fare only.
                   </p>
                   {formData.isRoundTrip && (
-                    <p className="text-[black] dark:text-[white] mt-2">
+                    <p className="text-black font-bold mt-2">
                       <strong>Round Trip:</strong> Your driver will wait at the destination and bring you back to your pickup location.
                     </p>
                   )}
@@ -1371,7 +1364,7 @@ export default function BookingForm({ user }) {
               <div className="col-span-1 md:col-span-2 mb-8">
                 <div className="space-y-4">
                   <div className="flex justify-between items-center">
-                    <label className="block text-sm font-medium text-[black] dark:text-[white]">
+                    <label className="block text-sm font-bold text-black">
                       Payment Method
                     </label>
                   </div>
@@ -1382,7 +1375,7 @@ export default function BookingForm({ user }) {
                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                         <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                       </svg>
-                      <span className="text-[black]/70 dark:text-[white]/70">Loading payment methods...</span>
+                      <span className="text-black font-bold">Loading payment methods...</span>
                     </div>
                   ) : defaultPaymentMethod ? (
                     <div className="bg-[#F8F9FA] dark:bg-[#1A1A1A] border border-[#DDE5E7] dark:border-[#333333] rounded-lg p-4">
@@ -1428,11 +1421,11 @@ export default function BookingForm({ user }) {
                     </div>
                   ) : (
                     <div className="text-center py-8 border-2 border-dashed border-[#DDE5E7] dark:border-[#333333] rounded-lg">
-                      <svg className="mx-auto h-12 w-12 text-[#5fbfc0]/50 dark:text-[#5fbfc0]/40 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <svg className="mx-auto h-12 w-12 text-black mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
                       </svg>
-                      <h4 className="text-lg font-medium text-[black] dark:text-[white] mb-2">Payment Method Required</h4>
-                      <p className="text-sm text-[black]/70 dark:text-[white]/70 mb-4 max-w-md mx-auto">
+                      <h4 className="text-lg font-bold text-black mb-2">Payment Method Required</h4>
+                      <p className="text-sm text-black font-bold mb-4 max-w-md mx-auto">
                         Please add a payment method to your account before booking a ride. You will not be charged immediately and will only be charged once your booking is approved by our dispatchers.
                       </p>
                       <a 

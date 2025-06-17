@@ -498,9 +498,9 @@ export default function PaymentMethodsManager({ user, profile }) {
   if (hasError) {
     return (
       <DashboardLayout user={user} activeTab="settings">
-        <div className="bg-[#F8F9FA] dark:bg-[#1A1A1A] rounded-lg shadow-md border border-[#DDE5E7] dark:border-[#333333] p-6 mb-6">
+        <div className="bg-white/60 backdrop-blur-sm rounded-lg shadow-md border border-white/20 p-8 mb-8 mt-8">
           <div className="flex justify-between items-center mb-6">
-            <h2 className="text-xl font-semibold text-[black] dark:text-[white]">Payment Methods</h2>
+            <h2 className="text-xl font-semibold text-black">Payment Methods</h2>
             <Link 
               href="/dashboard/settings" 
               className="text-[#5fbfc0] hover:text-[#4aa5a6]"
@@ -539,9 +539,9 @@ export default function PaymentMethodsManager({ user, profile }) {
   
   return (
     <DashboardLayout user={user} activeTab="settings">
-      <div className="bg-[#F8F9FA] dark:bg-[#1A1A1A] rounded-lg shadow-md border border-[#DDE5E7] dark:border-[#333333] p-6 mb-6">
+      <div className="bg-white/60 backdrop-blur-sm rounded-lg shadow-md border border-white/20 p-8 mb-8 mt-8">
         <div className="flex justify-between items-center mb-6">
-          <h2 className="text-xl font-semibold text-[black] dark:text-[white]">Payment Methods</h2>
+          <h2 className="text-xl font-semibold text-black">Payment Methods</h2>
           <Link 
             href="/dashboard/settings" 
             className="text-[#5fbfc0] hover:text-[#4aa5a6]"
@@ -561,7 +561,7 @@ export default function PaymentMethodsManager({ user, profile }) {
         )}
         
         <div className="mb-6">
-          <p className="text-[black]/70 dark:text-[white]/70">
+          <p className="text-black/70">
             Add and manage your payment methods for booking rides. Your payment information is securely stored with Stripe.
           </p>
         </div>

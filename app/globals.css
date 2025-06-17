@@ -70,23 +70,23 @@ body {
 
 /* Status colors */
 .status-pending {
-  @apply bg-[#5fbfc0]/20 text-[#5fbfc0] dark:bg-[#5fbfc0]/30 dark:text-[#FFFFFF];
+  @apply bg-black text-white;
 }
 
 .status-upcoming {
-  @apply bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300;
+  @apply bg-black text-white;
 }
 
 .status-completed {
-  @apply bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300;
+  @apply bg-black text-white;
 }
 
 .status-cancelled {
-  @apply bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300;
+  @apply bg-red-600 text-white;
 }
 
 .status-in-progress {
-  @apply bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300;
+  @apply bg-black text-white;
 }
 
 /* Custom datetime-local input styling */
