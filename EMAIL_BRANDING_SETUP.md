@@ -6,13 +6,19 @@
 
 ```
 Enable Custom SMTP: ✅ Enabled
-SMTP Host: smtp.gmail.com (or your email provider)
+SMTP Host: smtp-relay.brevo.com
 SMTP Port: 587
 SMTP User: noreply@compassionatecaretransportation.com
-SMTP Password: [Your App Password]
+SMTP Password: [Your Brevo SMTP Key]
 Sender Name: Compassionate Care Transportation
 Sender Email: noreply@compassionatecaretransportation.com
 ```
+
+**Brevo SMTP Details:**
+- Host: `smtp-relay.brevo.com`
+- Port: `587` (TLS encryption)
+- Username: Your verified email address
+- Password: Your Brevo SMTP API key (not your login password)
 
 ### 2. Email Templates (Project → Settings → Authentication → Email Templates)
 
