@@ -69,6 +69,7 @@ export default function BookingForm({ user }) {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
   const [isGoogleLoaded, setIsGoogleLoaded] = useState(false);
+  const [isCalculatingRoute, setIsCalculatingRoute] = useState(false);
   
   // Date/time picker state
   const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
@@ -138,9 +139,22 @@ export default function BookingForm({ user }) {
   const [distanceMeters, setDistanceMeters] = useState(0);
   const [pricingBreakdown, setPricingBreakdown] = useState(null);
   
+  // Add ref to prevent multiple simultaneous route calculations
+  const isCalculatingRouteRef = useRef(false);
+  
   // Function to calculate route between two points and update the map
   const calculateRoute = useCallback((origin, destination) => {
     if (!origin || !destination || !mapInstance || !directionsRenderer) return;
+    
+    // Prevent multiple simultaneous calculations
+    if (isCalculatingRouteRef.current) {
+      console.log('Route calculation already in progress, skipping...');
+      return;
+    }
+    
+    isCalculatingRouteRef.current = true;
+    setIsCalculatingRoute(true); // Set loading state
+    console.log('Starting route calculation...');
     
     const directionsService = new window.google.maps.DirectionsService();
     
@@ -149,12 +163,13 @@ export default function BookingForm({ user }) {
       destination,
       travelMode: window.google.maps.TravelMode.DRIVING,
     }, async (result, status) => {
-      if (status === window.google.maps.DirectionsStatus.OK) {
-        directionsRenderer.setDirections(result);
-        
-        // Calculate estimated values based on route data
-        const route = result.routes[0];
-        if (route && route.legs && route.legs[0]) {
+      try {
+        if (status === window.google.maps.DirectionsStatus.OK) {
+          directionsRenderer.setDirections(result);
+          
+          // Calculate estimated values based on route data
+          const route = result.routes[0];
+          if (route && route.legs && route.legs[0]) {
           const duration = route.legs[0].duration.text;
           
           // Get distance values
@@ -274,6 +289,12 @@ export default function BookingForm({ user }) {
       } else {
         console.error('Error calculating route:', status);
       }
+      } finally {
+        // Reset the calculation flag regardless of success or error
+        isCalculatingRouteRef.current = false;
+        setIsCalculatingRoute(false); // Clear loading state
+        console.log('Route calculation completed');
+      }
     });
   }, [mapInstance, directionsRenderer, formData.isRoundTrip, formData.pickupTime, formData.wheelchairType, supabase, user.id]);
 
@@ -281,23 +302,15 @@ export default function BookingForm({ user }) {
   const pickupAutocompleteContainerRef = useRef(null);
   const destinationAutocompleteContainerRef = useRef(null);
   
+  // Add ref to track map initialization status
+  const isMapInitialized = useRef(false);
+  
   // Initialize Google Maps
   useEffect(() => {
-    if (!isGoogleLoaded || !mapRef.current) return;
+    if (!isGoogleLoaded || !mapRef.current || isMapInitialized.current) return;
     
     // Add a small delay to ensure DOM is fully stable after parallax background setup
     const initializeMap = () => {
-      // If we already have a map instance, clean it up first
-      if (mapInstance) {
-        // Clean up the previous map instance
-        setMapInstance(null);
-      }
-      
-      if (directionsRenderer) {
-        directionsRenderer.setMap(null);
-        setDirectionsRenderer(null);
-      }
-
       try {
         // Initialize Map
         const map = new window.google.maps.Map(mapRef.current, {
@@ -321,6 +334,9 @@ export default function BookingForm({ user }) {
         });
         
         setDirectionsRenderer(renderer);
+        isMapInitialized.current = true;
+        
+        console.log('Google Maps initialized successfully');
       } catch (error) {
         console.error('Error initializing Google Maps:', error);
       }
@@ -332,11 +348,8 @@ export default function BookingForm({ user }) {
     // Clean up function
     return () => {
       clearTimeout(timer);
-      if (directionsRenderer) {
-        directionsRenderer.setMap(null);
-      }
     };
-  }, [isGoogleLoaded, directionsRenderer, mapInstance]);
+  }, [isGoogleLoaded]); // Removed problematic dependencies
   
   // References for autocomplete instances
   const pickupAutocompleteRef = useRef(null);
@@ -428,10 +441,10 @@ export default function BookingForm({ user }) {
         pickupAutocompleteRef.current = pickupAutocomplete;
         destinationAutocompleteRef.current = destinationAutocomplete;
         
-        // Add event listeners
+        // Add event listeners with place validation
         pickupAutocomplete.addListener('place_changed', () => {
           const place = pickupAutocomplete.getPlace();
-          if (!place.geometry) return;
+          if (!place.geometry || !place.geometry.location) return;
           
           const address = place.formatted_address || place.name || '';
           setFormData(prev => ({ ...prev, pickupAddress: address }));
@@ -441,7 +454,13 @@ export default function BookingForm({ user }) {
             lng: place.geometry.location.lng()
           };
           
-          setPickupLocation(location);
+          // Only update if location actually changed
+          setPickupLocation(prevLocation => {
+            if (prevLocation && prevLocation.lat === location.lat && prevLocation.lng === location.lng) {
+              return prevLocation; // No change, prevent re-render
+            }
+            return location;
+          });
           
           if (mapInstance) {
             mapInstance.setCenter(location);
@@ -451,7 +470,7 @@ export default function BookingForm({ user }) {
         
         destinationAutocomplete.addListener('place_changed', () => {
           const place = destinationAutocomplete.getPlace();
-          if (!place.geometry) return;
+          if (!place.geometry || !place.geometry.location) return;
           
           const address = place.formatted_address || place.name || '';
           setFormData(prev => ({ ...prev, destinationAddress: address }));
@@ -461,7 +480,13 @@ export default function BookingForm({ user }) {
             lng: place.geometry.location.lng()
           };
           
-          setDestinationLocation(location);
+          // Only update if location actually changed
+          setDestinationLocation(prevLocation => {
+            if (prevLocation && prevLocation.lat === location.lat && prevLocation.lng === location.lng) {
+              return prevLocation; // No change, prevent re-render
+            }
+            return location;
+          });
         });
         
         // Manual input change handlers (two-way binding without re-rendering)
@@ -502,14 +527,14 @@ export default function BookingForm({ user }) {
   // Effect to calculate route when both locations are available
   useEffect(() => {
     if (pickupLocation && destinationLocation && mapInstance && directionsRenderer) {
-      // Small timeout to ensure the map is fully initialized
+      // Add debouncing to prevent excessive route calculations
       const timer = setTimeout(() => {
         calculateRoute(pickupLocation, destinationLocation);
-      }, 100);
+      }, 500); // Increased delay to reduce flashing
       
       return () => clearTimeout(timer);
     }
-  }, [pickupLocation, destinationLocation, mapInstance, directionsRenderer, calculateRoute]);
+  }, [pickupLocation, destinationLocation, calculateRoute]); // Removed mapInstance and directionsRenderer to prevent re-renders
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -1054,10 +1079,38 @@ export default function BookingForm({ user }) {
               
               {/* Map display */}
               <div className="col-span-1 md:col-span-2 mt-4">
-                <div 
-                  ref={mapRef} 
-                  className="w-full h-[300px] rounded-md border border-[#DDE5E7] dark:border-[#333333]"
-                ></div>
+                <div className="relative w-full h-[300px] rounded-md border border-[#DDE5E7] dark:border-[#333333] overflow-hidden">
+                  <div 
+                    ref={mapRef} 
+                    className="w-full h-full"
+                  ></div>
+                  
+                  {/* Loading overlay for route calculation */}
+                  {isCalculatingRoute && (
+                    <div className="absolute inset-0 bg-black/20 flex items-center justify-center z-10">
+                      <div className="bg-white rounded-lg p-4 flex items-center space-x-3 shadow-lg">
+                        <svg className="animate-spin h-5 w-5 text-[#5fbfc0]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        <span className="text-sm font-medium text-black">Calculating route...</span>
+                      </div>
+                    </div>
+                  )}
+                  
+                  {/* Map initialization loading */}
+                  {!mapInstance && isGoogleLoaded && (
+                    <div className="absolute inset-0 bg-gray-100 flex items-center justify-center">
+                      <div className="text-center">
+                        <svg className="animate-spin h-8 w-8 text-[#5fbfc0] mx-auto mb-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        <p className="text-sm text-gray-600">Loading map...</p>
+                      </div>
+                    </div>
+                  )}
+                </div>
               </div>
               
               {/* Round trip toggle */}
@@ -1246,12 +1299,22 @@ export default function BookingForm({ user }) {
                     <p className="text-sm font-bold text-black">Estimated Fare</p>
                     {pickupLocation && destinationLocation ? (
                       <div>
-                        <p className="font-bold text-black text-lg">
-                          {estimatedFare ? `$${estimatedFare.toFixed(2)}` : 'Calculating...'}
-                        </p>
+                        {isCalculatingRoute ? (
+                          <div className="flex items-center space-x-2">
+                            <svg className="animate-spin h-4 w-4 text-[#5fbfc0]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                            <p className="font-bold text-black text-lg">Calculating...</p>
+                          </div>
+                        ) : (
+                          <p className="font-bold text-black text-lg">
+                            {estimatedFare ? `$${estimatedFare.toFixed(2)}` : 'Enter addresses to calculate'}
+                          </p>
+                        )}
                         
                         {/* Pricing Breakdown */}
-                        {pricingBreakdown && (
+                        {pricingBreakdown && !isCalculatingRoute && (
                           <div className="mt-3 p-3 bg-white/100 rounded-md border border-[#DDE5E7] dark:border-[#333333]">
                             <p className="text-xs font-bold text-black mb-2">Pricing Breakdown:</p>
                             <div className="space-y-1 text-xs">
