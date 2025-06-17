@@ -1058,7 +1058,7 @@ export default function BookingForm({ user }) {
                   />
                   <label 
                     htmlFor="isRoundTrip"
-                    className={`block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer ${formData.isRoundTrip ? 'bg-black' : ''}`}
+                    className={`block overflow-hidden h-6 rounded-full cursor-pointer ${formData.isRoundTrip ? 'bg-black' : 'bg-black'}`}
                   ></label>
                 </div>
                 <label htmlFor="isRoundTrip" className="text-base font-bold text-black cursor-pointer">
@@ -1197,7 +1197,7 @@ export default function BookingForm({ user }) {
                   <div>
                     <p className="text-sm font-bold text-black">Pickup Time</p>
                     {formData.pickupTime ? (
-                      <p className="font-medium text-[black] dark:text-[white]">
+                      <p className="font-medium text-black">
                         {new Date(formData.pickupTime).toLocaleDateString('en-US', { 
                           weekday: 'short', 
                           month: 'short', 
@@ -1214,7 +1214,7 @@ export default function BookingForm({ user }) {
                     <div>
                       <p className="text-sm font-bold text-black">Return Pickup Time</p>
                       {formData.returnPickupTime ? (
-                        <p className="font-medium text-[black] dark:text-[white]">
+                        <p className="font-medium text-black">
                           {new Date(formData.returnPickupTime).toLocaleDateString('en-US', { 
                             weekday: 'short', 
                             month: 'short', 
@@ -1290,7 +1290,7 @@ export default function BookingForm({ user }) {
                   <div>
                     <p className="text-sm font-bold text-black">Estimated Duration</p>
                     {pickupLocation && destinationLocation ? (
-                      <p className="font-medium text-[black] dark:text-[white]">{formData.isRoundTrip ? `${estimatedDuration} × 2` : estimatedDuration}</p>
+                      <p className="font-medium text-black">{formData.isRoundTrip ? `${estimatedDuration} × 2` : estimatedDuration}</p>
                     ) : (
                       <p className="font-bold text-black">Enter addresses</p>
                     )}
@@ -1299,7 +1299,7 @@ export default function BookingForm({ user }) {
                   <div>
                     <p className="text-sm font-bold text-black">Distance</p>
                     {pickupLocation && destinationLocation ? (
-                      <p className="font-medium text-[black] dark:text-[white]">
+                      <p className="font-medium text-black">
                         {distanceMiles > 0 ? (
                           formData.isRoundTrip 
                             ? `${(distanceMiles * 2).toFixed(1)} miles (${distanceMiles.toFixed(1)} each way)`
@@ -1315,7 +1315,7 @@ export default function BookingForm({ user }) {
                   {formData.isRoundTrip && formData.pickupTime && formData.returnPickupTime && (
                     <div>
                       <p className="text-sm font-bold text-black">Wait Time</p>
-                      <p className="font-medium text-[black] dark:text-[white]">
+                      <p className="font-medium text-black">
                         {(() => {
                           const pickupTime = new Date(formData.pickupTime);
                           const returnTime = new Date(formData.returnPickupTime);
