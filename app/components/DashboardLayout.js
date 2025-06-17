@@ -2,20 +2,29 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { supabase } from '@/lib/supabase';
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { useRouter } from 'next/navigation';
 
 export default function DashboardLayout({ user, activeTab = 'dashboard', children, isBookingForm = false }) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const router = useRouter();
+  const supabase = createClientComponentClient();
 
   const handleSignOut = async () => {
     try {
-      await supabase.auth.signOut();
+      console.log('Signing out...');
+      const { error } = await supabase.auth.signOut();
+      if (error) {
+        console.error('Logout error:', error);
+        throw error;
+      }
+      console.log('Logout successful');
       // Use window.location.href to force a full page reload and clear session
       window.location.href = '/?logout=true'; 
     } catch (error) {
       console.error('Error signing out:', error);
+      // Even if logout fails, redirect to login page
+      window.location.href = '/login?error=Logout failed';
     }
   };
 
