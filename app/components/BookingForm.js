@@ -285,46 +285,53 @@ export default function BookingForm({ user }) {
   useEffect(() => {
     if (!isGoogleLoaded || !mapRef.current) return;
     
-    // If we already have a map instance, clean it up first
-    if (mapInstance) {
-      // Clean up the previous map instance
-      setMapInstance(null);
-    }
-    
-    if (directionsRenderer) {
-      directionsRenderer.setMap(null);
-      setDirectionsRenderer(null);
-    }
+    // Add a small delay to ensure DOM is fully stable after parallax background setup
+    const initializeMap = () => {
+      // If we already have a map instance, clean it up first
+      if (mapInstance) {
+        // Clean up the previous map instance
+        setMapInstance(null);
+      }
+      
+      if (directionsRenderer) {
+        directionsRenderer.setMap(null);
+        setDirectionsRenderer(null);
+      }
 
-    try {
-      // Initialize Map
-      const map = new window.google.maps.Map(mapRef.current, {
-        center: { lat: 40.4173, lng: -82.9071 }, // Default to Columbus, Ohio
-        zoom: 7, // Wider view for Ohio state
-        mapTypeControl: false,
-        streetViewControl: false,
-        fullscreenControl: false
-      });
-      
-      setMapInstance(map);
-      
-      // Initialize Directions Renderer
-      const renderer = new window.google.maps.DirectionsRenderer({
-        map,
-        suppressMarkers: false,
-        polylineOptions: {
-          strokeColor: '#4285F4',
-          strokeWeight: 5
-        }
-      });
-      
-      setDirectionsRenderer(renderer);
-    } catch (error) {
-      console.error('Error initializing Google Maps:', error);
-    }
+      try {
+        // Initialize Map
+        const map = new window.google.maps.Map(mapRef.current, {
+          center: { lat: 40.4173, lng: -82.9071 }, // Default to Columbus, Ohio
+          zoom: 7, // Wider view for Ohio state
+          mapTypeControl: false,
+          streetViewControl: false,
+          fullscreenControl: false
+        });
+        
+        setMapInstance(map);
+        
+        // Initialize Directions Renderer
+        const renderer = new window.google.maps.DirectionsRenderer({
+          map,
+          suppressMarkers: false,
+          polylineOptions: {
+            strokeColor: '#4285F4',
+            strokeWeight: 5
+          }
+        });
+        
+        setDirectionsRenderer(renderer);
+      } catch (error) {
+        console.error('Error initializing Google Maps:', error);
+      }
+    };
+
+    // Add delay to ensure DOM stability with parallax background
+    const timer = setTimeout(initializeMap, 300);
     
     // Clean up function
     return () => {
+      clearTimeout(timer);
       if (directionsRenderer) {
         directionsRenderer.setMap(null);
       }
@@ -342,135 +349,142 @@ export default function BookingForm({ user }) {
         !pickupAutocompleteContainerRef.current || 
         !destinationAutocompleteContainerRef.current) return;
 
-    try {
-      // Perform cleanup first to ensure we start fresh
-      const cleanupAutocomplete = () => {
-        // Clean up existing autocomplete instances
-        if (pickupAutocompleteRef.current) {
-          window.google.maps.event.clearInstanceListeners(pickupAutocompleteRef.current);
-          pickupAutocompleteRef.current = null;
-        }
-        
-        if (destinationAutocompleteRef.current) {
-          window.google.maps.event.clearInstanceListeners(destinationAutocompleteRef.current);
-          destinationAutocompleteRef.current = null;
-        }
-        
-        // Remove existing input elements to create fresh ones
-        if (pickupAutocompleteContainerRef.current) {
-          while (pickupAutocompleteContainerRef.current.firstChild) {
-            pickupAutocompleteContainerRef.current.removeChild(
-              pickupAutocompleteContainerRef.current.firstChild
-            );
+    // Add delay to ensure DOM stability after parallax background and map initialization
+    const initializeAutocomplete = () => {
+      try {
+        // Perform cleanup first to ensure we start fresh
+        const cleanupAutocomplete = () => {
+          // Clean up existing autocomplete instances
+          if (pickupAutocompleteRef.current) {
+            window.google.maps.event.clearInstanceListeners(pickupAutocompleteRef.current);
+            pickupAutocompleteRef.current = null;
           }
-        }
-        
-        if (destinationAutocompleteContainerRef.current) {
-          while (destinationAutocompleteContainerRef.current.firstChild) {
-            destinationAutocompleteContainerRef.current.removeChild(
-              destinationAutocompleteContainerRef.current.firstChild
-            );
+          
+          if (destinationAutocompleteRef.current) {
+            window.google.maps.event.clearInstanceListeners(destinationAutocompleteRef.current);
+            destinationAutocompleteRef.current = null;
           }
-        }
-      };
-      
-      // Clean up existing elements first
-      cleanupAutocomplete();
+          
+          // Remove existing input elements to create fresh ones
+          if (pickupAutocompleteContainerRef.current) {
+            while (pickupAutocompleteContainerRef.current.firstChild) {
+              pickupAutocompleteContainerRef.current.removeChild(
+                pickupAutocompleteContainerRef.current.firstChild
+              );
+            }
+          }
+          
+          if (destinationAutocompleteContainerRef.current) {
+            while (destinationAutocompleteContainerRef.current.firstChild) {
+              destinationAutocompleteContainerRef.current.removeChild(
+                destinationAutocompleteContainerRef.current.firstChild
+              );
+            }
+          }
+        };
+        
+        // Clean up existing elements first
+        cleanupAutocomplete();
 
-      // Create traditional input fields for autocomplete
-      const pickupInput = document.createElement('input');
-      pickupInput.className = 'w-full px-3 py-2 border border-[#DDE5E7] dark:border-[#333333] rounded-md shadow-sm focus:outline-none focus:ring-[#5fbfc0] focus:border-[#5fbfc0] bg-white dark:bg-[#1A1A1A] text-black dark:text-white';
-      pickupInput.placeholder = 'Enter your pickup location';
-      pickupInput.value = formData.pickupAddress || '';
-      pickupInput.id = 'pickup-autocomplete-input';
-      
-      const destinationInput = document.createElement('input');
-      destinationInput.className = 'w-full px-3 py-2 border border-[#DDE5E7] dark:border-[#333333] rounded-md shadow-sm focus:outline-none focus:ring-[#5fbfc0] focus:border-[#5fbfc0] bg-white dark:bg-[#1A1A1A] text-black dark:text-white';
-      destinationInput.placeholder = 'Enter your destination';
-      destinationInput.value = formData.destinationAddress || '';
-      destinationInput.id = 'destination-autocomplete-input';
-      
-      // Append inputs to container
-      pickupAutocompleteContainerRef.current.appendChild(pickupInput);
-      destinationAutocompleteContainerRef.current.appendChild(destinationInput);
-      
-      // Initialize traditional Google Places Autocomplete
-      const pickupAutocomplete = new window.google.maps.places.Autocomplete(pickupInput, {
-        fields: ['formatted_address', 'geometry', 'name', 'place_id', 'address_components'],
-        componentRestrictions: { country: 'us' }
-      });
-      
-      // Set bias to Ohio region for better results
-      const ohioBounds = new window.google.maps.LatLngBounds(
-        new window.google.maps.LatLng(38.4031, -84.8204), // SW corner of Ohio
-        new window.google.maps.LatLng(42.3270, -80.5183)  // NE corner of Ohio
-      );
-      pickupAutocomplete.setBounds(ohioBounds);
-      
-      const destinationAutocomplete = new window.google.maps.places.Autocomplete(destinationInput, {
-        fields: ['formatted_address', 'geometry', 'name', 'place_id', 'address_components'],
-        componentRestrictions: { country: 'us' }
-      });
-      
-      // Also set bias for destination
-      destinationAutocomplete.setBounds(ohioBounds);
-      
-      // Store references to autocomplete instances
-      pickupAutocompleteRef.current = pickupAutocomplete;
-      destinationAutocompleteRef.current = destinationAutocomplete;
-      
-      // Add event listeners
-      pickupAutocomplete.addListener('place_changed', () => {
-        const place = pickupAutocomplete.getPlace();
-        if (!place.geometry) return;
+        // Create traditional input fields for autocomplete
+        const pickupInput = document.createElement('input');
+        pickupInput.className = 'w-full px-3 py-2 border border-[#DDE5E7] dark:border-[#333333] rounded-md shadow-sm focus:outline-none focus:ring-[#5fbfc0] focus:border-[#5fbfc0] bg-white dark:bg-[#1A1A1A] text-black dark:text-white';
+        pickupInput.placeholder = 'Enter your pickup location';
+        pickupInput.value = formData.pickupAddress || '';
+        pickupInput.id = 'pickup-autocomplete-input';
         
-        const address = place.formatted_address || place.name || '';
-        setFormData(prev => ({ ...prev, pickupAddress: address }));
+        const destinationInput = document.createElement('input');
+        destinationInput.className = 'w-full px-3 py-2 border border-[#DDE5E7] dark:border-[#333333] rounded-md shadow-sm focus:outline-none focus:ring-[#5fbfc0] focus:border-[#5fbfc0] bg-white dark:bg-[#1A1A1A] text-black dark:text-white';
+        destinationInput.placeholder = 'Enter your destination';
+        destinationInput.value = formData.destinationAddress || '';
+        destinationInput.id = 'destination-autocomplete-input';
         
-        const location = {
-          lat: place.geometry.location.lat(),
-          lng: place.geometry.location.lng()
-        };
+        // Append inputs to container
+        pickupAutocompleteContainerRef.current.appendChild(pickupInput);
+        destinationAutocompleteContainerRef.current.appendChild(destinationInput);
         
-        setPickupLocation(location);
+        // Initialize traditional Google Places Autocomplete
+        const pickupAutocomplete = new window.google.maps.places.Autocomplete(pickupInput, {
+          fields: ['formatted_address', 'geometry', 'name', 'place_id', 'address_components'],
+          componentRestrictions: { country: 'us' }
+        });
         
-        if (mapInstance) {
-          mapInstance.setCenter(location);
-          mapInstance.setZoom(15);
-        }
-      });
-      
-      destinationAutocomplete.addListener('place_changed', () => {
-        const place = destinationAutocomplete.getPlace();
-        if (!place.geometry) return;
+        // Set bias to Ohio region for better results
+        const ohioBounds = new window.google.maps.LatLngBounds(
+          new window.google.maps.LatLng(38.4031, -84.8204), // SW corner of Ohio
+          new window.google.maps.LatLng(42.3270, -80.5183)  // NE corner of Ohio
+        );
+        pickupAutocomplete.setBounds(ohioBounds);
         
-        const address = place.formatted_address || place.name || '';
-        setFormData(prev => ({ ...prev, destinationAddress: address }));
+        const destinationAutocomplete = new window.google.maps.places.Autocomplete(destinationInput, {
+          fields: ['formatted_address', 'geometry', 'name', 'place_id', 'address_components'],
+          componentRestrictions: { country: 'us' }
+        });
         
-        const location = {
-          lat: place.geometry.location.lat(),
-          lng: place.geometry.location.lng()
-        };
+        // Also set bias for destination
+        destinationAutocomplete.setBounds(ohioBounds);
         
-        setDestinationLocation(location);
-      });
-      
-      // Manual input change handlers (two-way binding without re-rendering)
-      pickupInput.addEventListener('input', (e) => {
-        // Update the form state without causing a re-render
-        formData.pickupAddress = e.target.value;
-      });
-      
-      destinationInput.addEventListener('input', (e) => {
-        // Update the form state without causing a re-render
-        formData.destinationAddress = e.target.value;
-      });
-    } catch (error) {
-      console.error('Error initializing Places Autocomplete:', error);
-    }
+        // Store references to autocomplete instances
+        pickupAutocompleteRef.current = pickupAutocomplete;
+        destinationAutocompleteRef.current = destinationAutocomplete;
+        
+        // Add event listeners
+        pickupAutocomplete.addListener('place_changed', () => {
+          const place = pickupAutocomplete.getPlace();
+          if (!place.geometry) return;
+          
+          const address = place.formatted_address || place.name || '';
+          setFormData(prev => ({ ...prev, pickupAddress: address }));
+          
+          const location = {
+            lat: place.geometry.location.lat(),
+            lng: place.geometry.location.lng()
+          };
+          
+          setPickupLocation(location);
+          
+          if (mapInstance) {
+            mapInstance.setCenter(location);
+            mapInstance.setZoom(15);
+          }
+        });
+        
+        destinationAutocomplete.addListener('place_changed', () => {
+          const place = destinationAutocomplete.getPlace();
+          if (!place.geometry) return;
+          
+          const address = place.formatted_address || place.name || '';
+          setFormData(prev => ({ ...prev, destinationAddress: address }));
+          
+          const location = {
+            lat: place.geometry.location.lat(),
+            lng: place.geometry.location.lng()
+          };
+          
+          setDestinationLocation(location);
+        });
+        
+        // Manual input change handlers (two-way binding without re-rendering)
+        pickupInput.addEventListener('input', (e) => {
+          // Update the form state without causing a re-render
+          formData.pickupAddress = e.target.value;
+        });
+        
+        destinationInput.addEventListener('input', (e) => {
+          // Update the form state without causing a re-render
+          formData.destinationAddress = e.target.value;
+        });
+      } catch (error) {
+        console.error('Error initializing Places Autocomplete:', error);
+      }
+    };
+
+    // Add delay to ensure DOM stability after parallax background setup
+    const timer = setTimeout(initializeAutocomplete, 500);
     
     // Cleanup function
     return () => {
+      clearTimeout(timer);
       // Clean up autocomplete instances and event listeners on unmount
       if (pickupAutocompleteRef.current) {
         window.google?.maps?.event?.clearInstanceListeners(pickupAutocompleteRef.current);
@@ -835,7 +849,7 @@ export default function BookingForm({ user }) {
         }}
       />
 
-      <DashboardLayout user={user} activeTab="book">
+      <DashboardLayout user={user} activeTab="book" isBookingForm={true}>
         <div className="bg-white/80 backdrop-blur-sm rounded-lg shadow-md border border-white/20 p-8 mb-8 mt-8">
           <h2 className="text-3xl font-semibold text-black mb-6">Book a Ride</h2>
 

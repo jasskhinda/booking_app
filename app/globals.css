@@ -237,6 +237,36 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator {
   z-index: -1;
 }
 
+/* Booking form specific container to avoid Google Maps conflicts */
+.booking-form-container {
+  position: relative;
+  min-height: 100vh;
+  overflow: visible; /* Changed from hidden to visible for Google Maps */
+}
+
+.booking-form-container .hero-background {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: url('/cctapphomebg.jpeg') center center;
+  background-size: cover;
+  background-position: center;
+  background-attachment: scroll; /* Changed from fixed to scroll to avoid DOM conflicts */
+  z-index: -2;
+}
+
+.booking-form-container .hero-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  z-index: -1;
+}
+
 @media (max-width: 768px) {
   .dashboard-container .hero-background {
     background-attachment: scroll;

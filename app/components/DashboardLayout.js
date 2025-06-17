@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
 import { useRouter } from 'next/navigation';
 
-export default function DashboardLayout({ user, activeTab = 'dashboard', children }) {
+export default function DashboardLayout({ user, activeTab = 'dashboard', children, isBookingForm = false }) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const router = useRouter();
 
@@ -44,7 +44,7 @@ export default function DashboardLayout({ user, activeTab = 'dashboard', childre
   ];
 
   return (
-    <div className="dashboard-container min-h-screen flex flex-col">
+    <div className={`${isBookingForm ? 'booking-form-container' : 'dashboard-container'} min-h-screen flex flex-col`}>
       {/* Parallax Background - contained within the layout */}
       <div className="hero-background"></div>
       <div className="hero-overlay"></div>
