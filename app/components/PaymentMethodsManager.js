@@ -498,7 +498,7 @@ export default function PaymentMethodsManager({ user, profile }) {
   if (hasError) {
     return (
       <DashboardLayout user={user} activeTab="settings">
-        <div className="bg-white/60 backdrop-blur-sm rounded-lg shadow-md border border-white/20 p-8 mb-8 mt-8">
+        <div className="bg-white/80 backdrop-blur-sm rounded-lg shadow-md border border-white/20 p-8 mb-8 mt-8">
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-xl font-semibold text-black">Payment Methods</h2>
             <Link 
@@ -539,7 +539,7 @@ export default function PaymentMethodsManager({ user, profile }) {
   
   return (
     <DashboardLayout user={user} activeTab="settings">
-      <div className="bg-white/60 backdrop-blur-sm rounded-lg shadow-md border border-white/20 p-8 mb-8 mt-8">
+      <div className="bg-white/80 backdrop-blur-sm rounded-lg shadow-md border border-white/20 p-8 mb-8 mt-8">
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-xl font-semibold text-black">Payment Methods</h2>
           <Link 

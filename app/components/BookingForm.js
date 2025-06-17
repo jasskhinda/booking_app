@@ -835,7 +835,7 @@ export default function BookingForm({ user }) {
       />
 
       <DashboardLayout user={user} activeTab="book">
-        <div className="bg-white/60 backdrop-blur-sm rounded-lg shadow-md border border-white/20 p-8 mb-8 mt-8">
+        <div className="bg-white/80 backdrop-blur-sm rounded-lg shadow-md border border-white/20 p-8 mb-8 mt-8">
           <h2 className="text-3xl font-semibold text-black mb-6">Book a Ride</h2>
 
           <form onSubmit={handleSubmit} className="space-y-6">

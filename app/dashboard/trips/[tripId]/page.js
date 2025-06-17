@@ -202,7 +202,7 @@ export default function TripDetailsPage() {
   if (error) {
     return (
       <DashboardLayout user={user} activeTab="trips">
-        <div className="bg-white/60 backdrop-blur-sm rounded-lg shadow-md border border-white/20 p-8 mb-8 mt-8">
+        <div className="bg-white/80 backdrop-blur-sm rounded-lg shadow-md border border-white/20 p-8 mb-8 mt-8">
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-xl font-semibold text-black">Trip Details</h2>
             <Link 
@@ -228,16 +228,16 @@ export default function TripDetailsPage() {
   }
   
   if (!trip) {
-    return (
-      <DashboardLayout user={user} activeTab="trips">
-        <div className="bg-white/60 backdrop-blur-sm rounded-lg shadow-md border border-white/20 p-8 mb-8 mt-8">
-          <div className="flex justify-between items-center mb-6">
-            <h2 className="text-xl font-semibold text-black">Trip Details</h2>
-            <Link 
-              href="/dashboard/trips" 
-              className="text-[#5fbfc0] hover:text-[#60BFC0]"
-            >
-              Back to All Trips
+  return (
+    <DashboardLayout user={user} activeTab="trips">
+      <div className="bg-white/80 backdrop-blur-sm rounded-lg shadow-md border border-white/20 p-8 mb-8 mt-8">
+        <div className="flex justify-between items-center mb-6">
+          <h2 className="text-xl font-semibold text-black">Trip Details</h2>
+          <Link 
+            href="/dashboard/trips" 
+            className="text-[#5fbfc0] hover:text-[#60BFC0]"
+          >
+            Back to All Trips
             </Link>
           </div>
           
@@ -251,7 +251,7 @@ export default function TripDetailsPage() {
 
   return (
     <DashboardLayout user={user} activeTab="trips">
-      <div className="bg-white/60 backdrop-blur-sm rounded-lg shadow-md border border-white/20 p-8 mb-8 mt-8">
+      <div className="bg-white/80 backdrop-blur-sm rounded-lg shadow-md border border-white/20 p-8 mb-8 mt-8">
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-xl font-semibold text-black">Trip Details</h2>
           <Link 

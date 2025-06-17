@@ -7,7 +7,7 @@ export default function Signup() {
   return (
     <div className="min-h-screen flex flex-col">
       {/* Sticky Header */}
-      <header className="sticky top-0 left-0 right-0 p-4 bg-white/60 backdrop-blur-sm border-b border-white/20 z-20">
+      <header className="sticky top-0 left-0 right-0 p-4 bg-white/80 backdrop-blur-sm border-b border-white/20 z-20">
         <div className="container mx-auto flex justify-between items-center">
           <div className="flex items-center space-x-2">
             <Link href="/">

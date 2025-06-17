@@ -211,14 +211,14 @@ export default function ProfileForm({ user, profile = {} }) {
 
   return (
     <DashboardLayout user={user} activeTab="settings">
-      <div className="bg-white/60 backdrop-blur-sm rounded-lg shadow-md border border-white/20 p-8 mb-8 mt-8">
-        <h2 className="text-xl font-semibold text-black mb-6">Account Settings</h2>
+      <div className="bg-white/80 backdrop-blur-sm rounded-lg shadow-md border border-white/20 p-8 mb-8 mt-8">
+        <h2 className="text-3xl font-bold text-black mb-6">Account Settings</h2>
         
         {message.text && (
           <div className={`p-4 mb-6 rounded-md ${
             message.type === 'success' 
-              ? 'bg-[#5fbfc0]/20 text-[black] dark:bg-[#5fbfc0]/30 dark:text-[white]' 
-              : 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300'
+              ? 'bg-[#5fbfc0]/20 text-black font-bold' 
+              : 'bg-red-100 text-red-800 font-bold'
           }`}>
             {message.text}
           </div>
@@ -228,10 +228,10 @@ export default function ProfileForm({ user, profile = {} }) {
           <div className="space-y-6">
             {/* Personal Information Section */}
             <div>
-              <h3 className="text-lg font-medium text-[black] dark:text-[white] mb-4">Personal Information</h3>
+              <h3 className="text-xl font-bold text-black mb-4">Personal Information</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <label htmlFor="first_name" className="block text-sm font-medium text-[black] dark:text-[white] mb-1">
+                  <label htmlFor="first_name" className="block text-base font-bold text-black mb-1">
                     First Name
                   </label>
                   <input
@@ -241,12 +241,12 @@ export default function ProfileForm({ user, profile = {} }) {
                     required
                     value={formData.first_name}
                     onChange={handleChange}
-                    className="w-full p-2 border border-[#DDE5E7] dark:border-[#333333] rounded-md dark:bg-[black] text-[black] dark:text-[white]"
+                    className="w-full p-3 border border-[#DDE5E7] rounded-md bg-black text-white text-base placeholder-white"
                   />
                 </div>
                 
                 <div>
-                  <label htmlFor="last_name" className="block text-sm font-medium text-[black] dark:text-[white] mb-1">
+                  <label htmlFor="last_name" className="block text-base font-bold text-black mb-1">
                     Last Name
                   </label>
                   <input
@@ -256,12 +256,12 @@ export default function ProfileForm({ user, profile = {} }) {
                     required
                     value={formData.last_name}
                     onChange={handleChange}
-                    className="w-full p-2 border border-[#DDE5E7] dark:border-[#333333] rounded-md dark:bg-[black] text-[black] dark:text-[white]"
+                    className="w-full p-3 border border-[#DDE5E7] rounded-md bg-black text-white text-base placeholder-white"
                   />
                 </div>
                 
                 <div>
-                  <label htmlFor="phone_number" className="block text-sm font-medium text-[black] dark:text-[white] mb-1">
+                  <label htmlFor="phone_number" className="block text-base font-bold text-black mb-1">
                     Phone Number
                   </label>
                   <input
@@ -270,12 +270,12 @@ export default function ProfileForm({ user, profile = {} }) {
                     type="tel"
                     value={formData.phone_number}
                     onChange={handleChange}
-                    className="w-full p-2 border border-[#DDE5E7] dark:border-[#333333] rounded-md dark:bg-[black] text-[black] dark:text-[white]"
+                    className="w-full p-3 border border-[#DDE5E7] rounded-md bg-black text-white text-base placeholder-white"
                   />
                 </div>
                 
                 <div className="md:col-span-2">
-                  <label htmlFor="address" className="block text-sm font-medium text-[black] dark:text-[white] mb-1">
+                  <label htmlFor="address" className="block text-base font-bold text-black mb-1">
                     Address
                   </label>
                   <input
@@ -284,12 +284,12 @@ export default function ProfileForm({ user, profile = {} }) {
                     type="text"
                     value={formData.address}
                     onChange={handleChange}
-                    className="w-full p-2 border border-[#DDE5E7] dark:border-[#333333] rounded-md dark:bg-[black] text-[black] dark:text-[white]"
+                    className="w-full p-3 border border-[#DDE5E7] rounded-md bg-black text-white text-base placeholder-white"
                   />
                 </div>
                 
                 <div className="md:col-span-2">
-                  <label htmlFor="emergency_contact" className="block text-sm font-medium text-[black] dark:text-[white] mb-1">
+                  <label htmlFor="emergency_contact" className="block text-base font-bold text-black mb-1">
                     Emergency Contact (Name & Phone)
                   </label>
                   <input
@@ -298,7 +298,7 @@ export default function ProfileForm({ user, profile = {} }) {
                     type="text"
                     value={formData.emergency_contact}
                     onChange={handleChange}
-                    className="w-full p-2 border border-[#DDE5E7] dark:border-[#333333] rounded-md dark:bg-[black] text-[black] dark:text-[white]"
+                    className="w-full p-3 border border-[#DDE5E7] rounded-md bg-black text-white text-base placeholder-white"
                   />
                 </div>
                 
@@ -309,9 +309,9 @@ export default function ProfileForm({ user, profile = {} }) {
                     type="checkbox"
                     checked={formData.is_veteran}
                     onChange={handleChange}
-                    className="h-4 w-4 text-[#5fbfc0] focus:ring-[#5fbfc0] border-[#DDE5E7] dark:border-[#333333] rounded dark:bg-[black] dark:checked:bg-[#5fbfc0]"
+                    className="h-5 w-5 text-[#5fbfc0] focus:ring-[#5fbfc0] border-[#DDE5E7] rounded"
                   />
-                  <label htmlFor="is_veteran" className="ml-2 block text-sm font-medium text-[black] dark:text-[white]">
+                  <label htmlFor="is_veteran" className="ml-3 block text-base font-bold text-black">
                     I am a veteran
                   </label>
                 </div>
@@ -320,10 +320,10 @@ export default function ProfileForm({ user, profile = {} }) {
             
             {/* Special Requirements Section */}
             <div>
-              <h3 className="text-lg font-medium text-[black] dark:text-[white] mb-4">Special Requirements</h3>
+              <h3 className="text-xl font-bold text-black mb-4">Special Requirements</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="md:col-span-2">
-                  <label htmlFor="accessibility_needs" className="block text-sm font-medium text-[black] dark:text-[white] mb-1">
+                  <label htmlFor="accessibility_needs" className="block text-base font-bold text-black mb-1">
                     Accessibility Needs
                   </label>
                   <textarea
@@ -332,13 +332,13 @@ export default function ProfileForm({ user, profile = {} }) {
                     rows={3}
                     value={formData.accessibility_needs}
                     onChange={handleChange}
-                    className="w-full p-2 border border-[#DDE5E7] dark:border-[#333333] rounded-md dark:bg-[black] text-[black] dark:text-[white]"
+                    className="w-full p-3 border border-[#DDE5E7] rounded-md bg-black text-white text-base placeholder-white"
                     placeholder="e.g., Wheelchair accessible, Assistance getting in/out of vehicle"
                   ></textarea>
                 </div>
                 
                 <div className="md:col-span-2">
-                  <label htmlFor="medical_requirements" className="block text-sm font-medium text-[black] dark:text-[white] mb-1">
+                  <label htmlFor="medical_requirements" className="block text-base font-bold text-black mb-1">
                     Medical Requirements
                   </label>
                   <textarea
@@ -347,7 +347,7 @@ export default function ProfileForm({ user, profile = {} }) {
                     rows={3}
                     value={formData.medical_requirements}
                     onChange={handleChange}
-                    className="w-full p-2 border border-[#DDE5E7] dark:border-[#333333] rounded-md dark:bg-[black] text-[black] dark:text-[white]"
+                    className="w-full p-3 border border-[#DDE5E7] rounded-md bg-black text-white text-base placeholder-white"
                     placeholder="e.g., Oxygen tank, Medical equipment storage"
                   ></textarea>
                 </div>
@@ -356,58 +356,58 @@ export default function ProfileForm({ user, profile = {} }) {
             
             {/* Payment Preferences */}
             <div>
-              <h3 className="text-lg font-medium text-[black] dark:text-[white] mb-4">Payment Preferences</h3>
+              <h3 className="text-xl font-bold text-black mb-4">Payment Preferences</h3>
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-[black] dark:text-[white] mb-2">
+                  <label className="block text-base font-bold text-black mb-2">
                     Default Payment Method
                   </label>
                   
                   {loadingPaymentMethod ? (
-                    <div className="flex items-center p-3 border border-[#DDE5E7] dark:border-[#333333] rounded-md bg-[#F8F9FA] dark:bg-[#1A1A1A]">
+                    <div className="flex items-center p-3 border border-[#DDE5E7] rounded-md bg-white/100">
                       <svg className="animate-spin h-4 w-4 text-[#5fbfc0] mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                         <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                       </svg>
-                      <span className="text-sm text-[black]/70 dark:text-[white]/70">Loading payment method...</span>
+                      <span className="text-base font-bold text-black">Loading payment method...</span>
                     </div>
                   ) : defaultPaymentMethod ? (
-                    <div className="flex items-center justify-between p-3 border border-[#DDE5E7] dark:border-[#333333] rounded-md bg-[#F8F9FA] dark:bg-[#1A1A1A]">
+                    <div className="flex items-center justify-between p-3 border border-[#DDE5E7] rounded-md bg-white/100">
                       <div className="flex items-center space-x-3">
                         <div className="text-xl">{getCardBrandLogo(defaultPaymentMethod.card.brand)}</div>
                         <div>
-                          <p className="font-medium text-[black] dark:text-[white] text-sm">
+                          <p className="font-bold text-black text-base">
                             {formatCardNumber(defaultPaymentMethod.card.last4)}
                           </p>
-                          <p className="text-xs text-[black]/70 dark:text-[white]/70">
+                          <p className="text-sm font-bold text-black">
                             {defaultPaymentMethod.card.brand.charAt(0).toUpperCase() + defaultPaymentMethod.card.brand.slice(1)} • Expires {formatExpiry(defaultPaymentMethod.card.exp_month, defaultPaymentMethod.card.exp_year)}
                           </p>
                         </div>
                       </div>
-                      <span className="text-xs bg-[#5fbfc0]/20 text-[black] dark:text-[white] px-2 py-1 rounded-full">
+                      <span className="text-sm bg-[#5fbfc0]/20 text-black font-bold px-2 py-1 rounded-full">
                         Default
                       </span>
                     </div>
                   ) : (
-                    <div className="flex items-center p-3 border-2 border-dashed border-[#DDE5E7] dark:border-[#333333] rounded-md">
-                      <svg className="h-5 w-5 text-[#5fbfc0]/50 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <div className="flex items-center p-3 border-2 border-dashed border-[#DDE5E7] rounded-md">
+                      <svg className="h-5 w-5 text-black mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
                       </svg>
-                      <span className="text-sm text-[black]/70 dark:text-[white]/70">No payment method set up</span>
+                      <span className="text-base font-bold text-black">No payment method set up</span>
                     </div>
                   )}
                 </div>
                 
-                <div className="bg-[#5fbfc0]/10 dark:bg-[#5fbfc0]/20 p-4 rounded-md">
-                  <h4 className="text-sm font-medium text-[black] dark:text-[white] mb-2">
+                <div className="bg-white/100 p-4 rounded-md">
+                  <h4 className="text-base font-bold text-black mb-2">
                     Managing Your Payment Methods
                   </h4>
-                  <p className="text-sm text-[black]/70 dark:text-[white]/70 mb-3">
+                  <p className="text-base font-bold text-black mb-3">
                     To add, remove, or change your default payment method, please use the dedicated payment management page. This ensures secure handling of your payment information.
                   </p>
                   <Link
                     href="/dashboard/payment-methods"
-                    className="inline-flex items-center px-4 py-2 border border-[#5fbfc0] shadow-sm text-sm font-medium rounded-md text-[black] bg-white hover:bg-[#5fbfc0]/10 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#5fbfc0] dark:bg-[black] dark:text-[white] dark:border-[#5fbfc0] dark:hover:bg-[#5fbfc0]/20 transition-colors"
+                    className="inline-flex items-center px-5 py-3 border border-[#5fbfc0] shadow-sm text-base font-bold rounded-md text-black bg-white hover:bg-[#5fbfc0]/10 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#5fbfc0] transition-colors"
                   >
                     <svg className="-ml-1 mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
@@ -422,7 +422,7 @@ export default function ProfileForm({ user, profile = {} }) {
               <button
                 type="submit"
                 disabled={isLoading}
-                className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-[#5fbfc0] hover:bg-[#4aa5a6] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#5fbfc0] disabled:opacity-50"
+                className="inline-flex items-center px-6 py-3 border border-transparent rounded-md shadow-sm text-base font-bold text-white bg-[#5fbfc0] hover:bg-[#4aa5a6] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#5fbfc0] disabled:opacity-50"
               >
                 {isLoading ? 'Saving...' : 'Save Changes'}
               </button>
@@ -432,21 +432,21 @@ export default function ProfileForm({ user, profile = {} }) {
       </div>
       
       {/* Account Section */}
-      <div className="bg-[#F8F9FA] dark:bg-[#1A1A1A] rounded-lg shadow-md border border-[#DDE5E7] dark:border-[#333333] p-6">
-        <h3 className="text-lg font-medium text-[black] dark:text-[white] mb-4">Account Information</h3>
+      <div className="bg-white/100 rounded-lg shadow-md border border-white/20 p-6">
+        <h3 className="text-xl font-bold text-black mb-4">Account Information</h3>
         <div className="mb-4">
-          <div className="text-sm text-[black]/70 dark:text-[white]/70">Email</div>
-          <div className="font-medium text-[black] dark:text-[white]">{user.email}</div>
+          <div className="text-base font-bold text-black">Email</div>
+          <div className="font-bold text-black text-lg">{user.email}</div>
         </div>
         
-        <div className="border-t border-[#DDE5E7] dark:border-[#333333] pt-4 mt-4">
-          <h4 className="text-sm font-medium text-[black] dark:text-[white] mb-2">Password</h4>
-          <p className="text-sm text-[black]/70 dark:text-[white]/70 mb-4">
+        <div className="border-t border-[#DDE5E7] pt-4 mt-4">
+          <h4 className="text-base font-bold text-black mb-2">Password</h4>
+          <p className="text-base font-bold text-black mb-4">
             You can update your password from the change password page.
           </p>
           <a
             href="/update-password"
-            className="inline-flex items-center px-4 py-2 border border-[#DDE5E7] shadow-sm text-sm font-medium rounded-md text-[black] bg-white hover:bg-[#F8F9FA] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#5fbfc0] dark:bg-[black] dark:text-[white] dark:border-[#333333] dark:hover:bg-[#1A1A1A]"
+            className="inline-flex items-center px-6 py-3 border border-transparent shadow-sm text-base font-bold rounded-md text-white bg-[#5fbfc0] hover:bg-[#4aa5a6] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#5fbfc0]"
           >
             Change Password
           </a>

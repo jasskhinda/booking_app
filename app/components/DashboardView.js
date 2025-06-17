@@ -42,7 +42,7 @@ export default function DashboardView({ user }) {
 
   return (
     <DashboardLayout user={user} activeTab="dashboard">
-      <div className="bg-white/60 backdrop-blur-sm rounded-lg shadow-md border border-white/20 p-8 mb-8 mt-8">
+      <div className="bg-white/80 backdrop-blur-sm rounded-lg shadow-md border border-white/20 p-8 mb-8 mt-8">
         <h2 className="text-3xl font-bold mb-6 text-black">Welcome to your dashboard!</h2>
         <p className="text-black font-bold mb-6 text-lg">
           This is your personal dashboard where you can manage your rides and account settings.
