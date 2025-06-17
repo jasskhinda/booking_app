@@ -241,7 +241,9 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator {
 .booking-form-container {
   position: relative;
   min-height: 100vh;
-  overflow: visible; /* Changed from hidden to visible for Google Maps */
+  overflow-x: hidden; /* Hide horizontal overflow while allowing vertical for Google Maps */
+  display: flex;
+  flex-direction: column;
 }
 
 .booking-form-container .hero-background {
@@ -249,11 +251,12 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator {
   top: 0;
   left: 0;
   right: 0;
-  bottom: 0;
+  height: 100%; /* Use 100% height instead of bottom: 0 to contain within parent */
   background: url('/cctapphomebg.jpeg') center center;
   background-size: cover;
   background-position: center;
-  background-attachment: scroll; /* Changed from fixed to scroll to avoid DOM conflicts */
+  background-attachment: scroll; /* Keep scroll to avoid Google Maps conflicts */
+  background-repeat: no-repeat;
   z-index: -2;
 }
 
@@ -262,14 +265,42 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator {
   top: 0;
   left: 0;
   right: 0;
-  bottom: 0;
+  height: 100%; /* Use 100% height instead of bottom: 0 to contain within parent */
   background: rgba(0, 0, 0, 0.6);
   z-index: -1;
+}
+
+/* Ensure content area takes available space */
+.booking-form-container > main {
+  flex: 1;
+  position: relative;
+  z-index: 1;
+}
+
+/* Ensure footer stays at bottom and is visible */
+.booking-form-container > footer {
+  position: relative;
+  z-index: 10;
+  margin-top: auto;
+  background: #5fbfc0; /* Ensure footer has solid background */
 }
 
 @media (max-width: 768px) {
   .dashboard-container .hero-background {
     background-attachment: scroll;
+  }
+  
+  .booking-form-container {
+    min-height: 100vh;
+  }
+  
+  .booking-form-container .hero-background {
+    background-attachment: scroll;
+    height: 100%;
+  }
+  
+  .booking-form-container .hero-overlay {
+    height: 100%;
   }
 }
 

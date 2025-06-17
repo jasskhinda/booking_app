@@ -612,25 +612,25 @@ export default function PaymentMethodsManager({ user, profile }) {
                     {paymentMethods.map((method) => (
                       <div 
                         key={method.id} 
-                        className={`flex justify-between items-center p-4 border rounded-lg ${
+                        className={`flex justify-between items-center p-4 rounded-lg bg-white border-2 ${
                           method.id === defaultPaymentMethod 
-                            ? 'border-[#5fbfc0] bg-[#5fbfc0]/10 dark:bg-[#5fbfc0]/20' 
-                            : 'border-[#DDE5E7] dark:border-[#333333]'
+                            ? 'border-[#5fbfc0]' 
+                            : 'border-[#DDE5E7]'
                         }`}
                       >
                         <div className="flex items-center space-x-3">
                           <div className="text-2xl">{getCardBrandLogo(method.card.brand)}</div>
                           <div>
-                            <p className="font-medium text-black dark:text-white">{formatCardNumber(method.card.last4)}</p>
-                            <p className="text-sm text-black/70 dark:text-white/70">
+                            <p className="font-medium text-black">{formatCardNumber(method.card.last4)}</p>
+                            <p className="text-sm text-black">
                               Expires {formatExpiry(method.card.exp_month, method.card.exp_year)}
                               {method.id === defaultPaymentMethod && (
-                                <span className="ml-2 text-[#5fbfc0] dark:text-[#5fbfc0] font-medium">Default</span>
+                                <span className="ml-2 text-[#5fbfc0] font-medium">Default</span>
                               )}
                             </p>
                           </div>
                         </div>
-                        <div className="flex space-x-2">
+                        <div className="flex items-center space-x-2">
                           {paymentMethods.length === 1 ? (
                             // If there's only one payment method, show "Default Payment Method"
                             <span className="text-sm text-[#5fbfc0] font-medium">
@@ -640,7 +640,7 @@ export default function PaymentMethodsManager({ user, profile }) {
                             // If there are multiple methods and this isn't the default, show "Set as Default"
                             <button
                               onClick={() => handleSetDefaultPaymentMethod(method.id)}
-                              className="text-sm text-[#5fbfc0] hover:text-[#4aa5a6]"
+                              className="text-sm text-[#5fbfc0] hover:text-[#4aa5a6] font-medium"
                             >
                               Set as Default
                             </button>
@@ -652,7 +652,7 @@ export default function PaymentMethodsManager({ user, profile }) {
                           )}
                           <button
                             onClick={() => handleRemovePaymentMethod(method.id)}
-                            className="text-sm text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
+                            className="px-3 py-1 bg-red-600 text-white text-sm rounded hover:bg-red-700 transition-colors duration-200 font-medium"
                           >
                             Remove
                           </button>

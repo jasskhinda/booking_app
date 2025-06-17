@@ -1,7 +1,7 @@
 'use client';
 
-import { useState } from 'react';
-import { supabase } from '@/lib/supabase';
+import { useState, useEffect } from 'react';
+import { getSupabaseClient } from '@/lib/client-supabase';
 import { useRouter } from 'next/navigation';
 
 export default function UpdatePasswordForm() {
@@ -10,10 +10,53 @@ export default function UpdatePasswordForm() {
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
+  const [user, setUser] = useState(null);
+  const [isCheckingSession, setIsCheckingSession] = useState(true);
   const router = useRouter();
+  const supabase = getSupabaseClient();
+
+  // Check for valid session on component mount
+  useEffect(() => {
+    async function checkSession() {
+      try {
+        const { data: { session }, error } = await supabase.auth.getSession();
+        
+        if (error) {
+          console.error('Session check error:', error);
+          setError('Failed to verify authentication. Please try logging in again.');
+          setTimeout(() => {
+            router.push('/login?returnTo=/update-password');
+          }, 2000);
+          return;
+        }
+
+        if (!session) {
+          setError('You must be logged in to update your password.');
+          setTimeout(() => {
+            router.push('/login?returnTo=/update-password');
+          }, 2000);
+          return;
+        }
+
+        setUser(session.user);
+      } catch (error) {
+        console.error('Unexpected error checking session:', error);
+        setError('An unexpected error occurred. Please try again.');
+      } finally {
+        setIsCheckingSession(false);
+      }
+    }
+
+    checkSession();
+  }, [supabase, router]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    if (!user) {
+      setError('You must be logged in to update your password.');
+      return;
+    }
     
     if (password !== confirmPassword) {
       setError('Passwords do not match');
@@ -30,6 +73,13 @@ export default function UpdatePasswordForm() {
     setMessage('');
     
     try {
+      // First, verify the session is still valid
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      
+      if (sessionError || !session) {
+        throw new Error('Your session has expired. Please log in again.');
+      }
+
       const { error } = await supabase.auth.updateUser({
         password,
       });
@@ -54,6 +104,32 @@ export default function UpdatePasswordForm() {
       setIsLoading(false);
     }
   };
+
+  // Show loading state while checking session
+  if (isCheckingSession) {
+    return (
+      <div className="flex items-center justify-center py-8">
+        <div className="flex items-center space-x-3">
+          <svg className="animate-spin h-5 w-5 text-[#5fbfc0]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          </svg>
+          <span className="text-sm text-gray-600">Verifying authentication...</span>
+        </div>
+      </div>
+    );
+  }
+
+  // Don't render form if no user session
+  if (!user) {
+    return (
+      <div className="text-center py-8">
+        <div className="p-4 text-sm text-red-600 bg-red-100 rounded border border-red-200">
+          {error || 'Authentication required to update password.'}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <form onSubmit={handleSubmit} className="mt-8 space-y-6">

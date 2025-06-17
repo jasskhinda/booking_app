@@ -38,7 +38,7 @@ export async function middleware(req) {
   console.log('Session check in middleware:', session ? 'Session exists' : 'No session');
   
   // Define which routes should be protected
-  const protectedRoutes = ['/dashboard', '/dashboard/book', '/dashboard/trips', '/dashboard/settings', '/dashboard/payment-methods'];
+  const protectedRoutes = ['/dashboard', '/dashboard/book', '/dashboard/trips', '/dashboard/settings', '/dashboard/payment-methods', '/update-password'];
   
   // Check if the current route is protected
   const isProtectedRoute = protectedRoutes.some(route => 
