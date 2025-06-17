@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useRouter } from 'next/navigation';
 
@@ -10,31 +10,18 @@ export default function UpdatePasswordForm() {
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
-  const [hasSession, setHasSession] = useState(false);
   const router = useRouter();
-
-  useEffect(() => {
-    const checkSession = async () => {
-      const { data } = await supabase.auth.getSession();
-      setHasSession(!!data.session);
-      
-      if (!data.session) {
-        // If no active session and not in a recovery flow, redirect to login
-        const urlParams = new URLSearchParams(window.location.search);
-        if (!urlParams.has('code')) {
-          router.push('/login');
-        }
-      }
-    };
-    
-    checkSession();
-  }, [router]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     
     if (password !== confirmPassword) {
       setError('Passwords do not match');
+      return;
+    }
+
+    if (password.length < 6) {
+      setError('Password must be at least 6 characters long');
       return;
     }
     
@@ -55,9 +42,9 @@ export default function UpdatePasswordForm() {
       setPassword('');
       setConfirmPassword('');
       
-      // Redirect to login after a short delay
+      // Redirect to dashboard settings after a short delay
       setTimeout(() => {
-        router.push('/login');
+        router.push('/dashboard/settings');
       }, 2000);
       
     } catch (error) {
@@ -71,20 +58,20 @@ export default function UpdatePasswordForm() {
   return (
     <form onSubmit={handleSubmit} className="mt-8 space-y-6">
       {error && (
-        <div className="p-3 text-sm text-red-600 bg-red-100 dark:bg-red-900/30 dark:text-red-400 rounded">
+        <div className="p-3 text-sm text-red-600 bg-red-100 dark:bg-red-900/30 dark:text-red-400 rounded border border-red-200 dark:border-red-800">
           {error}
         </div>
       )}
       
       {message && (
-        <div className="p-3 text-sm text-green-600 bg-green-100 dark:bg-green-900/30 dark:text-green-400 rounded">
+        <div className="p-3 text-sm text-green-600 bg-green-100 dark:bg-green-900/30 dark:text-green-400 rounded border border-green-200 dark:border-green-800">
           {message}
         </div>
       )}
       
       <div className="space-y-4">
         <div>
-          <label htmlFor="password" className="block text-sm font-medium">
+          <label htmlFor="password" className="block text-sm font-medium text-black">
             New password
           </label>
           <input
@@ -95,12 +82,12 @@ export default function UpdatePasswordForm() {
             required
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-900"
+            className="mt-1 block w-full px-3 py-2 border border-[#DDE5E7] dark:border-[#333333] rounded-md shadow-sm focus:outline-none focus:ring-[#5fbfc0] focus:border-[#5fbfc0] bg-white dark:bg-[#1A1A1A] text-[black] dark:text-[white]"
           />
         </div>
         
         <div>
-          <label htmlFor="confirmPassword" className="block text-sm font-medium">
+          <label htmlFor="confirmPassword" className="block text-sm font-medium text-black">
             Confirm new password
           </label>
           <input
@@ -111,7 +98,7 @@ export default function UpdatePasswordForm() {
             required
             value={confirmPassword}
             onChange={(e) => setConfirmPassword(e.target.value)}
-            className="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-900"
+            className="mt-1 block w-full px-3 py-2 border border-[#DDE5E7] dark:border-[#333333] rounded-md shadow-sm focus:outline-none focus:ring-[#5fbfc0] focus:border-[#5fbfc0] bg-white dark:bg-[#1A1A1A] text-[black] dark:text-[white]"
           />
         </div>
       </div>
@@ -120,17 +107,17 @@ export default function UpdatePasswordForm() {
         <button
           type="submit"
           disabled={isLoading}
-          className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-[#5fbfc0] hover:bg-[#4aa5a6] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#5fbfc0] disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {isLoading ? 'Updating...' : 'Update password'}
         </button>
         
         <div className="text-center">
           <a 
-            href="/login" 
-            className="text-sm font-medium text-blue-600 hover:text-blue-500 dark:text-blue-400"
+            href="/dashboard/settings" 
+            className="text-sm font-medium text-[#5fbfc0] hover:text-[#4aa5a6]"
           >
-            Back to login
+            Back to settings
           </a>
         </div>
       </div>
