@@ -157,7 +157,7 @@ export default function SignupForm() {
           </div>
           <h3 className="mt-4 text-2xl font-bold text-black">Check your email</h3>
           <p className="mt-2 text-base text-black">
-            We've sent a confirmation link to:
+            We&apos;ve sent a confirmation link to:
           </p>
           <p className="mt-1 text-lg font-semibold text-[#5fbfc0]">
             {userEmail}
@@ -168,8 +168,8 @@ export default function SignupForm() {
           <h4 className="text-base font-semibold text-black mb-2">Next steps:</h4>
           <ol className="list-decimal list-inside space-y-1 text-sm text-black">
             <li>Check your email inbox (and spam folder)</li>
-            <li>Click the "Confirm your email" link</li>
-            <li>You'll be automatically signed in</li>
+            <li>Click the &ldquo;Confirm your email&rdquo; link</li>
+            <li>You&apos;ll be automatically signed in</li>
           </ol>
           <div className="mt-3 p-2 bg-blue-50 border border-blue-200 rounded text-xs text-blue-800">
             <strong>💡 Pro tip:</strong> The confirmation link will expire in 24 hours for security.
@@ -196,7 +196,7 @@ export default function SignupForm() {
           </button>
           
           <p className="text-center text-sm text-black">
-            Didn't receive the email?{' '}
+            Didn&apos;t receive the email?{' '}
             <button
               onClick={() => {
                 setEmailSent(false);

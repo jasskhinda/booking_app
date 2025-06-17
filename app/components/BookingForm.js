@@ -534,7 +534,8 @@ export default function BookingForm({ user }) {
       
       return () => clearTimeout(timer);
     }
-  }, [pickupLocation, destinationLocation, calculateRoute]); // Removed mapInstance and directionsRenderer to prevent re-renders
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pickupLocation, destinationLocation, calculateRoute]); // Intentionally excluding mapInstance and directionsRenderer to prevent unnecessary re-renders
 
   const handleChange = (e) => {
     const { name, value } = e.target;
