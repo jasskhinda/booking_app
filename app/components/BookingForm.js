@@ -1231,13 +1231,13 @@ export default function BookingForm({ user }) {
                     <p className="text-sm font-bold text-black">Estimated Fare</p>
                     {pickupLocation && destinationLocation ? (
                       <div>
-                        <p className="font-medium text-[black] dark:text-[white] text-lg">
+                        <p className="font-bold text-black text-lg">
                           {estimatedFare ? `$${estimatedFare.toFixed(2)}` : 'Calculating...'}
                         </p>
                         
                         {/* Pricing Breakdown */}
                         {pricingBreakdown && (
-                          <div className="mt-3 p-3 bg-[#F8F9FA] dark:bg-[black] rounded-md border border-[#DDE5E7] dark:border-[#333333]">
+                          <div className="mt-3 p-3 bg-white/100 rounded-md border border-[#DDE5E7] dark:border-[#333333]">
                             <p className="text-xs font-bold text-black mb-2">Pricing Breakdown:</p>
                             <div className="space-y-1 text-xs">
                               <div className="flex justify-between">
