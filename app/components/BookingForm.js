@@ -329,7 +329,7 @@ export default function BookingForm({ user }) {
         directionsRenderer.setMap(null);
       }
     };
-  }, [isGoogleLoaded]);
+  }, [isGoogleLoaded, directionsRenderer, mapInstance]);
   
   // References for autocomplete instances
   const pickupAutocompleteRef = useRef(null);
@@ -482,6 +482,7 @@ export default function BookingForm({ user }) {
         destinationAutocompleteRef.current = null;
       }
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isGoogleLoaded, formData.pickupAddress, formData.destinationAddress]);
   
   // Effect to calculate route when both locations are available
