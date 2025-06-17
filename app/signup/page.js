@@ -7,15 +7,18 @@ import SignupForm from '@/app/components/SignupForm';
 
 function SignupContent() {
   const searchParams = useSearchParams();
+  const error = searchParams.get('error');
   
   useEffect(() => {
-    // Clear any problematic query parameters that might interfere with navigation
-    const hasQueryParams = searchParams.toString();
-    if (hasQueryParams) {
-      // Clean the URL of query parameters that are meant for login page
-      const url = new URL(window.location);
-      url.search = ''; // Clear all query parameters
-      window.history.replaceState({}, '', url);
+    // Clear query parameters after a delay to avoid showing them permanently
+    if (searchParams.toString()) {
+      const timer = setTimeout(() => {
+        const url = new URL(window.location);
+        url.search = '';
+        window.history.replaceState({}, '', url);
+      }, 5000); // Clear after 5 seconds
+      
+      return () => clearTimeout(timer);
     }
   }, [searchParams]);
 
@@ -65,6 +68,13 @@ function SignupContent() {
                 </Link>
               </p>
             </div>
+            
+            {error && (
+              <div className="mb-4 p-3 text-sm text-red-600 bg-red-100 border border-red-200 rounded-md">
+                {error}
+              </div>
+            )}
+            
             <SignupForm />
           </div>
         </div>

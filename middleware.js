@@ -8,6 +8,7 @@ export const config = {
     '/signup',
     '/reset-password',
     '/update-password',
+    '/email-confirmed',
     
     // Protected routes
     '/dashboard',
@@ -19,8 +20,8 @@ export async function middleware(req) {
   const { pathname } = req.nextUrl;
   console.log(`Middleware handling path: ${pathname}`);
   
-  // Allow test page without authentication
-  if (pathname.startsWith('/test-payment')) {
+  // Allow test page and email confirmation without authentication
+  if (pathname.startsWith('/test-payment') || pathname === '/email-confirmed') {
     return NextResponse.next();
   }
   

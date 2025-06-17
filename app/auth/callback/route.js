@@ -13,6 +13,8 @@ export async function GET(request) {
     code: code ? 'present' : 'missing',
     error, 
     errorDescription,
+    type: requestUrl.searchParams.get('type'),
+    tokenHash: requestUrl.searchParams.get('token_hash') ? 'present' : 'missing',
     fullUrl: requestUrl.toString()
   });
   
@@ -35,6 +37,14 @@ export async function GET(request) {
       
       if (exchangeError) {
         console.error('Error exchanging code for session:', exchangeError);
+        
+        // Handle specific email confirmation errors
+        if (exchangeError.message?.includes('expired') || exchangeError.message?.includes('invalid')) {
+          return NextResponse.redirect(
+            new URL('/signup?error=Email confirmation link expired. Please sign up again.', requestUrl.origin)
+          );
+        }
+        
         return NextResponse.redirect(
           new URL('/login?error=Authentication failed', requestUrl.origin)
         );
@@ -102,7 +112,18 @@ export async function GET(request) {
       
       // Successful authentication, redirect to dashboard
       console.log('Redirecting to dashboard after successful authentication');
-      return NextResponse.redirect(new URL('/dashboard', requestUrl.origin));
+      
+      // Check if this is an email confirmation by looking for specific parameters
+      const isEmailConfirmation = requestUrl.searchParams.get('type') === 'signup' || 
+                                  requestUrl.searchParams.get('token_hash');
+      
+      if (isEmailConfirmation) {
+        // Show email confirmation success page first
+        return NextResponse.redirect(new URL('/email-confirmed', requestUrl.origin));
+      } else {
+        // Direct redirect to dashboard for OAuth
+        return NextResponse.redirect(new URL('/dashboard', requestUrl.origin));
+      }
       
     } catch (error) {
       console.error('Unexpected error in auth callback:', error);
