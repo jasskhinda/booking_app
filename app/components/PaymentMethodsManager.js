@@ -567,7 +567,7 @@ export default function PaymentMethodsManager({ user, profile }) {
         )}
         
         <div className="mb-6">
-          <p className="text-black dark:text-white">
+          <p className="text-black dark:text-white font-medium">
             Add and manage your payment methods for booking rides. Your payment information is securely stored with Stripe.
           </p>
         </div>
@@ -584,7 +584,7 @@ export default function PaymentMethodsManager({ user, profile }) {
           <div>
             {isAddingMethod && clientSecret ? (
               <div className="mb-6">
-                <h3 className="text-lg font-medium text-black dark:text-white mb-4">Add New Payment Method</h3>
+                <h3 className="text-xl font-bold text-black dark:text-white mb-4">Add New Payment Method</h3>
                 <StripeCardForm 
                   clientSecret={clientSecret} 
                   onSuccess={handleSetupSuccess} 
@@ -692,8 +692,8 @@ export default function PaymentMethodsManager({ user, profile }) {
         )}
         
         <div className="mt-8 pt-6 border-t border-[#DDE5E7] dark:border-[#333333]">
-          <h3 className="text-lg font-medium text-black dark:text-white mb-2">About Payment Processing</h3>
-          <div className="text-sm text-black dark:text-white space-y-2">
+          <h3 className="text-xl font-bold text-black dark:text-white mb-4">About Payment Processing</h3>
+          <div className="text-base text-black dark:text-white space-y-2 font-medium">
             <p>
               We use Stripe to securely process all payments. Your card information is never stored on our servers.
             </p>
