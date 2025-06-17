@@ -150,15 +150,21 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator {
 /* Signup form specific styling */
 .signup-form-container {
   min-height: calc(100vh - 88px);
-  padding-top: 6rem; /* Increased padding to prevent going under header */
+  padding-top: 8rem; /* Increased from 6rem to 8rem for more space above form */
   padding-bottom: 4rem; /* Increased bottom padding */
   overflow-y: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 /* Login form specific styling */
 .login-form-container {
-  padding-top: 4rem; /* Add padding to prevent going under header */
+  padding-top: 6rem; /* Increased from 4rem to 6rem for consistency */
   padding-bottom: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 /* Responsive hero */
@@ -180,7 +186,7 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator {
   
   .signup-form-container {
     min-height: 100vh;
-    padding-top: 8rem; /* More padding on mobile to account for header */
+    padding-top: 10rem; /* Increased mobile padding for better spacing */
     padding-bottom: 4rem;
   }
   

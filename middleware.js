@@ -100,7 +100,11 @@ export async function middleware(req) {
     const freshLogin = req.nextUrl.searchParams.get('fresh') === 'true';
     const isLogout = req.nextUrl.searchParams.get('logout') === 'true';
     
-    if (!freshLogin && !isLogout) {
+    // Allow navigation between auth routes even if session exists
+    const referer = req.headers.get('referer') || '';
+    const isAuthToAuthNavigation = authRoutes.some(route => referer.includes(route));
+    
+    if (!freshLogin && !isLogout && !isAuthToAuthNavigation) {
       console.log('Redirecting to dashboard from auth route');
       return NextResponse.redirect(new URL('/dashboard', req.url));
     }

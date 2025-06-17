@@ -1,9 +1,24 @@
 'use client';
 
+import { useEffect, Suspense } from 'react';
+import { useSearchParams } from 'next/navigation';
 import Link from "next/link";
 import SignupForm from '@/app/components/SignupForm';
 
-export default function Signup() {
+function SignupContent() {
+  const searchParams = useSearchParams();
+  
+  useEffect(() => {
+    // Clear any problematic query parameters that might interfere with navigation
+    const hasQueryParams = searchParams.toString();
+    if (hasQueryParams) {
+      // Clean the URL of query parameters that are meant for login page
+      const url = new URL(window.location);
+      url.search = ''; // Clear all query parameters
+      window.history.replaceState({}, '', url);
+    }
+  }, [searchParams]);
+
   return (
     <div className="min-h-screen flex flex-col">
       {/* Sticky Header */}
@@ -75,5 +90,13 @@ export default function Signup() {
         </div>
       </footer>
     </div>
+  );
+}
+
+export default function Signup() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <SignupContent />
+    </Suspense>
   );
 }
