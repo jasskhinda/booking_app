@@ -150,7 +150,7 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator {
 /* Signup form specific styling */
 .signup-form-container {
   min-height: calc(100vh - 88px);
-  padding-top: 12rem; /* Increased from 8rem to 12rem for more space from header */
+  padding-top: 16rem; /* Increased from 12rem to 16rem for even more space from header */
   padding-bottom: 4rem; /* Increased bottom padding */
   overflow-y: auto;
   display: flex;
@@ -186,7 +186,7 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator {
   
   .signup-form-container {
     min-height: 100vh;
-    padding-top: 12rem; /* Increased mobile padding for more space from header */
+    padding-top: 16rem; /* Increased mobile padding for much more space from header */
     padding-bottom: 4rem;
   }
   
