@@ -3,6 +3,7 @@
 @tailwind utilities;
 
 :root {
+  /* Base colors */
   --background: #FFFFFF;
   --foreground: #171717;
   --accent: #5fbfc0;
@@ -13,6 +14,35 @@
   --primary-hover: #1A1A1A;
   --secondary: #5fbfc0;
   --secondary-hover: #4aa5a6;
+
+  /* Status colors - Light Theme */
+  --brand-pending: 39 100% 50%;
+  --brand-upcoming: 184 56% 66%;
+  --brand-in-progress: 262 83% 58%;
+  --brand-completed: 142 71% 45%;
+  --brand-cancelled: 0 84% 60%;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0a0a0a;
+    --foreground: #ededed;
+    --accent: #5fbfc0;
+    --button-text: #000000;
+    --card-background: #1A1A1A;
+    --border-color: #333333;
+    --primary: #FFFFFF;
+    --primary-hover: #E5E5E5;
+    --secondary: #5fbfc0;
+    --secondary-hover: #4aa5a6;
+
+    /* Status colors - Dark Theme */
+    --brand-pending: 39 100% 60%;
+    --brand-upcoming: 184 56% 66%;
+    --brand-in-progress: 262 83% 68%;
+    --brand-completed: 142 71% 55%;
+    --brand-cancelled: 0 84% 70%;
+  }
 }
 
 body {
@@ -21,7 +51,7 @@ body {
   font-family: Arial, Helvetica, sans-serif;
 }
 
-/* BookingCCT button styles */
+/* Button styles */
 .btn-primary {
   background-color: var(--accent);
   color: var(--button-text);
@@ -53,26 +83,68 @@ body {
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-    --accent: #5fbfc0;
-    --button-text: #000000;
-    --card-background: #1A1A1A;
-    --border-color: #333333;
-    --primary: #FFFFFF;
-    --primary-hover: #E5E5E5;
-    --secondary: #5fbfc0;
-    --secondary-hover: #4aa5a6;
-  }
-  .card {
-    background-color: #1A1A1A;
-    border-color: #333333;
-  }
+/* Status badge utility classes */
+.status-badge {
+  display: inline-block;
+  padding: 0.25em 0.75em;
+  border-radius: 9999px;
+  font-size: 0.95em;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  margin-right: 0.5em;
+  margin-bottom: 0.25em;
 }
 
-/* Print-specific styles for invoice pages */
+/* Status-specific styles */
+.status-pending {
+  background: hsl(var(--brand-pending) / 0.15);
+  color: hsl(var(--brand-pending));
+  border: 1px solid hsl(var(--brand-pending));
+}
+
+.status-approved_pending_payment {
+  background: hsl(var(--brand-upcoming) / 0.12);
+  color: hsl(var(--brand-upcoming));
+  border: 1px solid hsl(var(--brand-upcoming));
+}
+
+.status-paid_in_progress {
+  background: hsl(var(--brand-in-progress) / 0.15);
+  color: hsl(var(--brand-in-progress));
+  border: 1px solid hsl(var(--brand-in-progress));
+}
+
+.status-payment_failed {
+  background: hsl(var(--brand-cancelled) / 0.15);
+  color: hsl(var(--brand-cancelled));
+  border: 1px solid hsl(var(--brand-cancelled));
+}
+
+.status-upcoming {
+  background: hsl(var(--brand-upcoming) / 0.15);
+  color: hsl(var(--brand-upcoming));
+  border: 1px solid hsl(var(--brand-upcoming));
+}
+
+.status-in-process {
+  background: hsl(var(--brand-in-progress) / 0.15);
+  color: hsl(var(--brand-in-progress));
+  border: 1px solid hsl(var(--brand-in-progress));
+}
+
+.status-completed {
+  background: hsl(var(--brand-completed) / 0.15);
+  color: hsl(var(--brand-completed));
+  border: 1px solid hsl(var(--brand-completed));
+}
+
+.status-cancelled {
+  background: hsl(var(--brand-cancelled) / 0.15);
+  color: hsl(var(--brand-cancelled));
+  border: 1px solid hsl(var(--brand-cancelled));
+}
+
+/* Print styles */
 @media print {
   .no-print {
     display: none !important;
