@@ -12,15 +12,13 @@ SMTP User: noreply@compassionatecaretransportation.com
 SMTP Password: [Your Brevo SMTP Key]
 Sender Name: Compassionate Care Transportation
 Sender Email: noreply@compassionatecaretransportation.com
-Minimum interval between emails: 10 seconds
 ```
 
 **Brevo SMTP Details:**
 - Host: `smtp-relay.brevo.com`
 - Port: `587` (TLS encryption)
-- Username: Your verified email address (format: xxxxxx@smtp-brevo.com)
+- Username: Your verified email address
 - Password: Your Brevo SMTP API key (not your login password)
-- **Rate Limit**: Set to 10 seconds (not 60) to avoid delays
 
 ### 2. Email Templates (Project → Settings → Authentication → Email Templates)
 
