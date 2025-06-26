@@ -7,7 +7,7 @@ import DashboardLayout from './DashboardLayout';
 import RatingForm from './RatingForm';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 
-export default function TripsView({ user, trips: initialTrips = [], successMessage = null }) {
+export default function TripsView({ user, trips: initialTrips = [], successMessage = null, statusMessages = [], connectionStatus = 'disconnected' }) {
   const [filter, setFilter] = useState('all'); // all, upcoming, completed, cancelled
   const [cancellingTrip, setCancellingTrip] = useState(null);
   const [cancelReason, setCancelReason] = useState('');
@@ -168,20 +168,60 @@ export default function TripsView({ user, trips: initialTrips = [], successMessa
   return (
     <DashboardLayout user={user} activeTab="trips">
       <div className="bg-white/80 backdrop-blur-sm rounded-lg shadow-md border border-white/20 p-8 mb-8 mt-8">
-        <div className="flex justify-between items-center mb-6">
-          <h2 className="text-xl font-semibold text-black">Your Trips</h2>
-          <Link 
-            href="/dashboard/book" 
-            className="bg-[#5fbfc0] text-white px-4 py-2 rounded-md text-sm hover:bg-[#4aa5a6]"
-          >
-            Book New Trip
-          </Link>
-        </div>
-        
         {/* Success message */}
         {successMessage && (
           <div className="p-4 mb-6 rounded-md bg-[#5fbfc0]/20 text-[black] dark:bg-[#5fbfc0]/30 dark:text-[white]">
             {successMessage}
+          </div>
+        )}
+
+        {/* Real-time connection status and header */}
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-xl font-semibold text-black">Your Trips</h2>
+          <div className="flex items-center space-x-4">
+            {/* Real-time status indicator */}
+            <div className="flex items-center space-x-2">
+              <div className={`w-2 h-2 rounded-full ${
+                connectionStatus === 'SUBSCRIBED' ? 'bg-green-500' : 
+                connectionStatus === 'CHANNEL_ERROR' ? 'bg-red-500' : 
+                'bg-yellow-500'
+              }`}></div>
+              <span className="text-xs text-gray-500 dark:text-gray-400">
+                {connectionStatus === 'SUBSCRIBED' ? 'Live updates' : 
+                 connectionStatus === 'CHANNEL_ERROR' ? 'Connection error' : 
+                 'Connecting...'}
+              </span>
+            </div>
+            <Link 
+              href="/dashboard/book" 
+              className="bg-[#5fbfc0] text-white px-4 py-2 rounded-md text-sm hover:bg-[#4aa5a6]"
+            >
+              Book New Trip
+            </Link>
+          </div>
+        </div>
+
+        {/* Status messages */}
+        {statusMessages.length > 0 && (
+          <div className="mb-4 space-y-2">
+            {statusMessages.map((msg) => (
+              <div
+                key={msg.id}
+                className={`p-3 rounded-md text-sm ${
+                  msg.type === 'success' ? 'bg-green-100 text-green-800 border border-green-200' :
+                  msg.type === 'error' ? 'bg-red-100 text-red-800 border border-red-200' :
+                  msg.type === 'warning' ? 'bg-yellow-100 text-yellow-800 border border-yellow-200' :
+                  'bg-blue-100 text-blue-800 border border-blue-200'
+                }`}
+              >
+                <div className="flex items-center justify-between">
+                  <span>{msg.message}</span>
+                  <span className="text-xs opacity-75">
+                    {new Date(msg.timestamp).toLocaleTimeString()}
+                  </span>
+                </div>
+              </div>
+            ))}
           </div>
         )}
 
@@ -353,36 +393,88 @@ export default function TripsView({ user, trips: initialTrips = [], successMessa
                           </button>
                         </div>
                       </div>
-                      <div className="mt-2 text-xs text-purple-600">
-                        Your request is pending approval from a dispatcher
+                      <div className="mt-3 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-md">
+                        <div className="flex items-center">
+                          <svg className="w-4 h-4 text-blue-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          </svg>
+                          <p className="text-sm font-medium text-blue-800 dark:text-blue-200">
+                            Waiting for dispatcher approval
+                          </p>
+                        </div>
+                        <p className="text-xs text-blue-600 dark:text-blue-300 mt-1">
+                          Your trip request is being reviewed. You'll be notified once approved, and payment will be processed automatically.
+                        </p>
+                        {trip.payment_method_id && (
+                          <p className="text-xs text-blue-600 dark:text-blue-300 mt-1">
+                            Payment method ready: ••••{trip.payment_method_id.slice(-4)}
+                          </p>
+                        )}
                       </div>
                     </div>
                   )}
                   
                   {trip.status === 'upcoming' && (
-                    <div className="mt-4 flex justify-between">
-                      <div>
-                        <p className="text-sm font-medium text-black">Driver</p>
-                        <p className="text-sm text-gray-600">
-                          {trip.driver 
-                            ? (trip.driver.profile?.full_name || `${trip.driver.profile?.first_name || ''} ${trip.driver.profile?.last_name || ''}`.trim() || trip.driver_name || trip.driver.email) 
-                            : (trip.driver_name || 'Not assigned yet')}
-                        </p>
+                    <div className="mt-4">
+                      <div className="flex justify-between items-center">
+                        <div>
+                          <p className="text-sm font-medium text-black">Driver</p>
+                          <p className="text-sm text-gray-600">
+                            {trip.driver 
+                              ? (trip.driver.profile?.full_name || `${trip.driver.profile?.first_name || ''} ${trip.driver.profile?.last_name || ''}`.trim() || trip.driver_name || trip.driver.email) 
+                              : (trip.driver_name || 'Not assigned yet')}
+                          </p>
+                        </div>
+                        <div className="flex space-x-2">
+                          <Link
+                            href={`/dashboard/trips/${trip.id}`}
+                            className="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded text-white bg-[#5fbfc0] hover:bg-[#4aa5a6]"
+                          >
+                            Details
+                          </Link>
+                          <button
+                            onClick={() => startCancellation(trip.id)}
+                            className="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded text-white bg-red-600 hover:bg-red-700"
+                          >
+                            Cancel
+                          </button>
+                        </div>
                       </div>
-                      <div className="flex space-x-2">
-                        <Link
-                          href={`/dashboard/trips/${trip.id}`}
-                          className="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded text-white bg-[#5fbfc0] hover:bg-[#4aa5a6]"
-                        >
-                          Details
-                        </Link>
-                        <button
-                          onClick={() => startCancellation(trip.id)}
-                          className="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded text-white bg-red-600 hover:bg-red-700"
-                        >
-                          Cancel
-                        </button>
-                      </div>
+                      
+                      {/* Payment Status Display */}
+                      {trip.payment_status && (
+                        <div className="mt-3 p-3 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center">
+                              <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                              </svg>
+                              <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Payment Status:</span>
+                            </div>
+                            <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                              trip.payment_status === 'paid' ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' :
+                              trip.payment_status === 'failed' ? 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400' :
+                              trip.payment_status === 'refunded' ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400' :
+                              'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400'
+                            }`}>
+                              {trip.payment_status === 'paid' ? 'Paid' :
+                               trip.payment_status === 'failed' ? 'Payment Failed' :
+                               trip.payment_status === 'refunded' ? 'Refunded' :
+                               'Payment Pending'}
+                            </span>
+                          </div>
+                          {trip.payment_amount && trip.payment_status === 'paid' && (
+                            <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
+                              Amount: ${trip.payment_amount.toFixed(2)} • Charged on {new Date(trip.charged_at).toLocaleDateString()}
+                            </p>
+                          )}
+                          {trip.payment_status === 'failed' && trip.payment_error && (
+                            <p className="text-xs text-red-600 dark:text-red-400 mt-1">
+                              Error: {trip.payment_error}
+                            </p>
+                          )}
+                        </div>
+                      )}
                     </div>
                   )}
                   

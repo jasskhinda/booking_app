@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import TripsView from '@/app/components/TripsView';
+import { useRealtimeTripUpdates, useStatusMessages } from '@/app/hooks/useRealtimeTripUpdates';
 
 export default function TripsPage() {
   const [loading, setLoading] = useState(true);
@@ -13,6 +14,10 @@ export default function TripsPage() {
   const [successMessage, setSuccessMessage] = useState(null);
   const router = useRouter();
   const supabase = createClientComponentClient();
+
+  // Set up real-time trip updates
+  const { connectionStatus } = useRealtimeTripUpdates(user?.id, trips, setTrips);
+  const { messages, addMessage } = useStatusMessages();
 
   useEffect(() => {
     // Check URL for query parameters
@@ -172,5 +177,5 @@ export default function TripsPage() {
     );
   }
 
-  return <TripsView user={user} trips={trips} successMessage={successMessage} />;
+  return <TripsView user={user} trips={trips} successMessage={successMessage} statusMessages={messages} connectionStatus={connectionStatus} />;
 }
