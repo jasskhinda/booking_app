@@ -3,7 +3,6 @@
 @tailwind utilities;
 
 :root {
-  /* Base colors */
   --background: #FFFFFF;
   --foreground: #171717;
   --accent: #5fbfc0;
@@ -14,13 +13,6 @@
   --primary-hover: #1A1A1A;
   --secondary: #5fbfc0;
   --secondary-hover: #4aa5a6;
-
-  /* Status colors - Light Theme */
-  --brand-pending: 39 100% 50%;
-  --brand-upcoming: 184 56% 66%;
-  --brand-in-progress: 262 83% 58%;
-  --brand-completed: 142 71% 45%;
-  --brand-cancelled: 0 84% 60%;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -35,13 +27,6 @@
     --primary-hover: #E5E5E5;
     --secondary: #5fbfc0;
     --secondary-hover: #4aa5a6;
-
-    /* Status colors - Dark Theme */
-    --brand-pending: 39 100% 60%;
-    --brand-upcoming: 184 56% 66%;
-    --brand-in-progress: 262 83% 68%;
-    --brand-completed: 142 71% 55%;
-    --brand-cancelled: 0 84% 70%;
   }
 }
 
@@ -51,27 +36,29 @@ body {
   font-family: Arial, Helvetica, sans-serif;
 }
 
-/* Button styles */
+/* Custom utility classes for BookingCCT */
 .btn-primary {
-  background-color: var(--accent);
-  color: var(--button-text);
+  background-color: #5fbfc0;
+  color: white;
   border: none;
   padding: 0.5rem 1rem;
   border-radius: 0.375rem;
   transition: background-color 0.2s;
 }
+
 .btn-primary:hover {
-  background-color: var(--secondary-hover);
+  background-color: #4aa5a6;
 }
 
 .btn-secondary {
   background-color: transparent;
-  border: 1px solid var(--accent);
-  color: var(--accent);
+  border: 1px solid #5fbfc0;
+  color: #5fbfc0;
   padding: 0.5rem 1rem;
   border-radius: 0.375rem;
   transition: all 0.2s;
 }
+
 .btn-secondary:hover {
   background-color: rgba(95, 191, 192, 0.1);
 }
@@ -83,65 +70,82 @@ body {
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
-/* Status badge utility classes */
+/* Status badge classes */
 .status-badge {
-  display: inline-block;
-  padding: 0.25em 0.75em;
-  border-radius: 9999px;
-  font-size: 0.95em;
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.75rem;
+  font-size: 0.875rem;
   font-weight: 500;
-  letter-spacing: 0.01em;
-  margin-right: 0.5em;
-  margin-bottom: 0.25em;
+  border-radius: 9999px;
 }
 
-/* Status-specific styles */
 .status-pending {
-  background: hsl(var(--brand-pending) / 0.15);
-  color: hsl(var(--brand-pending));
-  border: 1px solid hsl(var(--brand-pending));
+  background-color: #fef3c7;
+  color: #92400e;
 }
 
 .status-approved_pending_payment {
-  background: hsl(var(--brand-upcoming) / 0.12);
-  color: hsl(var(--brand-upcoming));
-  border: 1px solid hsl(var(--brand-upcoming));
+  background-color: #dbeafe;
+  color: #1e40af;
 }
 
 .status-paid_in_progress {
-  background: hsl(var(--brand-in-progress) / 0.15);
-  color: hsl(var(--brand-in-progress));
-  border: 1px solid hsl(var(--brand-in-progress));
+  background-color: #2563eb;
+  color: white;
 }
 
 .status-payment_failed {
-  background: hsl(var(--brand-cancelled) / 0.15);
-  color: hsl(var(--brand-cancelled));
-  border: 1px solid hsl(var(--brand-cancelled));
+  background-color: #fee2e2;
+  color: #991b1b;
 }
 
 .status-upcoming {
-  background: hsl(var(--brand-upcoming) / 0.15);
-  color: hsl(var(--brand-upcoming));
-  border: 1px solid hsl(var(--brand-upcoming));
+  background-color: #dbeafe;
+  color: #1e40af;
 }
 
 .status-in-process {
-  background: hsl(var(--brand-in-progress) / 0.15);
-  color: hsl(var(--brand-in-progress));
-  border: 1px solid hsl(var(--brand-in-progress));
+  background-color: #2563eb;
+  color: white;
 }
 
 .status-completed {
-  background: hsl(var(--brand-completed) / 0.15);
-  color: hsl(var(--brand-completed));
-  border: 1px solid hsl(var(--brand-completed));
+  background-color: #dcfce7;
+  color: #166534;
 }
 
 .status-cancelled {
-  background: hsl(var(--brand-cancelled) / 0.15);
-  color: hsl(var(--brand-cancelled));
-  border: 1px solid hsl(var(--brand-cancelled));
+  background-color: #fee2e2;
+  color: #991b1b;
+}
+
+/* Dark mode status colors */
+@media (prefers-color-scheme: dark) {
+  .status-pending {
+    background-color: rgba(234, 179, 8, 0.2);
+    color: #fbbf24;
+  }
+
+  .status-approved_pending_payment, .status-upcoming {
+    background-color: rgba(59, 130, 246, 0.2);
+    color: #60a5fa;
+  }
+
+  .status-paid_in_progress, .status-in-process {
+    background-color: #3b82f6;
+    color: white;
+  }
+
+  .status-payment_failed, .status-cancelled {
+    background-color: rgba(239, 68, 68, 0.2);
+    color: #f87171;
+  }
+
+  .status-completed {
+    background-color: rgba(34, 197, 94, 0.2);
+    color: #4ade80;
+  }
 }
 
 /* Print styles */
