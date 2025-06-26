@@ -106,7 +106,6 @@ body {
 }
 
 .status-pending {
-<<<<<<< HEAD
   background-color: rgba(245, 158, 11, 0.1);
   color: var(--status-pending);
   border: 1px solid var(--status-pending);
@@ -153,31 +152,6 @@ body {
   border: 1px solid var(--status-cancelled);
 }
 
-/* Dark mode status badge adjustments */
-=======
-  @apply bg-black text-white;
-}
-
-.status-upcoming {
-  @apply bg-black text-white;
-}
-
-.status-in-process {
-  @apply bg-blue-600 text-white;
-}
-
-.status-completed {
-  @apply bg-black text-white;
-}
-
-.status-cancelled {
-  @apply bg-red-600 text-white;
-}
-
-.status-in-progress {
-  @apply bg-black text-white;
-}
-
 /* Custom datetime-local input styling */
 input[type="datetime-local"]::-webkit-calendar-picker-indicator {
   filter: invert(74%) sepia(34%) saturate(438%) hue-rotate(142deg) brightness(87%) contrast(85%);
@@ -186,7 +160,6 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator {
 }
 
 /* Dark mode calendar icon */
->>>>>>> parent of 980ff84 (improved)
 @media (prefers-color-scheme: dark) {
   .status-badge {
     background-color: rgba(255, 255, 255, 0.1);
