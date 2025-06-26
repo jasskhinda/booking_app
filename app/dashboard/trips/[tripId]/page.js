@@ -171,6 +171,47 @@ export default function TripDetailsPage() {
     }
   };
   
+  // Handle retry payment for failed payments
+  const handleRetryPayment = async (tripId) => {
+    try {
+      setIsSubmitting(true);
+      setError(null);
+      
+      // Call the payment retry API
+      const response = await fetch('/api/stripe/charge-payment', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ tripId }),
+      });
+      
+      const result = await response.json();
+      
+      if (response.ok && result.success) {
+        // Payment succeeded - update the trip status locally
+        setTrip(prevTrip => ({
+          ...prevTrip,
+          status: 'paid_in_progress',
+          payment_status: 'paid',
+          payment_amount: result.paymentIntent.amount / 100, // Convert from cents
+          charged_at: new Date().toISOString(),
+          payment_intent_id: result.paymentIntent.id
+        }));
+        
+        setSuccessMessage('Payment processed successfully! Your trip is now confirmed.');
+      } else {
+        // Payment failed - show error
+        setError(result.error || 'Payment failed. Please check your payment method and try again.');
+      }
+    } catch (error) {
+      console.error('Error retrying payment:', error);
+      setError('Failed to process payment. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+  
   // Get status badge class
   const getStatusBadgeClass = (status) => {
     switch(status) {
@@ -283,7 +324,7 @@ export default function TripDetailsPage() {
         <div className="mb-6">
           <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusBadgeClass(trip.status)}`}>
             {trip.status === 'pending' ? 'Waiting for Approval' :
-             trip.status === 'approved_pending_payment' ? 'Trip Approved - Processing Payment' :
+             trip.status === 'approved_pending_payment' ? 'Trip Approved | Processing Payment' :
              trip.status === 'paid_in_progress' ? 'Trip In Process' :
              trip.status === 'payment_failed' ? 'Payment Failed - Action Required' :
              trip.status === 'upcoming' ? 'Trip Approved' : 
@@ -291,6 +332,38 @@ export default function TripDetailsPage() {
              trip.status === 'completed' ? 'Completed' : 
              trip.status === 'in_progress' ? 'Trip In Progress' : 'Cancelled'}
           </span>
+          
+          {/* Payment Status Indicator */}
+          {(trip.status === 'approved_pending_payment' || trip.status === 'paid_in_progress' || trip.status === 'payment_failed') && (
+            <div className="mt-2">
+              {trip.status === 'approved_pending_payment' && (
+                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400">
+                  <svg className="w-3 h-3 mr-1 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  Processing Payment
+                </span>
+              )}
+              {trip.status === 'paid_in_progress' && (
+                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400">
+                  <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  PAID
+                </span>
+              )}
+              {trip.status === 'payment_failed' && (
+                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400">
+                  <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                  Automatic payment failed
+                </span>
+              )}
+            </div>
+          )}
+          
           <p className="mt-2 text-sm text-[black]/70 dark:text-[white]/70">
             Trip ID: {trip.id}
           </p>
@@ -348,6 +421,97 @@ export default function TripDetailsPage() {
             </div>
           </div>
         </div>
+        
+        {/* Payment Information Section */}
+        {(trip.payment_method_id || trip.payment_status || trip.status === 'payment_failed') && (
+          <div className="bg-white dark:bg-[#1C2C2F] rounded-lg p-5 shadow-sm border border-[#DDE5E7] dark:border-[#3F5E63] mb-6">
+            <h3 className="text-lg font-medium mb-4 text-[black] dark:text-[white]">Payment Details</h3>
+            
+            <div className="space-y-4">
+              {/* Payment Method */}
+              {trip.payment_method_id && (
+                <div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                  <div className="flex items-center space-x-3">
+                    <div className="text-xl">💳</div>
+                    <div>
+                      <p className="text-sm font-medium text-[black] dark:text-[white]">
+                        •••• •••• •••• {trip.payment_method_id.slice(-4)}
+                      </p>
+                      <p className="text-xs text-[black]/70 dark:text-[white]/70">Default payment method</p>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-sm font-medium text-[black] dark:text-[white]">${trip.price?.toFixed(2) || 'N/A'}</p>
+                    {trip.payment_status === 'paid' && trip.charged_at && (
+                      <p className="text-xs text-green-600 dark:text-green-400">
+                        Charged on {new Date(trip.charged_at).toLocaleDateString()}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              )}
+              
+              {/* Payment Status Messages */}
+              {trip.status === 'approved_pending_payment' && (
+                <div className="p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+                  <div className="flex items-start space-x-2">
+                    <svg className="w-5 h-5 text-blue-500 mt-0.5 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    <div>
+                      <p className="text-sm font-medium text-blue-800 dark:text-blue-200">Processing Payment</p>
+                      <p className="text-xs text-blue-600 dark:text-blue-300">
+                        Your payment is being processed automatically. This usually takes a few moments.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+              
+              {trip.status === 'paid_in_progress' && trip.payment_status === 'paid' && (
+                <div className="p-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
+                  <div className="flex items-start space-x-2">
+                    <svg className="w-5 h-5 text-green-500 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                    <div>
+                      <p className="text-sm font-medium text-green-800 dark:text-green-200">Payment Successful</p>
+                      <p className="text-xs text-green-600 dark:text-green-300">
+                        Your payment of ${trip.payment_amount?.toFixed(2) || trip.price?.toFixed(2)} has been processed successfully.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+              
+              {trip.status === 'payment_failed' && (
+                <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
+                  <div className="flex items-start space-x-2">
+                    <svg className="w-5 h-5 text-red-500 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                    <div className="flex-1">
+                      <p className="text-sm font-medium text-red-800 dark:text-red-200">Automatic payment failed</p>
+                      <p className="text-xs text-red-600 dark:text-red-300 mb-3">
+                        {trip.payment_error || 'There was an issue processing your payment automatically. Please try again or update your payment method.'}
+                      </p>
+                      <button
+                        onClick={() => handleRetryPayment(trip.id)}
+                        className="inline-flex items-center px-3 py-1.5 bg-red-600 text-white text-xs font-medium rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+                      >
+                        <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                        </svg>
+                        Pay Now to process with the booking
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
         
         {/* Driver Information (if assigned) */}
         {(trip.driver_id || trip.driver) && (
