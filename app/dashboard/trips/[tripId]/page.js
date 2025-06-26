@@ -20,6 +20,22 @@ export default function TripDetailsPage() {
   const [cancelReason, setCancelReason] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [successMessage, setSuccessMessage] = useState(null);
+  const [paymentMethod, setPaymentMethod] = useState(null);
+
+  // Function to fetch payment method details
+  const fetchPaymentMethodDetails = async (paymentMethodId) => {
+    try {
+      const response = await fetch(`/api/stripe/payment-method/${paymentMethodId}`);
+      const data = await response.json();
+      
+      if (response.ok && data.paymentMethod) {
+        setPaymentMethod(data.paymentMethod);
+      }
+    } catch (error) {
+      console.error('Error fetching payment method details:', error);
+      // Don't show error to user for payment method fetch failures
+    }
+  };
 
   useEffect(() => {
     async function fetchData() {
@@ -78,6 +94,11 @@ export default function TripDetailsPage() {
         }
         
         setTrip(tripData);
+        
+        // Fetch payment method details if available
+        if (tripData.payment_method_id) {
+          await fetchPaymentMethodDetails(tripData.payment_method_id);
+        }
       } catch (error) {
         console.error('Error fetching data:', error);
         setError('An unexpected error occurred. Please try again.');
@@ -435,9 +456,12 @@ export default function TripDetailsPage() {
                     <div className="text-xl">💳</div>
                     <div>
                       <p className="text-sm font-medium text-[black] dark:text-[white]">
-                        •••• •••• •••• {trip.payment_method_id.slice(-4)}
+                        •••• •••• •••• {paymentMethod?.card?.last4 || trip.payment_method_id.slice(-4)}
                       </p>
-                      <p className="text-xs text-[black]/70 dark:text-[white]/70">Default payment method</p>
+                      <p className="text-xs text-[black]/70 dark:text-[white]/70">
+                        {paymentMethod?.card?.brand?.toUpperCase() || 'Card'} • Default payment method
+                        {paymentMethod?.card && ` • Expires ${String(paymentMethod.card.exp_month).padStart(2, '0')}/${String(paymentMethod.card.exp_year).slice(-2)}`}
+                      </p>
                     </div>
                   </div>
                   <div className="text-right">

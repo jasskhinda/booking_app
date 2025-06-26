@@ -15,8 +15,47 @@ export default function TripsView({ user, trips: initialTrips = [], successMessa
   const [ratingTrip, setRatingTrip] = useState(null);
   const [rebookingTrip, setRebookingTrip] = useState(null);
   const [trips, setTrips] = useState(initialTrips);
+  const [paymentMethods, setPaymentMethods] = useState({});
   const supabase = createClientComponentClient();
   const router = useRouter();
+
+  // Function to fetch payment method details
+  const fetchPaymentMethodDetails = async (paymentMethodId) => {
+    try {
+      const response = await fetch(`/api/stripe/payment-method/${paymentMethodId}`);
+      const data = await response.json();
+      
+      if (response.ok && data.paymentMethod) {
+        return data.paymentMethod;
+      }
+      return null;
+    } catch (error) {
+      console.error('Error fetching payment method details:', error);
+      return null;
+    }
+  };
+
+  // Fetch payment method details for all trips when component loads
+  useEffect(() => {
+    const loadPaymentMethods = async () => {
+      const methodsMap = {};
+      
+      for (const trip of trips) {
+        if (trip.payment_method_id && !methodsMap[trip.payment_method_id]) {
+          const paymentMethod = await fetchPaymentMethodDetails(trip.payment_method_id);
+          if (paymentMethod) {
+            methodsMap[trip.payment_method_id] = paymentMethod;
+          }
+        }
+      }
+      
+      setPaymentMethods(methodsMap);
+    };
+
+    if (trips.length > 0) {
+      loadPaymentMethods();
+    }
+  }, [trips]);
 
   // Filter trips based on status
   const filteredTrips = trips.filter(trip => {
@@ -513,8 +552,13 @@ export default function TripsView({ user, trips: initialTrips = [], successMessa
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
                               </svg>
                               <span className="text-sm text-gray-600 dark:text-gray-400">
-                                •••• •••• •••• {trip.payment_method_id.slice(-4)}
+                                •••• •••• •••• {paymentMethods[trip.payment_method_id]?.card?.last4 || trip.payment_method_id.slice(-4)}
                               </span>
+                              {paymentMethods[trip.payment_method_id]?.card?.brand && (
+                                <span className="text-xs text-gray-500 uppercase">
+                                  {paymentMethods[trip.payment_method_id].card.brand}
+                                </span>
+                              )}
                             </div>
                             {trip.payment_status === 'paid' ? (
                               <span className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400">
