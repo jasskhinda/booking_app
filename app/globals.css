@@ -92,13 +92,13 @@ body {
 }
 
 .status-upcoming {
-  background-color: #d1fae5;
-  color: #065f46;
-  border: 1px solid #10b981;
+  background-color: #dbeafe;
+  color: #1e40af;
+  border: 1px solid #3b82f6;
 }
 
 .status-in-process {
-  background-color: #2563eb;
+  background-color: #059669;
   color: white;
 }
 
