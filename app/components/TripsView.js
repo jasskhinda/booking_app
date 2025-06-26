@@ -175,48 +175,6 @@ export default function TripsView({ user, trips: initialTrips = [], successMessa
     }
   };
 
-  // Function to handle Pay Now action
-  const handlePayNow = async (tripId) => {
-    setIsSubmitting(true);
-    try {
-      // Call the payment API to process payment for the trip
-      const response = await fetch('/api/stripe/charge-payment', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ tripId }),
-      });
-      
-      const result = await response.json();
-      
-      if (response.ok && result.success) {
-        // Payment succeeded - update the trip status locally
-        const updatedTrips = trips.map(trip => 
-          trip.id === tripId ? {
-            ...trip,
-            status: 'paid_in_progress',
-            payment_status: 'paid',
-            payment_amount: result.paymentIntent.amount / 100, // Convert from cents
-            charged_at: new Date().toISOString(),
-            payment_intent_id: result.paymentIntent.id
-          } : trip
-        );
-        
-        setTrips(updatedTrips);
-        alert('Payment processed successfully! Your trip is now confirmed.');
-      } else {
-        // Payment failed - show error
-        alert(result.error || 'Payment failed. Please check your payment method and try again.');
-      }
-    } catch (error) {
-      console.error('Error processing payment:', error);
-      alert('Failed to process payment. Please try again.');
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
   const formatDate = (dateString) => {
     const date = new Date(dateString);
     return new Intl.DateTimeFormat('en-US', {
@@ -417,11 +375,11 @@ export default function TripsView({ user, trips: initialTrips = [], successMessa
                     <div className="mb-2 sm:mb-0">
                       <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusBadgeClass(trip.status)}`}>
                         {trip.status === 'pending' ? 'Waiting for Approval' :
-                         trip.status === 'approved_pending_payment' ? 'Trip Approved | Processing Payment' :
-                         trip.status === 'paid_in_progress' ? 'Trip In Process | PAID' :
+                         trip.status === 'approved_pending_payment' ? 'Trip Approved - Processing Payment' :
+                         trip.status === 'paid_in_progress' ? 'Trip In Process' :
                          trip.status === 'payment_failed' ? 'Payment Failed - Action Required' :
-                         trip.status === 'upcoming' ? 'Trip Approved | Processing Payment' : 
-                         trip.status === 'in_process' ? 'Trip In Process | PAID' :
+                         trip.status === 'upcoming' ? 'Trip Approved' : 
+                         trip.status === 'in_process' ? 'Trip In Process' :
                          trip.status === 'completed' ? 'Completed' : 
                          trip.status === 'in_progress' ? 'Trip In Progress' : 'Cancelled'}
                       </span>
@@ -542,6 +500,7 @@ export default function TripsView({ user, trips: initialTrips = [], successMessa
                         </div>
                       </div>
                       
+<<<<<<< HEAD
                       {/* Payment Details Section */}
                       {trip.payment_method_id && (
                         <div className="mt-4 p-3 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md">
@@ -577,6 +536,8 @@ export default function TripsView({ user, trips: initialTrips = [], successMessa
                         </div>
                       )}
                       
+=======
+>>>>>>> parent of 9a138ca (pay fix)
                       {/* Payment Status Display */}
                       {trip.payment_status && (
                         <div className="mt-3 p-3 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md">
@@ -713,33 +674,6 @@ export default function TripsView({ user, trips: initialTrips = [], successMessa
                           </svg>
                           Track Driver
                         </Link>
-                      </div>
-                    </div>
-                  )}
-
-                  {(trip.status === 'paid_in_progress' || trip.status === 'in_process') && (
-                    <div className="mt-4 flex justify-between items-center">
-                      <div>
-                        <p className="text-sm font-medium text-black">Driver</p>
-                        <p className="text-sm text-gray-600">
-                          {trip.driver 
-                            ? (trip.driver.profile?.full_name || `${trip.driver.profile?.first_name || ''} ${trip.driver.profile?.last_name || ''}`.trim() || trip.driver_name || trip.driver.email) 
-                            : (trip.driver_name || 'Not assigned')}
-                        </p>
-                      </div>
-                      <div className="flex space-x-2">
-                        <button
-                          onClick={() => startCancellation(trip.id)}
-                          className="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded text-white bg-red-600 hover:bg-red-700"
-                        >
-                          Cancel Trip
-                        </button>
-                        <span className="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded text-green-700 bg-green-100">
-                          PAID
-                        </span>
-                        <span className="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded text-blue-700 bg-blue-100">
-                          TRIP IN PROGRESS
-                        </span>
                       </div>
                     </div>
                   )}

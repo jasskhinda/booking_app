@@ -346,10 +346,10 @@ export default function TripDetailsPage() {
           <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusBadgeClass(trip.status)}`}>
             {trip.status === 'pending' ? 'Waiting for Approval' :
              trip.status === 'approved_pending_payment' ? 'Trip Approved | Processing Payment' :
-             trip.status === 'paid_in_progress' ? 'Trip In Process | PAID' :
+             trip.status === 'paid_in_progress' ? 'Trip In Process' :
              trip.status === 'payment_failed' ? 'Payment Failed - Action Required' :
-             trip.status === 'upcoming' ? 'Trip Approved | Processing Payment' : 
-             trip.status === 'in_process' ? 'Trip In Process | PAID' :
+             trip.status === 'upcoming' ? 'Trip Approved' : 
+             trip.status === 'in_process' ? 'Trip In Process' :
              trip.status === 'completed' ? 'Completed' : 
              trip.status === 'in_progress' ? 'Trip In Progress' : 'Cancelled'}
           </span>
@@ -630,33 +630,6 @@ export default function TripDetailsPage() {
             >
               Cancel Trip
             </button>
-          )}
-
-          {trip.status === 'upcoming' && trip.payment_status !== 'paid' && trip.payment_method_id && (
-            <button
-              onClick={() => handleRetryPayment(trip.id)}
-              disabled={isSubmitting}
-              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md disabled:opacity-50"
-            >
-              {isSubmitting ? 'Processing...' : 'Pay Now'}
-            </button>
-          )}
-
-          {(trip.status === 'paid_in_progress' || trip.status === 'in_process') && (
-            <>
-              <button
-                onClick={() => setCancellingTrip(true)}
-                className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-md"
-              >
-                Cancel Trip
-              </button>
-              <span className="px-4 py-2 bg-green-100 text-green-800 rounded-md font-medium">
-                PAID
-              </span>
-              <span className="px-4 py-2 bg-blue-100 text-blue-800 rounded-md font-medium">
-                TRIP IN PROGRESS
-              </span>
-            </>
           )}
           
           {trip.status === 'in_progress' && (

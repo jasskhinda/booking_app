@@ -86,13 +86,16 @@ export async function POST(request) {
         description: `Compassionate Care Transportation - ${trip.pickup_address} to ${trip.destination_address}`,
       });
 
+<<<<<<< HEAD
       console.log('✅ Payment intent created successfully:', paymentIntent.id);
 
       // Update trip status to 'paid_in_progress' and set payment details
+=======
+      // Update trip status to 'paid'
+>>>>>>> parent of 9a138ca (pay fix)
       const { error: updateError } = await supabase
         .from('trips')
         .update({
-          status: 'paid_in_progress', // Change status to show trip is paid and in progress
           payment_status: 'paid',
           payment_intent_id: paymentIntent.id,
           charged_at: new Date().toISOString(),
@@ -119,7 +122,7 @@ export async function POST(request) {
         },
         trip: {
           id: tripId,
-          status: 'paid_in_progress', // Return new status
+          status: 'upcoming',
           payment_status: 'paid',
           amount: trip.price
         }
@@ -128,11 +131,10 @@ export async function POST(request) {
     } catch (stripeError) {
       console.error('❌ Stripe payment error:', stripeError);
       
-      // Update trip with payment failure and change status
+      // Update trip with payment failure
       await supabase
         .from('trips')
         .update({
-          status: 'payment_failed', // Change status to indicate payment failure
           payment_status: 'failed',
           payment_error: stripeError.message,
           payment_attempted_at: new Date().toISOString()
