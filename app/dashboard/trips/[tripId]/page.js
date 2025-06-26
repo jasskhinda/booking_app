@@ -176,6 +176,12 @@ export default function TripDetailsPage() {
     switch(status) {
       case 'pending':
         return 'status-pending';
+      case 'approved_pending_payment':
+        return 'status-approved_pending_payment';
+      case 'paid_in_progress':
+        return 'status-paid_in_progress';
+      case 'payment_failed':
+        return 'status-payment_failed';
       case 'upcoming':
         return 'status-upcoming';
       case 'in_process':
@@ -276,11 +282,14 @@ export default function TripDetailsPage() {
         {/* Trip Status */}
         <div className="mb-6">
           <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusBadgeClass(trip.status)}`}>
-            {trip.status === 'pending' ? 'Pending Approval' :
-             trip.status === 'upcoming' ? 'Upcoming' : 
-             trip.status === 'in_process' ? 'In Process (Paid)' :
+            {trip.status === 'pending' ? 'Waiting for Approval' :
+             trip.status === 'approved_pending_payment' ? 'Trip Approved - Processing Payment' :
+             trip.status === 'paid_in_progress' ? 'Trip In Process' :
+             trip.status === 'payment_failed' ? 'Payment Failed - Action Required' :
+             trip.status === 'upcoming' ? 'Trip Approved' : 
+             trip.status === 'in_process' ? 'Trip In Process' :
              trip.status === 'completed' ? 'Completed' : 
-             trip.status === 'in_progress' ? 'In Progress' : 'Cancelled'}
+             trip.status === 'in_progress' ? 'Trip In Progress' : 'Cancelled'}
           </span>
           <p className="mt-2 text-sm text-[black]/70 dark:text-[white]/70">
             Trip ID: {trip.id}

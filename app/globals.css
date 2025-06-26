@@ -70,27 +70,53 @@ body {
 
 /* Status colors */
 .status-pending {
-  @apply bg-black text-white;
+  background-color: #fef3c7;
+  color: #92400e;
+  border: 1px solid #f59e0b;
+}
+
+.status-approved_pending_payment {
+  background-color: #dbeafe;
+  color: #1e40af;
+  border: 1px solid #3b82f6;
+}
+
+.status-paid_in_progress {
+  background-color: #059669;
+  color: white;
+}
+
+.status-payment_failed {
+  background-color: #dc2626;
+  color: white;
 }
 
 .status-upcoming {
-  @apply bg-black text-white;
+  background-color: #d1fae5;
+  color: #065f46;
+  border: 1px solid #10b981;
 }
 
 .status-in-process {
-  @apply bg-blue-600 text-white;
+  background-color: #2563eb;
+  color: white;
 }
 
 .status-completed {
-  @apply bg-black text-white;
+  background-color: #d1fae5;
+  color: #065f46;
+  border: 1px solid #10b981;
 }
 
 .status-cancelled {
-  @apply bg-red-600 text-white;
+  background-color: #fee2e2;
+  color: #991b1b;
+  border: 1px solid #ef4444;
 }
 
 .status-in-progress {
-  @apply bg-black text-white;
+  background-color: #2563eb;
+  color: white;
 }
 
 /* Custom datetime-local input styling */
