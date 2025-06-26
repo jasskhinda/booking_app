@@ -154,6 +154,8 @@ export default function TripsView({ user, trips: initialTrips = [], successMessa
         return 'status-pending'; // custom class defined in globals.css
       case 'upcoming':
         return 'status-upcoming';
+      case 'in_process':
+        return 'status-in-process'; // New status for paid trips
       case 'completed':
         return 'status-completed';
       case 'cancelled':
@@ -253,6 +255,14 @@ export default function TripsView({ user, trips: initialTrips = [], successMessa
               Upcoming
             </button>
             <button
+              onClick={() => setFilter('in_process')}
+              className={`pb-3 px-1 font-bold ${filter === 'in_process' 
+                ? 'border-b-2 border-black text-black' 
+                : 'border-b-2 border-transparent text-black hover:text-[#5fbfc0]'}`}
+            >
+              In Process
+            </button>
+            <button
               onClick={() => setFilter('completed')}
               className={`pb-3 px-1 font-bold ${filter === 'completed' 
                 ? 'border-b-2 border-black text-black' 
@@ -321,6 +331,7 @@ export default function TripsView({ user, trips: initialTrips = [], successMessa
                       <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusBadgeClass(trip.status)}`}>
                         {trip.status === 'pending' ? 'Pending Approval' :
                          trip.status === 'upcoming' ? 'Upcoming' : 
+                         trip.status === 'in_process' ? 'In Process' :
                          trip.status === 'completed' ? 'Completed' : 
                          trip.status === 'in_progress' ? 'In Progress' : 'Cancelled'}
                       </span>

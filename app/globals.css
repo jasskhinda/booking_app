@@ -77,6 +77,10 @@ body {
   @apply bg-black text-white;
 }
 
+.status-in-process {
+  @apply bg-blue-600 text-white;
+}
+
 .status-completed {
   @apply bg-black text-white;
 }

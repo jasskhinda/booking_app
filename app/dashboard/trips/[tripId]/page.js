@@ -178,6 +178,8 @@ export default function TripDetailsPage() {
         return 'status-pending';
       case 'upcoming':
         return 'status-upcoming';
+      case 'in_process':
+        return 'status-in-process';
       case 'completed':
         return 'status-completed';
       case 'cancelled':
@@ -276,6 +278,7 @@ export default function TripDetailsPage() {
           <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusBadgeClass(trip.status)}`}>
             {trip.status === 'pending' ? 'Pending Approval' :
              trip.status === 'upcoming' ? 'Upcoming' : 
+             trip.status === 'in_process' ? 'In Process (Paid)' :
              trip.status === 'completed' ? 'Completed' : 
              trip.status === 'in_progress' ? 'In Progress' : 'Cancelled'}
           </span>
