@@ -306,7 +306,7 @@ export default function TripsView({ user, trips: initialTrips = [], successMessa
             <h3 className="mt-2 text-sm font-medium text-black">No trips found</h3>
             <p className="mt-1 text-sm text-black/70">
               {trips.length === 0 
-                ? "You haven't booked any trips yet." 
+                ? "You haven&apos;t booked any trips yet." 
                 : `No ${filter !== 'all' ? filter : ''} trips found.`}
             </p>
             <div className="mt-6">
@@ -414,7 +414,7 @@ export default function TripsView({ user, trips: initialTrips = [], successMessa
                           </p>
                         </div>
                         <p className="text-xs text-blue-600 dark:text-blue-300 mt-1">
-                          Your trip request is being reviewed. You'll be notified once approved, and payment will be processed automatically.
+                          Your trip request is being reviewed. You&apos;ll be notified once approved, and payment will be processed automatically.
                         </p>
                         {trip.payment_method_id && (
                           <p className="text-xs text-blue-600 dark:text-blue-300 mt-1">
