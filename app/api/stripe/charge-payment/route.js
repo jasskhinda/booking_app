@@ -86,13 +86,9 @@ export async function POST(request) {
         description: `Compassionate Care Transportation - ${trip.pickup_address} to ${trip.destination_address}`,
       });
 
-<<<<<<< HEAD
       console.log('✅ Payment intent created successfully:', paymentIntent.id);
 
       // Update trip status to 'paid_in_progress' and set payment details
-=======
-      // Update trip status to 'paid'
->>>>>>> parent of 9a138ca (pay fix)
       const { error: updateError } = await supabase
         .from('trips')
         .update({

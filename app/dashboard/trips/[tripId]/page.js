@@ -338,20 +338,15 @@ export default function TripDetailsPage() {
         {/* Trip Status */}
         <div className="mb-6">
           <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusBadgeClass(trip.status)}`}>
-<<<<<<< HEAD
             {trip.status === 'pending' ? 'Waiting for Approval' :
              trip.status === 'approved_pending_payment' ? 'Trip Approved | Processing Payment' :
              trip.status === 'paid_in_progress' ? 'Trip In Process' :
              trip.status === 'payment_failed' ? 'Payment Failed - Action Required' :
              trip.status === 'upcoming' ? 'Trip Approved' : 
              trip.status === 'in_process' ? 'Trip In Process' :
-=======
-            {trip.status === 'pending' ? 'Pending Approval' :
-             trip.status === 'upcoming' ? 'Upcoming' : 
-             trip.status === 'in_process' ? 'In Process (Paid)' :
->>>>>>> parent of 980ff84 (improved)
              trip.status === 'completed' ? 'Completed' : 
-             trip.status === 'in_progress' ? 'In Progress' : 'Cancelled'}
+             trip.status === 'in_progress' ? 'In Progress' : 
+             trip.status === 'cancelled' ? 'Cancelled' : 'Unknown'}
           </span>
           
           {/* Payment Status Indicator */}
