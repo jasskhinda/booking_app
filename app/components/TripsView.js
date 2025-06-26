@@ -191,12 +191,6 @@ export default function TripsView({ user, trips: initialTrips = [], successMessa
     switch(status) {
       case 'pending':
         return 'status-pending'; // custom class defined in globals.css
-      case 'approved_pending_payment':
-        return 'status-approved_pending_payment';
-      case 'paid_in_progress':
-        return 'status-paid_in_progress';
-      case 'payment_failed':
-        return 'status-payment_failed';
       case 'upcoming':
         return 'status-upcoming';
       case 'in_process':
@@ -374,14 +368,11 @@ export default function TripsView({ user, trips: initialTrips = [], successMessa
                   <div className="flex flex-col sm:flex-row justify-between">
                     <div className="mb-2 sm:mb-0">
                       <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusBadgeClass(trip.status)}`}>
-                        {trip.status === 'pending' ? 'Waiting for Approval' :
-                         trip.status === 'approved_pending_payment' ? 'Trip Approved - Processing Payment' :
-                         trip.status === 'paid_in_progress' ? 'Trip In Process' :
-                         trip.status === 'payment_failed' ? 'Payment Failed - Action Required' :
-                         trip.status === 'upcoming' ? 'Trip Approved' : 
-                         trip.status === 'in_process' ? 'Trip In Process' :
+                        {trip.status === 'pending' ? 'Pending Approval' :
+                         trip.status === 'upcoming' ? 'Upcoming' : 
+                         trip.status === 'in_process' ? 'In Process' :
                          trip.status === 'completed' ? 'Completed' : 
-                         trip.status === 'in_progress' ? 'Trip In Progress' : 'Cancelled'}
+                         trip.status === 'in_progress' ? 'In Progress' : 'Cancelled'}
                       </span>
                       <p className="mt-2 text-sm text-gray-700">
                         {formatDate(trip.pickup_time)}
