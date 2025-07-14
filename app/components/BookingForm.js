@@ -15,6 +15,8 @@ function formatTimeAmPm(dateStr) {
   const minutes = date.getMinutes();
   const ampm = hours >= 12 ? 'PM' : 'AM';
   
+  console.log('formatTimeAmPm input:', dateStr, 'parsed date:', date, 'hours:', hours, 'minutes:', minutes);
+  
   // Convert hours from 24-hour format to 12-hour format
   hours = hours % 12;
   hours = hours ? hours : 12; // "0" should be displayed as "12"
@@ -22,7 +24,9 @@ function formatTimeAmPm(dateStr) {
   // Format minutes to always have two digits
   const minutesStr = minutes.toString().padStart(2, '0');
   
-  return `${hours}:${minutesStr} ${ampm}`;
+  const result = `${hours}:${minutesStr} ${ampm}`;
+  console.log('formatTimeAmPm result:', result);
+  return result;
 }
 
 // Generate time slots for selection in 15-minute intervals
@@ -52,6 +56,15 @@ function formatMonthDay(date) {
   return new Date(date).toLocaleDateString('en-US', { 
     month: 'short', 
     day: 'numeric' 
+  });
+}
+
+// Helper to format date as MM/DD/YYYY
+function formatDateUS(date) {
+  return new Date(date).toLocaleDateString('en-US', { 
+    month: '2-digit', 
+    day: '2-digit', 
+    year: 'numeric' 
   });
 }
 
@@ -700,12 +713,16 @@ export default function BookingForm({ user }) {
   // Handle time selection and update the form
   const handleTimeSelect = (timeSlot, isReturn = false) => {
     const { hour, minute } = timeSlot.value;
+    console.log('Time selected:', { timeSlot, hour, minute, isReturn });
     
     if (isReturn) {
       const newDate = new Date(selectedReturnDate);
       newDate.setHours(hour, minute, 0, 0);
       
+      console.log('Return date with time:', newDate);
       const formattedDate = newDate.toISOString().slice(0, 16);
+      console.log('Formatted return date:', formattedDate);
+      
       setFormData(prev => ({
         ...prev,
         returnPickupTime: formattedDate
@@ -717,7 +734,10 @@ export default function BookingForm({ user }) {
       const newDate = new Date(selectedDate);
       newDate.setHours(hour, minute, 0, 0);
       
+      console.log('Pickup date with time:', newDate);
       const formattedDate = newDate.toISOString().slice(0, 16);
+      console.log('Formatted pickup date:', formattedDate);
+      
       setFormData(prev => ({
         ...prev,
         pickupTime: formattedDate
@@ -1085,7 +1105,7 @@ export default function BookingForm({ user }) {
                     >
                       <span className={formData.pickupTime ? "text-black dark:text-white" : "text-black/50 dark:text-white/50"}>
                         {formData.pickupTime 
-                          ? `${formatMonthDay(formData.pickupTime)}, ${getDayName(formData.pickupTime)} - ${formatTimeAmPm(formData.pickupTime)}`
+                          ? `${formatDateUS(formData.pickupTime)}, ${getDayName(formData.pickupTime)} - ${formatTimeAmPm(formData.pickupTime)}`
                           : "Select pickup date and time"}
                       </span>
                       <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-[#3B5B63] dark:text-[#84CED3]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -1418,7 +1438,7 @@ export default function BookingForm({ user }) {
                       >
                         <span className={formData.returnPickupTime ? "text-black dark:text-white" : "text-black/50 dark:text-white/50"}>
                           {formData.returnPickupTime 
-                            ? `${formatMonthDay(formData.returnPickupTime)}, ${getDayName(formData.returnPickupTime)} - ${formatTimeAmPm(formData.returnPickupTime)}`
+                            ? `${formatDateUS(formData.returnPickupTime)}, ${getDayName(formData.returnPickupTime)} - ${formatTimeAmPm(formData.returnPickupTime)}`
                             : "Select return pickup time"}
                         </span>
                         <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-[#3B5B63] dark:text-[#84CED3]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -1529,11 +1549,7 @@ export default function BookingForm({ user }) {
                     <p className="text-sm font-bold text-black">Pickup Time</p>
                     {formData.pickupTime ? (
                       <p className="font-medium text-black">
-                        {new Date(formData.pickupTime).toLocaleDateString('en-US', { 
-                          weekday: 'short', 
-                          month: 'short', 
-                          day: 'numeric'
-                        })}, {formatTimeAmPm(formData.pickupTime)}
+                        {formatDateUS(formData.pickupTime)}, {getDayName(formData.pickupTime)} - {formatTimeAmPm(formData.pickupTime)}
                       </p>
                     ) : (
                       <p className="font-bold text-black">Select a time</p>
@@ -1546,11 +1562,7 @@ export default function BookingForm({ user }) {
                       <p className="text-sm font-bold text-black">Return Pickup Time</p>
                       {formData.returnPickupTime ? (
                         <p className="font-medium text-black">
-                          {new Date(formData.returnPickupTime).toLocaleDateString('en-US', { 
-                            weekday: 'short', 
-                            month: 'short', 
-                            day: 'numeric'
-                          })}, {formatTimeAmPm(formData.returnPickupTime)}
+                          {formatDateUS(formData.returnPickupTime)}, {getDayName(formData.returnPickupTime)} - {formatTimeAmPm(formData.returnPickupTime)}
                         </p>
                       ) : (
                         <p className="font-bold text-black">Select a time</p>
