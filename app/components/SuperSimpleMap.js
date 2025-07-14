@@ -20,7 +20,12 @@ export default function SuperSimpleMap({
 
   // Use layoutEffect to ensure DOM is ready
   useLayoutEffect(() => {
-    setIsMounted(true);
+    // Add small delay to ensure modal is fully rendered
+    const timer = setTimeout(() => {
+      setIsMounted(true);
+    }, 100);
+    
+    return () => clearTimeout(timer);
   }, []);
 
   useEffect(() => {
@@ -48,7 +53,7 @@ export default function SuperSimpleMap({
           }, delay);
         } else {
           console.error('SuperSimpleMap: Google Maps API failed to load after', retryCount + 1, 'attempts');
-          setError('Google Maps API failed to load. Please refresh the page and try again.');
+          setError('Google Maps is still loading. Please wait a moment and try again, or refresh the page if the issue persists.');
           setIsLoading(false);
         }
         return;
@@ -66,7 +71,7 @@ export default function SuperSimpleMap({
           }, delay);
         } else {
           console.error('SuperSimpleMap: Map container still not ready after', retryCount + 1, 'attempts');
-          setError('Map container failed to initialize. The component may not be fully loaded yet.');
+          setError('Map container failed to initialize. Please close and reopen the edit form to try again.');
           setIsLoading(false);
         }
         return;

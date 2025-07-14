@@ -32,6 +32,7 @@ export default function EditTripForm({ trip, onSave, onCancel }) {
   const [routeInfo, setRouteInfo] = useState(null);
   const [selectedClient, setSelectedClient] = useState(null);
   const [currentUser, setCurrentUser] = useState(null);
+  const [showMap, setShowMap] = useState(true);
   
   // Form state
   const [formData, setFormData] = useState({
@@ -219,9 +220,9 @@ export default function EditTripForm({ trip, onSave, onCancel }) {
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[95vh] overflow-y-auto">
-        <div className="p-6">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[100] p-4">
+      <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col">
+        <div className="flex-1 overflow-y-auto p-6">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-xl font-semibold text-gray-900">
               Edit Trip Details
@@ -262,7 +263,7 @@ export default function EditTripForm({ trip, onSave, onCancel }) {
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <form id="edit-trip-form" onSubmit={handleSubmit} className="space-y-6">
             {/* Date and Time */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
@@ -347,16 +348,50 @@ export default function EditTripForm({ trip, onSave, onCancel }) {
             </div>
 
             {/* Route Map Display */}
-            {formData.pickupAddress && formData.destinationAddress && (
+            {showMap && formData.pickupAddress && formData.destinationAddress && formData.pickupAddress.length > 10 && formData.destinationAddress.length > 10 && (
               <div className="mt-6">
-                <label className="block text-sm font-medium text-gray-900 mb-2">
-                  Route Overview
-                </label>
-                <SuperSimpleMap
-                  origin={formData.pickupAddress}
-                  destination={formData.destinationAddress}
-                  onRouteCalculated={setRouteInfo}
-                />
+                <div className="flex justify-between items-center mb-2">
+                  <label className="block text-sm font-medium text-gray-900">
+                    Route Overview
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => setShowMap(false)}
+                    className="text-xs text-gray-500 hover:text-gray-700 underline"
+                  >
+                    Skip map
+                  </button>
+                </div>
+                <div className="rounded-lg border border-gray-300 overflow-hidden">
+                  <SuperSimpleMap
+                    origin={formData.pickupAddress}
+                    destination={formData.destinationAddress}
+                    onRouteCalculated={setRouteInfo}
+                    className="w-full h-64"
+                  />
+                </div>
+              </div>
+            )}
+            
+            {!showMap && formData.pickupAddress && formData.destinationAddress && (
+              <div className="mt-6">
+                <div className="flex justify-between items-center mb-2">
+                  <label className="block text-sm font-medium text-gray-900">
+                    Route Overview
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => setShowMap(true)}
+                    className="text-xs text-blue-600 hover:text-blue-800 underline"
+                  >
+                    Show map
+                  </button>
+                </div>
+                <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+                  <p className="text-sm text-gray-600">
+                    Map display skipped. Route will be calculated automatically when you save.
+                  </p>
+                </div>
               </div>
             )}
 
@@ -462,25 +497,29 @@ export default function EditTripForm({ trip, onSave, onCancel }) {
               onPricingCalculated={setCurrentPricing}
             />
 
-            {/* Action Buttons */}
-            <div className="flex space-x-3 pt-6 border-t border-gray-200">
-              <button
-                type="button"
-                onClick={onCancel}
-                disabled={loading}
-                className="flex-1 px-4 py-2 bg-gray-100 text-gray-900 rounded-lg hover:bg-gray-200 transition-colors disabled:opacity-50 border border-gray-300"
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                disabled={loading}
-                className="flex-1 px-4 py-2 bg-[#5fbfc0] text-white rounded-lg hover:bg-[#60BFC0] transition-colors disabled:opacity-50"
-              >
-                {loading ? 'Saving...' : 'Save Changes'}
-              </button>
-            </div>
           </form>
+        </div>
+        
+        {/* Action Buttons - Fixed at bottom */}
+        <div className="flex-shrink-0 p-6 bg-gray-50 border-t border-gray-200">
+          <div className="flex space-x-3">
+            <button
+              type="button"
+              onClick={onCancel}
+              disabled={loading}
+              className="flex-1 px-4 py-2 bg-gray-100 text-gray-900 rounded-lg hover:bg-gray-200 transition-colors disabled:opacity-50 border border-gray-300"
+            >
+              Cancel
+            </button>
+            <button
+              form="edit-trip-form"
+              type="submit"
+              disabled={loading}
+              className="flex-1 px-4 py-2 bg-[#5fbfc0] text-white rounded-lg hover:bg-[#60BFC0] transition-colors disabled:opacity-50"
+            >
+              {loading ? 'Saving...' : 'Save Changes'}
+            </button>
+          </div>
         </div>
       </div>
     </div>
