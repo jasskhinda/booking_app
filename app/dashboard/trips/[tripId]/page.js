@@ -5,6 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import DashboardLayout from '@/app/components/DashboardLayout';
+import EditTripForm from '@/app/components/EditTripForm';
 
 export default function TripDetailsPage() {
   const params = useParams();
@@ -21,6 +22,7 @@ export default function TripDetailsPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [successMessage, setSuccessMessage] = useState(null);
   const [paymentMethod, setPaymentMethod] = useState(null);
+  const [showEditForm, setShowEditForm] = useState(false);
 
   // Function to fetch payment method details
   const fetchPaymentMethodDetails = async (paymentMethodId) => {
@@ -120,6 +122,20 @@ export default function TripDetailsPage() {
       year: 'numeric',
       hour: 'numeric',
       minute: 'numeric'
+    }).format(date);
+  };
+
+  // Format edit date for display
+  const formatEditDate = (dateString) => {
+    const date = new Date(dateString);
+    return new Intl.DateTimeFormat('en-US', {
+      weekday: 'long',
+      month: 'long',
+      day: 'numeric',
+      year: 'numeric',
+      hour: 'numeric',
+      minute: 'numeric',
+      hour12: true
     }).format(date);
   };
   
@@ -231,6 +247,17 @@ export default function TripDetailsPage() {
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  // Handle trip edit save
+  const handleEditSave = (updatedTrip) => {
+    setTrip(updatedTrip);
+    setSuccessMessage('Trip updated successfully!');
+    
+    // Clear message after 3 seconds
+    setTimeout(() => {
+      setSuccessMessage(null);
+    }, 3000);
   };
   
   // Get status badge class
@@ -384,6 +411,30 @@ export default function TripDetailsPage() {
             Trip ID: {trip.id}
           </p>
         </div>
+
+        {/* Last Edited Notification */}
+        {trip.last_edited_by && trip.last_edited_at && (
+          <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+            <div className="flex items-start space-x-3">
+              <svg className="w-5 h-5 text-blue-500 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+              </svg>
+              <div>
+                <p className="text-sm font-medium text-blue-800">
+                  Last Edited
+                </p>
+                <p className="text-sm text-blue-700">
+                  {formatEditDate(trip.last_edited_at)}
+                </p>
+                {trip.edited_by_role === 'dispatcher' && (
+                  <p className="text-sm font-medium text-blue-800 mt-1">
+                    📝 EDITED BY DISPATCHER
+                  </p>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
         
         {/* Trip Details Card */}
         <div className="bg-white dark:bg-[#1C2C2F] rounded-lg p-5 shadow-sm border border-[#DDE5E7] dark:border-[#3F5E63] mb-6">
@@ -618,7 +669,27 @@ export default function TripDetailsPage() {
         
         {/* Action Buttons */}
         <div className="flex flex-wrap gap-3">
-          {(trip.status === 'pending' || trip.status === 'upcoming') && (
+          {trip.status === 'pending' && (
+            <>
+              <button
+                onClick={() => setShowEditForm(true)}
+                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md inline-flex items-center"
+              >
+                <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                </svg>
+                Edit Trip
+              </button>
+              <button
+                onClick={() => setCancellingTrip(true)}
+                className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-md"
+              >
+                Cancel Trip
+              </button>
+            </>
+          )}
+          
+          {(trip.status === 'upcoming') && (
             <button
               onClick={() => setCancellingTrip(true)}
               className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-md"
@@ -701,6 +772,15 @@ export default function TripDetailsPage() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Edit Trip Modal */}
+      {showEditForm && (
+        <EditTripForm
+          trip={trip}
+          onSave={handleEditSave}
+          onCancel={() => setShowEditForm(false)}
+        />
       )}
     </DashboardLayout>
   );
