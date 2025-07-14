@@ -201,7 +201,7 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator {
   align-items: center;
   justify-content: center;
   overflow: hidden;
-  background: linear-gradient(135deg, #2E4F54 0%, #1A3438 100%);
+  background: white;
 }
 
 .hero-background {
@@ -223,7 +223,7 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator {
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(0, 0, 0, 0.4);
+  background: white;
   z-index: 2;
 }
 
@@ -231,7 +231,7 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator {
   position: relative;
   z-index: 10;
   text-align: center;
-  color: white;
+  color: #2E4F54;
   padding: 2rem;
   max-width: 1200px;
   margin: 0 auto;
@@ -239,15 +239,15 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator {
 
 .hero-content h1 {
   margin-bottom: 1.5rem;
-  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
   line-height: 1.2;
+  color: #2E4F54;
 }
 
 .hero-content p {
   max-width: 800px;
   margin: 0 auto 2.5rem;
-  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
   line-height: 1.6;
+  color: #2E4F54;
 }
 
 /* Mobile responsiveness for hero */

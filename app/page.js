@@ -68,7 +68,7 @@ function HomeContent() {
             <Link href="/signup" className="bg-[#5fbfc0] text-white px-8 py-4 rounded-lg hover:bg-[#4aa5a6] font-medium text-lg transition-colors">
               Book Your First Ride
             </Link>
-            <Link href="#how-it-works" className="border border-white/50 text-white px-8 py-4 rounded-lg hover:bg-white/10 font-medium text-lg transition-colors backdrop-blur-sm">
+            <Link href="#how-it-works" className="border border-[#5fbfc0] text-[#5fbfc0] px-8 py-4 rounded-lg hover:bg-[#5fbfc0] hover:text-white font-medium text-lg transition-colors">
               Learn More
             </Link>
           </div>
