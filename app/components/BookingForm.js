@@ -302,6 +302,10 @@ export default function BookingForm({ user }) {
           }
           
           // County determination logic
+          console.log('Form data for county detection:', { 
+            pickupAddress: formData.pickupAddress,
+            destinationAddress: formData.destinationAddress 
+          });
           const pickupCounty = await determineCounty(formData.pickupAddress);
           const destinationCounty = await determineCounty(formData.destinationAddress);
           
@@ -721,11 +725,12 @@ export default function BookingForm({ user }) {
       
       console.log('Return date with time:', newDate);
       // Format as local datetime string to avoid timezone issues
-      const year = newDate.getFullYear();
-      const month = String(newDate.getMonth() + 1).padStart(2, '0');
-      const day = String(newDate.getDate()).padStart(2, '0');
-      const hours = String(newDate.getHours()).padStart(2, '0');
-      const minutes = String(newDate.getMinutes()).padStart(2, '0');
+      // Use the selected date and manually set time to avoid any Date() timezone issues
+      const year = selectedReturnDate.getFullYear();
+      const month = String(selectedReturnDate.getMonth() + 1).padStart(2, '0');
+      const day = String(selectedReturnDate.getDate()).padStart(2, '0');
+      const hours = String(hour).padStart(2, '0');
+      const minutes = String(minute).padStart(2, '0');
       const formattedDate = `${year}-${month}-${day}T${hours}:${minutes}`;
       console.log('Formatted return date:', formattedDate);
       
@@ -742,11 +747,12 @@ export default function BookingForm({ user }) {
       
       console.log('Pickup date with time:', newDate);
       // Format as local datetime string to avoid timezone issues
-      const year = newDate.getFullYear();
-      const month = String(newDate.getMonth() + 1).padStart(2, '0');
-      const day = String(newDate.getDate()).padStart(2, '0');
-      const hours = String(newDate.getHours()).padStart(2, '0');
-      const minutes = String(newDate.getMinutes()).padStart(2, '0');
+      // Use the selected date and manually set time to avoid any Date() timezone issues
+      const year = selectedDate.getFullYear();
+      const month = String(selectedDate.getMonth() + 1).padStart(2, '0');
+      const day = String(selectedDate.getDate()).padStart(2, '0');
+      const hours = String(hour).padStart(2, '0');
+      const minutes = String(minute).padStart(2, '0');
       const formattedDate = `${year}-${month}-${day}T${hours}:${minutes}`;
       console.log('Formatted pickup date:', formattedDate);
       
