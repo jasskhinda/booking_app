@@ -76,7 +76,7 @@ async function determineCounty(address) {
             }
           }
           
-          // Fallback: check if it's in Ohio and assume Franklin County for Columbus area
+          // Fallback: check if it's in Ohio and determine Franklin County for Columbus metro area
           const isOhio = addressComponents.some(comp => 
             comp.types.includes('administrative_area_level_1') && 
             comp.short_name === 'OH'
@@ -85,7 +85,7 @@ async function determineCounty(address) {
           if (isOhio) {
             // Check if it's in Columbus metro area
             const cityComponent = addressComponents.find(comp => 
-              comp.types.includes('locality')
+              comp.types.includes('locality') || comp.types.includes('sublocality')
             );
             
             if (cityComponent) {
@@ -94,10 +94,24 @@ async function determineCounty(address) {
                 'columbus', 'dublin', 'westerville', 'gahanna', 'reynoldsburg',
                 'grove city', 'hilliard', 'upper arlington', 'bexley', 'whitehall',
                 'worthington', 'grandview heights', 'canal winchester', 'groveport',
-                'new albany', 'powell', 'sunbury'
+                'new albany', 'powell', 'sunbury', 'pickerington', 'pataskala',
+                'blacklick', 'minerva park'
               ];
               
               if (franklinCountyCities.some(fcCity => city.includes(fcCity))) {
+                return resolve('Franklin County');
+              }
+            }
+            
+            // Also check for neighborhood components that might indicate Franklin County
+            const neighborhoodComponent = addressComponents.find(comp =>
+              comp.types.includes('neighborhood') || comp.types.includes('sublocality_level_1')
+            );
+            
+            if (neighborhoodComponent) {
+              const neighborhood = neighborhoodComponent.long_name.toLowerCase();
+              if (neighborhood.includes('columbus') || neighborhood.includes('dublin') || 
+                  neighborhood.includes('hilliard')) {
                 return resolve('Franklin County');
               }
             }
