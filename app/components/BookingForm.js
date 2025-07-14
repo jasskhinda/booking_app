@@ -55,14 +55,77 @@ function formatMonthDay(date) {
   });
 }
 
+// Helper function to determine county from address using Google Maps Geocoding API
+async function determineCounty(address) {
+  if (!address || !window.google) {
+    return 'Unknown County';
+  }
+
+  try {
+    const geocoder = new window.google.maps.Geocoder();
+    
+    return new Promise((resolve) => {
+      geocoder.geocode({ address: address }, (results, status) => {
+        if (status === 'OK' && results[0]) {
+          const addressComponents = results[0].address_components;
+          
+          // Look for administrative_area_level_2 which is typically the county
+          for (let component of addressComponents) {
+            if (component.types.includes('administrative_area_level_2')) {
+              return resolve(component.long_name);
+            }
+          }
+          
+          // Fallback: check if it's in Ohio and assume Franklin County for Columbus area
+          const isOhio = addressComponents.some(comp => 
+            comp.types.includes('administrative_area_level_1') && 
+            comp.short_name === 'OH'
+          );
+          
+          if (isOhio) {
+            // Check if it's in Columbus metro area
+            const cityComponent = addressComponents.find(comp => 
+              comp.types.includes('locality')
+            );
+            
+            if (cityComponent) {
+              const city = cityComponent.long_name.toLowerCase();
+              const franklinCountyCities = [
+                'columbus', 'dublin', 'westerville', 'gahanna', 'reynoldsburg',
+                'grove city', 'hilliard', 'upper arlington', 'bexley', 'whitehall',
+                'worthington', 'grandview heights', 'canal winchester', 'groveport',
+                'new albany', 'powell', 'sunbury'
+              ];
+              
+              if (franklinCountyCities.some(fcCity => city.includes(fcCity))) {
+                return resolve('Franklin County');
+              }
+            }
+          }
+          
+          return resolve('Unknown County');
+        } else {
+          console.warn('Geocoding failed:', status);
+          return resolve('Unknown County');
+        }
+      });
+    });
+  } catch (error) {
+    console.error('Error determining county:', error);
+    return 'Unknown County';
+  }
+}
+
 export default function BookingForm({ user }) {
   const [formData, setFormData] = useState({
     pickupAddress: '',
     destinationAddress: '',
     pickupTime: '',
     returnPickupTime: '',
-    wheelchairType: 'no_wheelchair',
+    wheelchairType: 'none',
+    wheelchairRental: false,
     isRoundTrip: false,
+    isEmergency: false,
   });
   const [isLoading, setIsLoading] = useState(false);
   const [bookingStatus, setBookingStatus] = useState('idle'); // idle, loading, submitting, success, error
@@ -191,22 +254,51 @@ export default function BookingForm({ user }) {
             isRoundTrip: formData.isRoundTrip
           });
           
-          // Calculate price using base price logic
-          let basePrice = 50; // Base price for one-way trip
+          // Calculate price using new pricing structure
+          let basePrice = 50; // $50 per leg
 
           // Round trip adjustment (double the base price)
           if (formData.isRoundTrip) {
-            basePrice = 100; // Base price for round trip
+            basePrice = 100; // $50 per leg x 2 legs
           }
           
-          // Add mileage charge ($3 per mile, doubled for round trips)
+          // County determination logic
+          const pickupCounty = await determineCounty(formData.pickup);
+          const destinationCounty = await determineCounty(formData.destination);
+          
+          // Determine if trip is within Franklin County or crosses county lines
+          const isInFranklinCounty = pickupCounty === 'Franklin County' && destinationCounty === 'Franklin County';
+          const isOneCountyOut = !isInFranklinCounty && (pickupCounty === 'Franklin County' || destinationCounty === 'Franklin County');
+          const isTwoCountiesOut = !isInFranklinCounty && pickupCounty !== 'Franklin County' && destinationCounty !== 'Franklin County';
+          
+          // County-based charges
+          if (isTwoCountiesOut) {
+            // $50 per county outside of 1 county (2 counties out)
+            basePrice += 50;
+          }
+          
+          // Mileage charges based on location
           const totalMiles = formData.isRoundTrip ? miles * 2 : miles;
-          basePrice += totalMiles * 3;
+          let mileageRate;
+          
+          if (isInFranklinCounty) {
+            mileageRate = 3; // $3 per mile inside Franklin County
+          } else {
+            mileageRate = 4; // $4 per mile outside Franklin County
+          }
+          
+          basePrice += totalMiles * mileageRate;
           
           console.log('Debug: Price calculation', {
             basePrice: basePrice,
             totalMiles,
-            mileageCharge: totalMiles * 3
+            mileageRate,
+            mileageCharge: totalMiles * mileageRate,
+            pickupCounty,
+            destinationCounty,
+            isInFranklinCounty,
+            isOneCountyOut,
+            isTwoCountiesOut
           });
           
           // Weekend and hour adjustments
@@ -224,8 +316,13 @@ export default function BookingForm({ user }) {
             basePrice += 40;
           }
           
-          // Wheelchair adjustment ($25 additional fee)
-          if (formData.wheelchairType === 'wheelchair') {
+          // Emergency fee (if marked as emergency)
+          if (formData.isEmergency) {
+            basePrice += 40;
+          }
+          
+          // Wheelchair rental fee (if wheelchair rental is requested)
+          if (formData.wheelchairType === 'none' && formData.wheelchairRental) {
             basePrice += 25;
           }
           
@@ -257,17 +354,23 @@ export default function BookingForm({ user }) {
           // Create pricing breakdown
           const breakdown = {
             baseRate: formData.isRoundTrip ? 100 : 50,
-            mileageRate: 3,
+            mileageRate: mileageRate,
             totalMiles: totalMiles,
-            mileageCharge: totalMiles * 3,
+            mileageCharge: totalMiles * mileageRate,
+            countyCharge: isTwoCountiesOut ? 50 : 0,
             weekendAdjustment: (day === 0 || day === 6) ? 40 : 0,
             offHoursAdjustment: (hour < 8 || hour >= 20) ? 40 : 0,
-            wheelchairAdjustment: formData.wheelchairType === 'wheelchair' ? 25 : 0,
+            emergencyFee: formData.isEmergency ? 40 : 0,
+            wheelchairRentalFee: (formData.wheelchairType === 'none' && formData.wheelchairRental) ? 25 : 0,
             subtotal: priceBeforeDiscount,
             discountPercentage: discountPercentage,
             discountAmount: discountAmount,
             finalPrice: finalPrice,
-            isVeteran: profileData?.is_veteran || false
+            isVeteran: profileData?.is_veteran || false,
+            pickupCounty: pickupCounty,
+            destinationCounty: destinationCounty,
+            isInFranklinCounty: isInFranklinCounty,
+            isTwoCountiesOut: isTwoCountiesOut
           };
           
           console.log('Debug: Final price calculation', {
@@ -296,7 +399,7 @@ export default function BookingForm({ user }) {
         console.log('Route calculation completed');
       }
     });
-  }, [mapInstance, directionsRenderer, formData.isRoundTrip, formData.pickupTime, formData.wheelchairType, supabase, user.id]);
+  }, [mapInstance, directionsRenderer, formData.isRoundTrip, formData.pickupTime, formData.wheelchairType, formData.wheelchairRental, formData.pickup, formData.destination, formData.isEmergency, supabase, user.id]);
 
   // References to PlaceAutocompleteElement containers
   const pickupAutocompleteContainerRef = useRef(null);
@@ -718,7 +821,9 @@ export default function BookingForm({ user }) {
           status: 'pending', // Changed from 'upcoming' to 'pending'
           special_requirements: null,
           wheelchair_type: formData.wheelchairType,
+          wheelchair_rental: formData.wheelchairRental,
           is_round_trip: formData.isRoundTrip,
+          is_emergency: formData.isEmergency,
           price: calculatedPrice, // Save estimated price
           payment_method_id: selectedPaymentMethodId, // Include the selected payment method
           distance: distanceMiles > 0 
@@ -744,8 +849,10 @@ export default function BookingForm({ user }) {
         destinationAddress: '',
         pickupTime: formData.pickupTime, // Keep the time
         returnPickupTime: formData.returnPickupTime, // Keep the return time
-        wheelchairType: 'no_wheelchair',
+        wheelchairType: 'none',
+        wheelchairRental: false,
         isRoundTrip: false,
+        isEmergency: false,
       });
 
       // Start the redirect process
@@ -1054,26 +1161,129 @@ export default function BookingForm({ user }) {
                 </div>
               </div>
               
-              {/* Wheelchair Type */}
-              <div>
-                <label htmlFor="wheelchairType" className="block text-base font-bold text-black mb-1">
-                  Wheelchair Requirements
-                </label>
-                <div className="relative">
-                  <select
-                    id="wheelchairType"
-                    name="wheelchairType"
-                    value={formData.wheelchairType}
-                    onChange={handleChange}
-                    className="w-full appearance-none px-3 py-2 border border-[#DDE5E7] dark:border-[#333333] rounded-md shadow-sm focus:outline-none focus:ring-[#5fbfc0] focus:border-[#5fbfc0] bg-white dark:bg-[#1A1A1A] text-black dark:text-white pr-10"
-                  >
-                    <option value="no_wheelchair">No Wheelchair</option>
-                    <option value="wheelchair">Wheelchair (+$25)</option>
-                  </select>
-                  <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-black dark:text-white">
-                    <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
-                      <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" />
-                    </svg>
+              {/* Wheelchair Transportation */}
+              <div className="col-span-1 md:col-span-2">
+                <div className="border border-gray-300 rounded-lg p-4">
+                  <label className="block text-base font-bold text-black mb-3 flex items-center">
+                    <span className="mr-2">♿</span>
+                    Wheelchair Transportation
+                  </label>
+                  <p className="text-sm text-gray-600 mb-4">What type of wheelchair do you have?</p>
+                  
+                  <div className="space-y-3">
+                    {/* None */}
+                    <label className="flex items-start cursor-pointer">
+                      <input
+                        type="radio"
+                        name="wheelchairType"
+                        value="none"
+                        checked={formData.wheelchairType === 'none'}
+                        onChange={handleChange}
+                        className="mt-1 mr-3 text-[#5fbfc0] focus:ring-[#5fbfc0]"
+                      />
+                      <div>
+                        <div className="font-medium text-black">None</div>
+                        <div className="text-sm text-gray-600">No wheelchair needed</div>
+                      </div>
+                    </label>
+
+                    {/* Manual wheelchair */}
+                    <label className="flex items-start cursor-pointer">
+                      <input
+                        type="radio"
+                        name="wheelchairType"
+                        value="manual"
+                        checked={formData.wheelchairType === 'manual'}
+                        onChange={handleChange}
+                        className="mt-1 mr-3 text-[#5fbfc0] focus:ring-[#5fbfc0]"
+                      />
+                      <div>
+                        <div className="font-medium text-black">Manual wheelchair (I have my own)</div>
+                        <div className="text-sm text-gray-600">Standard manual wheelchair that you bring</div>
+                        <div className="text-sm text-green-600 font-medium">No additional fee</div>
+                      </div>
+                    </label>
+
+                    {/* Power wheelchair */}
+                    <label className="flex items-start cursor-pointer">
+                      <input
+                        type="radio"
+                        name="wheelchairType"
+                        value="power"
+                        checked={formData.wheelchairType === 'power'}
+                        onChange={handleChange}
+                        className="mt-1 mr-3 text-[#5fbfc0] focus:ring-[#5fbfc0]"
+                      />
+                      <div>
+                        <div className="font-medium text-black">Power wheelchair (I have my own)</div>
+                        <div className="text-sm text-gray-600">Electric/motorized wheelchair that you bring</div>
+                        <div className="text-sm text-green-600 font-medium">No additional fee</div>
+                      </div>
+                    </label>
+
+                    {/* Transport wheelchair - Not Available */}
+                    <div className="flex items-start opacity-50">
+                      <input
+                        type="radio"
+                        name="wheelchairType"
+                        value="transport"
+                        disabled
+                        className="mt-1 mr-3 text-gray-400"
+                      />
+                      <div>
+                        <div className="font-medium text-gray-500">Transport wheelchair</div>
+                        <div className="text-sm text-red-600 font-medium">Not Available</div>
+                        <div className="text-sm text-gray-500">Lightweight transport chair - Not permitted for safety reasons</div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Wheelchair Rental Option - Only show if "None" is selected */}
+                  {formData.wheelchairType === 'none' && (
+                    <div className="mt-6 pt-4 border-t border-gray-200">
+                      <p className="text-sm font-medium text-black mb-3">Do you want us to provide a wheelchair?</p>
+                      
+                      <div className="space-y-3">
+                        <label className="flex items-start cursor-pointer">
+                          <input
+                            type="radio"
+                            name="wheelchairRental"
+                            value="true"
+                            checked={formData.wheelchairRental === true}
+                            onChange={(e) => setFormData({...formData, wheelchairRental: e.target.value === 'true'})}
+                            className="mt-1 mr-3 text-[#5fbfc0] focus:ring-[#5fbfc0]"
+                          />
+                          <div>
+                            <div className="font-medium text-black">Yes, please provide a wheelchair</div>
+                            <div className="text-sm text-gray-600">We will provide a suitable wheelchair for your trip</div>
+                            <div className="text-sm text-blue-600 font-medium">+$25 wheelchair rental fee</div>
+                          </div>
+                        </label>
+
+                        <label className="flex items-start cursor-pointer">
+                          <input
+                            type="radio"
+                            name="wheelchairRental"
+                            value="false"
+                            checked={formData.wheelchairRental === false}
+                            onChange={(e) => setFormData({...formData, wheelchairRental: e.target.value === 'true'})}
+                            className="mt-1 mr-3 text-[#5fbfc0] focus:ring-[#5fbfc0]"
+                          />
+                          <div>
+                            <div className="font-medium text-black">No, wheelchair not needed</div>
+                            <div className="text-sm text-gray-600">Passenger can walk or transfer independently</div>
+                          </div>
+                        </label>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Information note */}
+                  <div className="mt-4 p-3 bg-blue-50 rounded-md">
+                    <p className="text-sm text-blue-800">
+                      <span className="font-medium">Wheelchair Accessibility Information:</span><br />
+                      All our vehicles are equipped with wheelchair accessibility features. The same fee applies to all wheelchair types to ensure fair and transparent pricing.
+                    </p>
                   </div>
                 </div>
               </div>
@@ -1136,6 +1346,32 @@ export default function BookingForm({ user }) {
                 {formData.isRoundTrip && (
                   <span className="ml-2 text-xs text-black font-bold">
                     The vehicle will wait for you and take you back to your pickup location.
+                  </span>
+                )}
+              </div>
+
+              {/* Emergency Trip Checkbox */}
+              <div className="col-span-1 md:col-span-2 flex items-center">
+                <div className="relative inline-block w-10 mr-2 align-middle select-none">
+                  <input
+                    type="checkbox"
+                    name="isEmergency"
+                    id="isEmergency"
+                    checked={formData.isEmergency}
+                    onChange={(e) => setFormData({...formData, isEmergency: e.target.checked})}
+                    className="absolute block w-6 h-6 rounded-full bg-white border-4 border-red-600 appearance-none cursor-pointer checked:right-0 checked:border-red-600 transition-all duration-200 focus:outline-none"
+                  />
+                  <label 
+                    htmlFor="isEmergency"
+                    className={`block overflow-hidden h-6 rounded-full cursor-pointer ${formData.isEmergency ? 'bg-red-600' : 'bg-red-600'}`}
+                  ></label>
+                </div>
+                <label htmlFor="isEmergency" className="text-base font-bold text-red-600 cursor-pointer">
+                  Emergency Trip (+$40)
+                </label>
+                {formData.isEmergency && (
+                  <span className="ml-2 text-xs text-red-600 font-bold">
+                    Priority booking for urgent medical appointments.
                   </span>
                 )}
               </div>
@@ -1324,9 +1560,15 @@ export default function BookingForm({ user }) {
                                 <span className="text-black font-bold">${pricingBreakdown.baseRate.toFixed(2)}</span>
                               </div>
                               <div className="flex justify-between">
-                                <span className="text-black font-bold">Mileage ({pricingBreakdown.totalMiles.toFixed(1)} miles × ${pricingBreakdown.mileageRate}/mi):</span>
+                                <span className="text-black font-bold">Mileage ({pricingBreakdown.totalMiles.toFixed(1)} miles × ${pricingBreakdown.mileageRate}/mi {pricingBreakdown.isInFranklinCounty ? 'Franklin County' : 'Outside Franklin County'}):</span>
                                 <span className="text-black font-bold">${pricingBreakdown.mileageCharge.toFixed(2)}</span>
                               </div>
+                              {pricingBreakdown.countyCharge > 0 && (
+                                <div className="flex justify-between">
+                                  <span className="text-black font-bold">County surcharge (2+ counties out):</span>
+                                  <span className="text-black font-bold">+${pricingBreakdown.countyCharge.toFixed(2)}</span>
+                                </div>
+                              )}
                               {pricingBreakdown.weekendAdjustment > 0 && (
                                 <div className="flex justify-between">
                                   <span className="text-black font-bold">Weekend premium:</span>
@@ -1339,10 +1581,16 @@ export default function BookingForm({ user }) {
                                   <span className="text-black font-bold">+${pricingBreakdown.offHoursAdjustment.toFixed(2)}</span>
                                 </div>
                               )}
-                              {pricingBreakdown.wheelchairAdjustment > 0 && (
+                              {pricingBreakdown.emergencyFee > 0 && (
                                 <div className="flex justify-between">
-                                  <span className="text-black font-bold">Wheelchair accessibility:</span>
-                                  <span className="text-black font-bold">+${pricingBreakdown.wheelchairAdjustment.toFixed(2)}</span>
+                                  <span className="text-black font-bold">Emergency fee:</span>
+                                  <span className="text-black font-bold">+${pricingBreakdown.emergencyFee.toFixed(2)}</span>
+                                </div>
+                              )}
+                              {pricingBreakdown.wheelchairRentalFee > 0 && (
+                                <div className="flex justify-between">
+                                  <span className="text-black font-bold">Wheelchair rental:</span>
+                                  <span className="text-black font-bold">+${pricingBreakdown.wheelchairRentalFee.toFixed(2)}</span>
                                 </div>
                               )}
                               <div className="flex justify-between pt-1 mt-1 border-t border-[#DDE5E7] dark:border-[#333333]">
