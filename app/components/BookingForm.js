@@ -58,6 +58,7 @@ function formatMonthDay(date) {
 // Helper function to determine county from address using Google Maps Geocoding API
 async function determineCounty(address) {
   if (!address || !window.google) {
+    console.log('determineCounty: Missing address or Google API');
     return 'Unknown County';
   }
 
@@ -66,30 +67,28 @@ async function determineCounty(address) {
     
     return new Promise((resolve) => {
       geocoder.geocode({ address: address }, (results, status) => {
+        console.log('determineCounty geocoding result:', { address, status, results });
+        
         if (status === 'OK' && results[0]) {
           const addressComponents = results[0].address_components;
+          console.log('Address components:', addressComponents);
           
-          // Look for administrative_area_level_2 which is typically the county
-          for (let component of addressComponents) {
-            if (component.types.includes('administrative_area_level_2')) {
-              return resolve(component.long_name);
-            }
-          }
-          
-          // Fallback: check if it's in Ohio and determine Franklin County for Columbus metro area
+          // Check if it's in Ohio first
           const isOhio = addressComponents.some(comp => 
             comp.types.includes('administrative_area_level_1') && 
             comp.short_name === 'OH'
           );
           
           if (isOhio) {
-            // Check if it's in Columbus metro area
+            // Check if it's in Columbus metro area (Franklin County cities)
             const cityComponent = addressComponents.find(comp => 
               comp.types.includes('locality') || comp.types.includes('sublocality')
             );
             
             if (cityComponent) {
               const city = cityComponent.long_name.toLowerCase();
+              console.log('City detected:', city);
+              
               const franklinCountyCities = [
                 'columbus', 'dublin', 'westerville', 'gahanna', 'reynoldsburg',
                 'grove city', 'hilliard', 'upper arlington', 'bexley', 'whitehall',
@@ -99,6 +98,7 @@ async function determineCounty(address) {
               ];
               
               if (franklinCountyCities.some(fcCity => city.includes(fcCity))) {
+                console.log('City matched Franklin County list, returning Franklin County');
                 return resolve('Franklin County');
               }
             }
@@ -110,13 +110,25 @@ async function determineCounty(address) {
             
             if (neighborhoodComponent) {
               const neighborhood = neighborhoodComponent.long_name.toLowerCase();
+              console.log('Neighborhood detected:', neighborhood);
               if (neighborhood.includes('columbus') || neighborhood.includes('dublin') || 
                   neighborhood.includes('hilliard')) {
+                console.log('Neighborhood matched Franklin County, returning Franklin County');
                 return resolve('Franklin County');
               }
             }
           }
           
+          // Look for administrative_area_level_2 which is typically the county
+          for (let component of addressComponents) {
+            if (component.types.includes('administrative_area_level_2')) {
+              const countyName = component.long_name;
+              console.log('County from geocoding:', countyName);
+              return resolve(countyName);
+            }
+          }
+          
+          console.log('No county found, returning Unknown County');
           return resolve('Unknown County');
         } else {
           console.warn('Geocoding failed:', status);
