@@ -302,8 +302,8 @@ export default function BookingForm({ user }) {
           }
           
           // County determination logic
-          const pickupCounty = await determineCounty(formData.pickup);
-          const destinationCounty = await determineCounty(formData.destination);
+          const pickupCounty = await determineCounty(formData.pickupAddress);
+          const destinationCounty = await determineCounty(formData.destinationAddress);
           
           // Determine if trip is within Franklin County or crosses county lines
           const isInFranklinCounty = pickupCounty === 'Franklin County' && destinationCounty === 'Franklin County';
@@ -720,7 +720,13 @@ export default function BookingForm({ user }) {
       newDate.setHours(hour, minute, 0, 0);
       
       console.log('Return date with time:', newDate);
-      const formattedDate = newDate.toISOString().slice(0, 16);
+      // Format as local datetime string to avoid timezone issues
+      const year = newDate.getFullYear();
+      const month = String(newDate.getMonth() + 1).padStart(2, '0');
+      const day = String(newDate.getDate()).padStart(2, '0');
+      const hours = String(newDate.getHours()).padStart(2, '0');
+      const minutes = String(newDate.getMinutes()).padStart(2, '0');
+      const formattedDate = `${year}-${month}-${day}T${hours}:${minutes}`;
       console.log('Formatted return date:', formattedDate);
       
       setFormData(prev => ({
@@ -735,7 +741,13 @@ export default function BookingForm({ user }) {
       newDate.setHours(hour, minute, 0, 0);
       
       console.log('Pickup date with time:', newDate);
-      const formattedDate = newDate.toISOString().slice(0, 16);
+      // Format as local datetime string to avoid timezone issues
+      const year = newDate.getFullYear();
+      const month = String(newDate.getMonth() + 1).padStart(2, '0');
+      const day = String(newDate.getDate()).padStart(2, '0');
+      const hours = String(newDate.getHours()).padStart(2, '0');
+      const minutes = String(newDate.getMinutes()).padStart(2, '0');
+      const formattedDate = `${year}-${month}-${day}T${hours}:${minutes}`;
       console.log('Formatted pickup date:', formattedDate);
       
       setFormData(prev => ({
