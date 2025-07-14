@@ -25,15 +25,15 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-    /* Dark Mode Theme */
-    --background: #1C2C2F;
-    --foreground: #E0F4F5;
+    /* Dark Mode Theme - Override to white background */
+    --background: #FFFFFF;
+    --foreground: #2E4F54;
     --accent: #7CCFD0;
-    --button-text: #1C2C2F;
-    --card-background: #24393C;
-    --border-color: #3F5E63;
-    --primary: #E0F4F5;
-    --primary-hover: #C0E4E5;
+    --button-text: #FFFFFF;
+    --card-background: #F8F9FA;
+    --border-color: #DDE5E7;
+    --primary: #2E4F54;
+    --primary-hover: #1A3438;
     --secondary: #7CCFD0;
     --secondary-hover: #60BFC0;
   }
