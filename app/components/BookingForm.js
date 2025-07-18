@@ -207,7 +207,7 @@ export default function BookingForm({ user }) {
   // Format datetime default value
   useEffect(() => {
     // Set default pickup time to 1 hour from now, rounded to nearest 15 minutes
-    const now = new Date();
+    const now = new Date();11
     now.setHours(now.getHours() + 1);
     now.setMinutes(Math.ceil(now.getMinutes() / 15) * 15);
     now.setSeconds(0);
