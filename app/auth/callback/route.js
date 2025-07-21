@@ -15,15 +15,27 @@ export async function GET(request) {
     errorDescription,
     type: requestUrl.searchParams.get('type'),
     tokenHash: requestUrl.searchParams.get('token_hash') ? 'present' : 'missing',
-    fullUrl: requestUrl.toString()
+    fullUrl: requestUrl.toString(),
+    allParams: Object.fromEntries(requestUrl.searchParams.entries())
   });
   
   // Handle OAuth errors
   if (error) {
-    console.error('OAuth error received:', { error, errorDescription });
+    console.error('OAuth error received:', { error, errorDescription, allParams: Object.fromEntries(requestUrl.searchParams.entries()) });
+    
+    // Log more details for debugging
+    if (error === 'access_denied') {
+      console.error('Google OAuth access denied - possible causes:');
+      console.error('1. Email already exists with different auth method');
+      console.error('2. Supabase Auth settings not allowing account linking');
+      console.error('3. OAuth client configuration mismatch');
+      console.error('4. User declined authorization');
+    }
+    
     const errorParam = error === 'access_denied' ? 'access_denied' : 'Authentication failed';
+    const detailedError = errorDescription ? `${errorParam}: ${errorDescription}` : errorParam;
     return NextResponse.redirect(
-      new URL(`/login?error=${encodeURIComponent(errorParam)}`, requestUrl.origin)
+      new URL(`/login?error=${encodeURIComponent(detailedError)}`, requestUrl.origin)
     );
   }
   

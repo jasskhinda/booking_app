@@ -4,7 +4,7 @@ import { useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import Link from "next/link";
-import LoginForm from '@/app/components/LoginForm';
+import EmailOTPLoginForm from '@/app/components/EmailOTPLoginForm';
 
 function LoginContent() {
   const searchParams = useSearchParams();
@@ -73,7 +73,7 @@ function LoginContent() {
                 </Link>
               </p>
             </div>
-            <LoginForm />
+            <EmailOTPLoginForm />
           </div>
         </div>
       </section>
