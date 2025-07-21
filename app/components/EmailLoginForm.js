@@ -232,7 +232,7 @@ export default function EmailLoginForm() {
               placeholder="Enter your email address"
             />
             <p className="mt-1 text-xs text-gray-500">
-              We'll send you a verification code to sign in
+              We&apos;ll send you a verification code to sign in
             </p>
           </div>
 
