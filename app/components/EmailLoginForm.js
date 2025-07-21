@@ -6,7 +6,8 @@ import { useRouter } from 'next/navigation';
 
 export default function EmailLoginForm() {
   const [email, setEmail] = useState('');
-  const [loginState, setLoginState] = useState('email'); // 'email', 'sending', 'otp', 'verified'
+  const [password, setPassword] = useState('');
+  const [loginState, setLoginState] = useState('email'); // 'email', 'sending', 'otp', 'verified', 'password'
   const [otp, setOtp] = useState(['', '', '', '', '', '']);
   const [otpTimer, setOtpTimer] = useState(0);
   const [canResendOtp, setCanResendOtp] = useState(false);
@@ -55,7 +56,7 @@ export default function EmailLoginForm() {
     }
   }, [otpTimer]);
 
-  // Send OTP to email
+  // Send magic link to email
   const handleSendOTP = async (e) => {
     e.preventDefault();
     if (!email) {
@@ -74,24 +75,30 @@ export default function EmailLoginForm() {
     setOtpError('');
 
     try {
+      // Try magic link first, if it fails, fall back to regular password login
       const { error } = await supabase.auth.signInWithOtp({
         email: email,
+        options: {
+          shouldCreateUser: false, // Only for existing users
+        }
       });
 
-      if (error) throw error;
+      if (error) {
+        // If magic link fails, show password login instead
+        console.log('Magic link failed, switching to password login:', error.message);
+        setError('Magic link unavailable. Please use email/password login instead.');
+        setLoginState('password');
+        return;
+      }
 
-      console.log('OTP sent to:', email);
+      console.log('Magic link sent to:', email);
       setLoginState('otp');
       setOtpTimer(300); // 5 minutes
       setCanResendOtp(false);
-      
-      setTimeout(() => {
-        otpRefs.current[0]?.focus();
-      }, 100);
 
     } catch (error) {
-      console.error('OTP send error:', error);
-      setError(error.message || 'Failed to send verification code');
+      console.error('Login error:', error);
+      setError('Login method unavailable. Please try again later or contact support.');
       setLoginState('email');
     }
   };
@@ -177,6 +184,31 @@ export default function EmailLoginForm() {
     }
   };
 
+  // Handle password login
+  const handlePasswordLogin = async (e) => {
+    e.preventDefault();
+    setIsLoading(true);
+    setError('');
+
+    try {
+      const { error } = await supabase.auth.signInWithPassword({
+        email: email,
+        password: password,
+      });
+
+      if (error) throw error;
+
+      console.log('Password login successful');
+      router.push('/dashboard');
+
+    } catch (error) {
+      console.error('Password login error:', error);
+      setError(error.message || 'Invalid email or password');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const handleGoogleSignIn = async () => {
     try {
       const { error } = await supabase.auth.signInWithOAuth({
@@ -232,7 +264,7 @@ export default function EmailLoginForm() {
               placeholder="Enter your email address"
             />
             <p className="mt-1 text-xs text-gray-500">
-              We&apos;ll send you a verification code to sign in
+              We&apos;ll try to send you a verification code
             </p>
           </div>
 
@@ -243,6 +275,72 @@ export default function EmailLoginForm() {
           >
             {loginState === 'sending' ? 'Sending code...' : 'Send verification code'}
           </button>
+
+          <div className="text-center">
+            <button
+              type="button"
+              onClick={() => setLoginState('password')}
+              className="text-sm text-[#5fbfc0] hover:underline"
+            >
+              Use email and password instead
+            </button>
+          </div>
+        </form>
+      )}
+
+      {loginState === 'password' && (
+        <form onSubmit={handlePasswordLogin} className="space-y-4">
+          <div>
+            <label htmlFor="email" className="block text-sm font-medium text-black">
+              Email address
+            </label>
+            <input
+              id="email"
+              name="email"
+              type="email"
+              autoComplete="email"
+              required
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="mt-1 block w-full px-3 py-2 border border-[#DDE5E7] dark:border-[#333333] rounded-md shadow-sm focus:outline-none focus:ring-[#5fbfc0] focus:border-[#5fbfc0] bg-white dark:bg-[#1A1A1A] text-[black] dark:text-[white]"
+              placeholder="Enter your email address"
+            />
+          </div>
+
+          <div>
+            <label htmlFor="password" className="block text-sm font-medium text-black">
+              Password
+            </label>
+            <input
+              id="password"
+              name="password"
+              type="password"
+              autoComplete="current-password"
+              required
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="mt-1 block w-full px-3 py-2 border border-[#DDE5E7] dark:border-[#333333] rounded-md shadow-sm focus:outline-none focus:ring-[#5fbfc0] focus:border-[#5fbfc0] bg-white dark:bg-[#1A1A1A] text-[black] dark:text-[white]"
+              placeholder="Enter your password"
+            />
+          </div>
+
+          <button
+            type="submit"
+            disabled={isLoading}
+            className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-[#5fbfc0] hover:bg-[#4aa5a6] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#5fbfc0] disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {isLoading ? 'Signing in...' : 'Sign in'}
+          </button>
+
+          <div className="text-center">
+            <button
+              type="button"
+              onClick={() => setLoginState('email')}
+              className="text-sm text-[#5fbfc0] hover:underline"
+            >
+              ← Back to verification code
+            </button>
+          </div>
         </form>
       )}
 
@@ -313,7 +411,7 @@ export default function EmailLoginForm() {
         </div>
       )}
 
-      {loginState === 'email' && (
+      {(loginState === 'email' || loginState === 'password') && (
         <>
           <div className="relative">
             <div className="absolute inset-0 flex items-center">
