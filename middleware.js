@@ -72,14 +72,36 @@ export async function middleware(req) {
           .single();
           
         // If profile exists and doesn't have 'client' role, log the user out
-        if (!profile || profile.role !== 'client') {
+        // For OAuth users, give a grace period for profile creation
+        if (!profile) {
+          // No profile found - this might be a new OAuth user
+          // Check if this is a recent OAuth signup by looking at user creation time
+          const userCreatedAt = new Date(session.user.created_at);
+          const now = new Date();
+          const timeSinceCreation = now - userCreatedAt;
+          const fiveMinutesInMs = 5 * 60 * 1000;
+          
+          if (timeSinceCreation < fiveMinutesInMs) {
+            // Recent user, allow them to continue and let the auth callback handle profile creation
+            console.log('New user detected, allowing access for profile creation');
+          } else {
+            // Old user without profile, block access
+            console.log('Redirecting to login from protected route - No profile found');
+            await supabase.auth.signOut();
+            await new Promise(resolve => setTimeout(resolve, 100));
+            const redirectUrl = new URL('/login', req.url);
+            redirectUrl.searchParams.set('error', 'access_denied');
+            redirectUrl.searchParams.set('fresh', 'true');
+            return NextResponse.redirect(redirectUrl);
+          }
+        } else if (profile.role !== 'client') {
+          // Profile exists but wrong role
           console.log('Redirecting to login from protected route - Invalid role');
           await supabase.auth.signOut();
-          // Add a small delay to ensure session is cleared
           await new Promise(resolve => setTimeout(resolve, 100));
           const redirectUrl = new URL('/login', req.url);
           redirectUrl.searchParams.set('error', 'access_denied');
-          redirectUrl.searchParams.set('fresh', 'true'); // Add flag to prevent redirect loops
+          redirectUrl.searchParams.set('fresh', 'true');
           return NextResponse.redirect(redirectUrl);
         }
       } catch (error) {
