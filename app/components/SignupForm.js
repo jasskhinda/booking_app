@@ -13,6 +13,8 @@ export default function SignupForm() {
     password: '',
     confirmPassword: '',
     birthdate: '',
+    phoneNumber: '',
+    address: '',
     marketingConsent: false
   });
   const [isLoading, setIsLoading] = useState(false);
@@ -52,6 +54,8 @@ export default function SignupForm() {
             first_name: formData.firstName,
             last_name: formData.lastName,
             birthdate: formData.birthdate,
+            phone_number: formData.phoneNumber,
+            address: formData.address,
             marketing_consent: formData.marketingConsent,
             role: 'client',
           },
@@ -324,6 +328,40 @@ export default function SignupForm() {
             required
             value={formData.birthdate}
             onChange={handleChange}
+            className="mt-1 block w-full px-3 py-2 border border-[#DDE5E7] dark:border-[#333333] rounded-md shadow-sm focus:outline-none focus:ring-[#5fbfc0] focus:border-[#5fbfc0] bg-white dark:bg-[#1A1A1A] text-[black] dark:text-[white]"
+          />
+        </div>
+        
+        <div>
+          <label htmlFor="phoneNumber" className="block text-sm font-medium text-black">
+            Phone Number
+          </label>
+          <input
+            id="phoneNumber"
+            name="phoneNumber"
+            type="tel"
+            autoComplete="tel"
+            required
+            value={formData.phoneNumber}
+            onChange={handleChange}
+            placeholder="(123) 456-7890"
+            className="mt-1 block w-full px-3 py-2 border border-[#DDE5E7] dark:border-[#333333] rounded-md shadow-sm focus:outline-none focus:ring-[#5fbfc0] focus:border-[#5fbfc0] bg-white dark:bg-[#1A1A1A] text-[black] dark:text-[white]"
+          />
+        </div>
+        
+        <div>
+          <label htmlFor="address" className="block text-sm font-medium text-black">
+            Address
+          </label>
+          <input
+            id="address"
+            name="address"
+            type="text"
+            autoComplete="street-address"
+            required
+            value={formData.address}
+            onChange={handleChange}
+            placeholder="123 Main St, City, State ZIP"
             className="mt-1 block w-full px-3 py-2 border border-[#DDE5E7] dark:border-[#333333] rounded-md shadow-sm focus:outline-none focus:ring-[#5fbfc0] focus:border-[#5fbfc0] bg-white dark:bg-[#1A1A1A] text-[black] dark:text-[white]"
           />
         </div>
