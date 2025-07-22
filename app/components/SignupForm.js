@@ -83,30 +83,42 @@ export default function SignupForm() {
     setOtpError('');
 
     try {
-      // For signup, we need to use a different approach since OTP is meant for existing users
-      // We'll use the regular signup with email confirmation but customize the flow
-      const { data, error } = await supabase.auth.signUp({
+      // Use OTP for email verification
+      const { error } = await supabase.auth.signInWithOtp({
         email: formData.email,
-        password: 'temp_password_' + Math.random().toString(36), // Temporary password
         options: {
-          emailRedirectTo: `${window.location.origin}/auth/callback`,
-          data: {
-            temp_signup: true, // Mark as temporary signup for email verification
-            first_name: formData.firstName || '',
-            last_name: formData.lastName || '',
-          },
-        },
+          shouldCreateUser: false, // We'll create the user after verification
+        }
       });
 
-      if (error) throw error;
+      if (error) {
+        // If user doesn't exist, that's expected for signup
+        if (error.message.includes('not found') || error.message.includes('not registered')) {
+          // Send OTP for new user
+          const { error: signupError } = await supabase.auth.signInWithOtp({
+            email: formData.email,
+            options: {
+              shouldCreateUser: true,
+              data: {
+                email_for_verification: formData.email,
+                signup_pending: true,
+              }
+            }
+          });
+          
+          if (signupError) throw signupError;
+        } else {
+          throw error;
+        }
+      }
 
-      console.log('Verification email sent to:', formData.email);
+      console.log('OTP sent to:', formData.email);
       setEmailVerificationState('sent');
-      setOtpTimer(60); // 60 seconds before can resend
+      setOtpTimer(300); // 5 minutes
       setCanResendOtp(false);
 
     } catch (error) {
-      console.error('Email verification send error:', error);
+      console.error('OTP send error:', error);
       if (error.message.includes('already registered')) {
         setError('An account with this email already exists. Please sign in instead.');
       } else {
@@ -143,72 +155,85 @@ export default function SignupForm() {
     }
   };
 
-  // Check if email was verified by checking for a confirmed user
-  const checkEmailVerification = async () => {
+  // Verify OTP code
+  const verifyOtpCode = async (code) => {
     try {
-      const { data: { user }, error } = await supabase.auth.getUser();
+      const { data, error } = await supabase.auth.verifyOtp({
+        email: formData.email,
+        token: code,
+        type: 'email'
+      });
+
+      if (error) throw error;
+
+      // Email is now verified, but we need to sign out to create the actual account
+      await supabase.auth.signOut();
       
-      if (user && user.email === formData.email && user.email_confirmed_at) {
-        console.log('Email verified successfully via email confirmation');
-        setEmailVerificationState('verified');
-        setOtpError('');
-        
-        // Clean up the temporary account since we just needed email verification
-        await supabase.auth.signOut();
-        return true;
-      }
+      console.log('Email verified successfully with OTP');
+      setEmailVerificationState('verified');
+      setOtpError('');
+      return true;
       
-      return false;
     } catch (error) {
-      console.error('Error checking email verification:', error);
+      console.error('OTP verification error:', error);
+      if (error.message.includes('expired')) {
+        setOtpError('Verification code has expired. Please request a new one.');
+      } else if (error.message.includes('invalid')) {
+        setOtpError('Invalid verification code. Please check and try again.');
+      } else {
+        setOtpError(error.message || 'Failed to verify code');
+      }
       return false;
     }
   };
 
-  // Handle verification code - this will check for email confirmation
+  // Handle verification code
   const handleVerifyOtp = async (otpCode = null) => {
-    // For now, we'll show a message that they should check their email for a link
-    // Since we're using email confirmation instead of OTP
-    setOtpError('Please check your email and click the confirmation link to verify your email address.');
+    const verificationCode = otpCode || otp.join('');
     
-    // Periodically check if email has been verified
-    const checkInterval = setInterval(async () => {
-      const verified = await checkEmailVerification();
-      if (verified) {
-        clearInterval(checkInterval);
-      }
-    }, 2000); // Check every 2 seconds
+    if (verificationCode.length !== 6) {
+      setOtpError('Please enter the complete 6-digit code');
+      return;
+    }
+
+    setOtpError('Verifying...');
+    const verified = await verifyOtpCode(verificationCode);
     
-    // Clear interval after 5 minutes
-    setTimeout(() => {
-      clearInterval(checkInterval);
-    }, 300000);
+    if (!verified) {
+      // Clear the OTP inputs on error
+      setOtp(['', '', '', '', '', '']);
+      otpRefs.current[0]?.focus();
+    }
   };
 
-  // Resend verification email
+  // Resend OTP
   const handleResendOtp = async () => {
     if (!canResendOtp) return;
     
     setOtpError('');
+    setOtp(['', '', '', '', '', '']);
     
     try {
-      const { error } = await supabase.auth.resend({
-        type: 'signup',
+      const { error } = await supabase.auth.signInWithOtp({
         email: formData.email,
         options: {
-          emailRedirectTo: `${window.location.origin}/auth/callback`,
+          shouldCreateUser: true,
+          data: {
+            email_for_verification: formData.email,
+            signup_pending: true,
+          }
         }
       });
 
       if (error) throw error;
 
-      setOtpTimer(60); // Reset timer to 60 seconds
+      setOtpTimer(300); // Reset timer to 5 minutes
       setCanResendOtp(false);
-      setOtpError('Verification email sent! Please check your inbox.');
+      setOtpError('New verification code sent! Please check your email.');
       
     } catch (error) {
-      console.error('Resend email error:', error);
-      setOtpError('Failed to resend email. Please try again.');
+      console.error('Resend OTP error:', error);
+      setOtpError('Failed to resend code. Please try again.');
     }
   };
 
@@ -239,25 +264,29 @@ export default function SignupForm() {
     }
 
     try {
-      // Create the account
-      const { data, error } = await supabase.auth.signUp({
-        email: formData.email,
-        password: formData.password,
-        options: {
-          emailRedirectTo: `${window.location.origin}/auth/callback`,
-          data: {
-            first_name: formData.firstName,
-            last_name: formData.lastName,
-            birthdate: formData.birthdate,
-            phone_number: formData.phoneNumber,
-            address: formData.address,
-            marketing_consent: formData.marketingConsent,
-            role: 'client',
-          },
+      // Call the API to create the account (only after email is verified)
+      const response = await fetch('/api/auth/signup', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
         },
+        body: JSON.stringify({
+          email: formData.email,
+          password: formData.password,
+          firstName: formData.firstName,
+          lastName: formData.lastName,
+          birthdate: formData.birthdate,
+          phoneNumber: formData.phoneNumber,
+          address: formData.address,
+          marketingConsent: formData.marketingConsent,
+        }),
       });
+
+      const data = await response.json();
       
-      if (error) throw error;
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to create account');
+      }
       
       console.log('Account created successfully');
       router.push('/dashboard');
@@ -385,14 +414,27 @@ export default function SignupForm() {
             
             <div className="space-y-3">
               <div className="text-sm text-blue-900">
-                <p className="mb-2">Please check your email and click the verification link.</p>
-                <p className="text-xs text-blue-700">
-                  Once you click the link, come back here and click &quot;Check Verification Status&quot;
-                </p>
+                <p className="mb-2">Enter the 6-digit verification code sent to your email</p>
+              </div>
+
+              <div className="flex justify-center space-x-2">
+                {otp.map((digit, index) => (
+                  <input
+                    key={index}
+                    ref={el => otpRefs.current[index] = el}
+                    type="text"
+                    maxLength="1"
+                    value={digit}
+                    onChange={(e) => handleOtpChange(index, e.target.value)}
+                    onKeyDown={(e) => handleOtpKeyDown(index, e)}
+                    className="w-12 h-12 text-center border-2 border-gray-300 rounded-md focus:border-[#5fbfc0] focus:outline-none text-lg font-semibold"
+                    autoFocus={index === 0}
+                  />
+                ))}
               </div>
 
               {otpError && (
-                <div className="text-sm text-red-600">
+                <div className="text-sm text-center text-red-600">
                   {otpError}
                 </div>
               )}
@@ -400,18 +442,18 @@ export default function SignupForm() {
               <div className="flex items-center justify-between">
                 <button
                   type="button"
-                  onClick={checkEmailVerification}
+                  onClick={() => handleVerifyOtp()}
                   className="px-4 py-2 bg-green-600 text-white text-sm rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500"
                 >
-                  Check Verification Status
+                  Verify Code
                 </button>
                 <button
                   type="button"
                   onClick={handleResendOtp}
                   disabled={!canResendOtp}
-                  className="text-blue-600 hover:text-blue-800 disabled:text-gray-400 disabled:cursor-not-allowed"
+                  className="text-blue-600 hover:text-blue-800 disabled:text-gray-400 disabled:cursor-not-allowed text-sm"
                 >
-                  {canResendOtp ? 'Resend email' : `Resend in ${formatTimer(otpTimer)}`}
+                  {canResendOtp ? 'Resend code' : `Resend in ${formatTimer(otpTimer)}`}
                 </button>
               </div>
             </div>
