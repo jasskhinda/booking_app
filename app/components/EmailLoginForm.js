@@ -89,9 +89,9 @@ export default function EmailLoginForm() {
         return;
       }
 
-      console.log('Magic link sent to:', email);
+      console.log('OTP sent to:', email);
       setLoginState('otp');
-      setOtpTimer(300); // 5 minutes
+      setOtpTimer(100); // 100 seconds to match Supabase config
       setCanResendOtp(false);
 
     } catch (error) {
@@ -171,7 +171,7 @@ export default function EmailLoginForm() {
 
       if (error) throw error;
 
-      setOtpTimer(300);
+      setOtpTimer(100); // 100 seconds to match Supabase config
       setCanResendOtp(false);
       setOtp(['', '', '', '', '', '']);
       otpRefs.current[0]?.focus();
