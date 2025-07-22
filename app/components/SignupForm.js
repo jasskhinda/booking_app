@@ -83,27 +83,34 @@ export default function SignupForm() {
     setOtpError('');
 
     try {
-      // For signup, we'll use a magic link OTP without creating a user
-      // We'll store the email in a session variable to verify it matches later
-      const { error } = await supabase.auth.signInWithOtp({
+      // For signup, we simulate OTP by generating a code and storing it
+      const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
+      
+      // Store the OTP in sessionStorage with expiration
+      const otpData = {
+        code: otpCode,
         email: formData.email,
-        options: {
-          shouldCreateUser: false, // Don't create user yet
-        }
+        expiresAt: Date.now() + 100000 // 100 seconds
+      };
+      sessionStorage.setItem(`signup_otp_${formData.email}`, JSON.stringify(otpData));
+      
+      // Send OTP via email API
+      const emailResponse = await fetch('/api/auth/send-otp', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: formData.email,
+          otpCode: otpCode
+        })
       });
-
-      if (error) {
-        // If the error is that user doesn't exist, that's expected for signup
-        if (error.message.toLowerCase().includes('not found') || 
-            error.message.toLowerCase().includes('not registered') ||
-            error.message.toLowerCase().includes('user not found')) {
-          // This is expected for new signups, we can proceed
-          console.log('Email not registered yet, proceeding with signup OTP');
-        } else {
-          // For other errors, throw them
-          throw error;
-        }
+      
+      if (!emailResponse.ok) {
+        throw new Error('Failed to send verification email');
       }
+      
+      console.log(`OTP sent to ${formData.email}`);
 
       console.log('OTP sent to:', formData.email);
       setEmailVerificationState('sent');
@@ -151,13 +158,33 @@ export default function SignupForm() {
   // Verify OTP code
   const verifyOtpCode = async (code) => {
     try {
-      // Store the OTP code in session storage to verify it matches what was sent
-      const sessionKey = `otp_${formData.email}_${code}`;
-      sessionStorage.setItem(sessionKey, 'verified');
+      // Retrieve stored OTP from sessionStorage
+      const storedData = sessionStorage.getItem(`signup_otp_${formData.email}`);
       
-      // Since Supabase OTP is for existing users, we'll just mark as verified
-      // The actual account creation happens after this verification
-      console.log('Email verification code accepted');
+      if (!storedData) {
+        setOtpError('No verification code found. Please request a new one.');
+        return false;
+      }
+      
+      const otpData = JSON.parse(storedData);
+      
+      // Check if OTP is expired
+      if (Date.now() > otpData.expiresAt) {
+        sessionStorage.removeItem(`signup_otp_${formData.email}`);
+        setOtpError('Verification code has expired. Please request a new one.');
+        return false;
+      }
+      
+      // Verify the code
+      if (otpData.code !== code) {
+        setOtpError('Invalid verification code. Please check and try again.');
+        return false;
+      }
+      
+      // Code is valid - remove it from storage
+      sessionStorage.removeItem(`signup_otp_${formData.email}`);
+      
+      console.log('Email verified successfully with OTP');
       setEmailVerificationState('verified');
       setOtpError('');
       return true;
@@ -196,12 +223,32 @@ export default function SignupForm() {
     setOtp(['', '', '', '', '', '']);
     
     try {
-      const { error } = await supabase.auth.signInWithOtp({
+      // Generate a new OTP code
+      const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
+      
+      // Store the new OTP
+      const otpData = {
+        code: otpCode,
         email: formData.email,
-        options: {
-          shouldCreateUser: false, // Don't create user for resend either
-        }
+        expiresAt: Date.now() + 100000 // 100 seconds
+      };
+      sessionStorage.setItem(`signup_otp_${formData.email}`, JSON.stringify(otpData));
+      
+      // Send new OTP via email API
+      const emailResponse = await fetch('/api/auth/send-otp', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: formData.email,
+          otpCode: otpCode
+        })
       });
+      
+      const error = !emailResponse.ok ? new Error('Failed to send email') : null;
+      
+      console.log(`New OTP sent to ${formData.email}`);
 
       if (error) throw error;
 
@@ -242,7 +289,7 @@ export default function SignupForm() {
     }
 
     try {
-      // Call the API to create the account (only after email is verified)
+      // Create the account via API (email has been verified)
       const response = await fetch('/api/auth/signup', {
         method: 'POST',
         headers: {
