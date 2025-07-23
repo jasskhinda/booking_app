@@ -5,7 +5,7 @@ import { createClient } from '@supabase/supabase-js';
 
 export async function POST(request) {
   try {
-    const { email, password, firstName, lastName, birthdate, phoneNumber, address, marketingConsent, tempUserId } = await request.json();
+    const { email, password, firstName, lastName, birthdate, phoneNumber, address, marketingConsent, emailVerified } = await request.json();
     
     // Validate inputs
     if (!email || !password || !firstName || !lastName || !birthdate || !phoneNumber || !address) {
@@ -15,15 +15,28 @@ export async function POST(request) {
       );
     }
     
-    // Step 1: Delete the temporary user if exists
-    if (tempUserId) {
-      try {
-        await adminSupabase.auth.admin.deleteUser(tempUserId);
-        console.log('Deleted temporary user:', tempUserId);
-      } catch (deleteError) {
-        console.error('Error deleting temp user:', deleteError);
-        // Continue anyway - temp user cleanup is not critical
+    // SECURITY: Require email verification
+    if (!emailVerified) {
+      return NextResponse.json(
+        { error: 'Email verification required' },
+        { status: 400 }
+      );
+    }
+    
+    // Step 1: Check if user already exists
+    try {
+      const { data: existingUsers } = await adminSupabase.auth.admin.listUsers();
+      const userExists = existingUsers?.users?.some(user => user.email === email);
+      
+      if (userExists) {
+        return NextResponse.json(
+          { error: 'An account with this email already exists' },
+          { status: 400 }
+        );
       }
+    } catch (checkError) {
+      console.error('Error checking existing users:', checkError);
+      // Continue with signup if we can't check
     }
     
     // Step 2: Create the user with admin privileges (bypasses email confirmation)

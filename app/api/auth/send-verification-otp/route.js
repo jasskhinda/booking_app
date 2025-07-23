@@ -1,17 +1,32 @@
 import { sendEmail } from '@/lib/email';
+import { otpStore } from '@/lib/otp-store';
 import { NextResponse } from 'next/server';
 
 export async function POST(request) {
   try {
-    const { email, otpCode } = await request.json();
+    const { email, verificationId } = await request.json();
     
-    if (!email || !otpCode) {
+    if (!email || !verificationId) {
       return NextResponse.json(
-        { error: 'Email and OTP code are required' },
+        { error: 'Email and verification ID are required' },
         { status: 400 }
       );
     }
 
+    // Generate 6-digit OTP
+    const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
+    
+    // Store OTP with expiration
+    const otpData = {
+      code: otpCode,
+      email: email,
+      verificationId: verificationId,
+      timestamp: Date.now(),
+      attempts: 0
+    };
+    
+    otpStore.set(`${email}_${verificationId}`, otpData);
+    
     // Email template for OTP
     const subject = 'Email Verification Code - Compassionate Care Transportation';
     
@@ -62,7 +77,7 @@ export async function POST(request) {
       
       Email Verification
       
-      Enter this verification code to complete your account registration:
+      Please enter this verification code to complete your account registration:
       
       ${otpCode}
       
@@ -73,7 +88,7 @@ export async function POST(request) {
       © 2024 Compassionate Care Transportation. All rights reserved.
     `;
 
-    // Send the email
+    // Send the email using the configured Resend SMTP
     await sendEmail({
       to: email,
       subject,
@@ -81,6 +96,8 @@ export async function POST(request) {
       html: htmlContent
     });
 
+    console.log(`OTP sent to ${email}: ${otpCode}`); // For development - remove in production
+    
     return NextResponse.json({ 
       success: true, 
       message: 'Verification code sent successfully' 
@@ -94,3 +111,4 @@ export async function POST(request) {
     );
   }
 }
+

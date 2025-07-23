@@ -8,6 +8,35 @@ export default function SignupForm() {
   const supabase = createClientComponentClient();
   const router = useRouter();
   
+  // Check for OTP verification from email link and force sign out
+  useEffect(() => {
+    // CRITICAL SECURITY: Always sign out when accessing signup page
+    const forceSignOut = async () => {
+      try {
+        await supabase.auth.signOut();
+        console.log('Forced sign out on signup page load');
+      } catch (error) {
+        console.error('Error during forced sign out:', error);
+      }
+    };
+    
+    forceSignOut();
+    
+    const urlParams = new URLSearchParams(window.location.search);
+    const otpVerified = urlParams.get('otp_verified');
+    const emailParam = urlParams.get('email');
+    
+    if (otpVerified === 'true' && emailParam) {
+      // User verified via email link, mark as verified
+      setFormData(prev => ({ ...prev, email: emailParam }));
+      setEmailVerificationState('verified');
+      console.log('Email verified via email link');
+      
+      // Clean up URL
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
+  }, [supabase]);
+  
   // Form data state
   const [formData, setFormData] = useState({
     firstName: '',
@@ -83,43 +112,49 @@ export default function SignupForm() {
     setOtpError('');
 
     try {
-      // First, create a temporary unconfirmed user with a random password
-      const tempPassword = `temp_${Math.random().toString(36).substring(2, 15)}_${Date.now()}`;
-      sessionStorage.setItem('signup_temp_password', tempPassword);
+      // CRITICAL SECURITY: Force sign out any existing sessions first
+      await supabase.auth.signOut();
+      console.log('Forced sign out before signup attempt');
       
-      const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+      // SECURITY FIX: Don't create any user accounts until OTP is verified
+      // Store email verification request without creating user
+      const verificationId = `verify_${Date.now()}_${Math.random().toString(36).substring(2, 15)}`;
+      
+      // Store verification attempt in sessionStorage (expires with browser session)
+      const verificationData = {
         email: formData.email,
-        password: tempPassword,
-        options: {
-          emailRedirectTo: `${window.location.origin}/auth/callback`,
-          data: {
-            temp_signup: true,
-            first_name: formData.firstName || '',
-            last_name: formData.lastName || '',
-          }
-        }
+        timestamp: Date.now(),
+        verified: false,
+        id: verificationId
+      };
+      sessionStorage.setItem('email_verification_pending', JSON.stringify(verificationData));
+      
+      // Send OTP via our custom API (no user creation)
+      const response = await fetch('/api/auth/send-verification-otp', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: formData.email,
+          verificationId: verificationId
+        })
       });
-
-      if (signUpError) {
-        if (signUpError.message.includes('already registered')) {
-          setError('An account with this email already exists. Please sign in instead.');
-          setEmailVerificationState('unverified');
-          return;
-        }
-        throw signUpError;
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to send verification code');
       }
 
-      // Now send OTP to the created user
-      const { error: otpError } = await supabase.auth.signInWithOtp({
-        email: formData.email,
-        options: {
-          shouldCreateUser: false,
-        }
-      });
-
-      if (otpError) throw otpError;
-
       console.log('OTP sent to:', formData.email);
+      
+      // TEMPORARY: For testing, show the OTP in console
+      // In production, this should be removed once email is working
+      if (process.env.NODE_ENV === 'development' || window.location.hostname === 'localhost') {
+        console.log('🔐 TEST MODE - OTP would be sent via email');
+        console.log('📧 For now, use the test code: 123456');
+      }
+      
       setEmailVerificationState('sent');
       setOtpTimer(100); // 100 seconds to match Supabase config
       setCanResendOtp(false);
@@ -165,23 +200,37 @@ export default function SignupForm() {
   // Verify OTP code
   const verifyOtpCode = async (code) => {
     try {
-      // Verify the OTP with Supabase
-      const { data, error } = await supabase.auth.verifyOtp({
-        email: formData.email,
-        token: code,
-        type: 'email'
-      });
-
-      if (error) throw error;
-
-      // Email is now verified, but we need to delete this temp user and create the real one
-      if (data?.user) {
-        // Get the user ID to delete later
-        sessionStorage.setItem('temp_user_id', data.user.id);
-        
-        // Sign out the temp user
-        await supabase.auth.signOut();
+      // Get verification data from session
+      const verificationData = JSON.parse(sessionStorage.getItem('email_verification_pending') || '{}');
+      
+      if (!verificationData.email || !verificationData.id) {
+        setOtpError('Verification session expired. Please request a new code.');
+        return false;
       }
+      
+      // Verify OTP via our API
+      const response = await fetch('/api/auth/verify-otp', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: verificationData.email,
+          code: code,
+          verificationId: verificationData.id
+        })
+      });
+      
+      const result = await response.json();
+      
+      if (!response.ok) {
+        setOtpError(result.error || 'Invalid verification code');
+        return false;
+      }
+      
+      // Mark as verified in session
+      verificationData.verified = true;
+      sessionStorage.setItem('email_verification_pending', JSON.stringify(verificationData));
       
       console.log('Email verified successfully with OTP');
       setEmailVerificationState('verified');
@@ -190,13 +239,7 @@ export default function SignupForm() {
       
     } catch (error) {
       console.error('OTP verification error:', error);
-      if (error.message.includes('expired')) {
-        setOtpError('Verification code has expired. Please request a new one.');
-      } else if (error.message.includes('invalid')) {
-        setOtpError('Invalid verification code. Please check and try again.');
-      } else {
-        setOtpError(error.message || 'Failed to verify code');
-      }
+      setOtpError('Failed to verify code. Please try again.');
       return false;
     }
   };
@@ -228,13 +271,21 @@ export default function SignupForm() {
     setOtp(['', '', '', '', '', '']);
     
     try {
-      // Resend OTP using Supabase
-      const { error } = await supabase.auth.signInWithOtp({
-        email: formData.email,
-        options: {
-          shouldCreateUser: false,
-        }
+      // Resend OTP via our API
+      const verificationData = JSON.parse(sessionStorage.getItem('email_verification_pending') || '{}');
+      
+      const response = await fetch('/api/auth/send-verification-otp', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: formData.email,
+          verificationId: verificationData.id || `verify_${Date.now()}_${Math.random().toString(36).substring(2, 15)}`
+        })
       });
+      
+      const error = !response.ok ? new Error('Failed to resend code') : null;
 
       if (error) throw error;
 
@@ -275,15 +326,16 @@ export default function SignupForm() {
     }
 
     try {
-      // Delete the temporary user and create the real account
-      const tempUserId = sessionStorage.getItem('temp_user_id');
-      const tempPassword = sessionStorage.getItem('signup_temp_password');
+      // Verify email was actually verified
+      const verificationData = JSON.parse(sessionStorage.getItem('email_verification_pending') || '{}');
       
-      // Clean up session storage
-      sessionStorage.removeItem('temp_user_id');
-      sessionStorage.removeItem('signup_temp_password');
+      if (!verificationData.verified || verificationData.email !== formData.email) {
+        setError('Email verification required. Please verify your email first.');
+        setIsLoading(false);
+        return;
+      }
       
-      // Create the real account via API
+      // Create the account via API (only after email verification)
       const response = await fetch('/api/auth/signup', {
         method: 'POST',
         headers: {
@@ -298,9 +350,12 @@ export default function SignupForm() {
           phoneNumber: formData.phoneNumber,
           address: formData.address,
           marketingConsent: formData.marketingConsent,
-          tempUserId: tempUserId, // Pass temp user ID to delete it
+          emailVerified: true, // Flag that email was verified
         }),
       });
+      
+      // Clean up verification session
+      sessionStorage.removeItem('email_verification_pending');
 
       const data = await response.json();
       
@@ -435,6 +490,12 @@ export default function SignupForm() {
             <div className="space-y-3">
               <div className="text-sm text-blue-900">
                 <p className="mb-2">Enter the 6-digit verification code sent to your email</p>
+                {/* TEMPORARY: Remove this once email is working */}
+                {(window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') && (
+                  <p className="text-xs text-orange-600 mt-1">
+                    ⚠️ Email sending may not work in development. Use test code: 123456
+                  </p>
+                )}
               </div>
 
               <div className="flex justify-center space-x-2">

@@ -130,7 +130,16 @@ export async function GET(request) {
                                   requestUrl.searchParams.get('token_hash');
       
       if (isEmailConfirmation) {
-        // Show email confirmation success page first
+        // SECURITY FIX: Don't auto-login for email confirmations during signup
+        // Check if this is a temporary signup user
+        const user = data.session.user;
+        if (user.user_metadata?.temp_signup) {
+          // This is a temp user - sign them out and redirect to signup with verification
+          await supabase.auth.signOut();
+          return NextResponse.redirect(new URL('/signup?otp_verified=true&email=' + encodeURIComponent(user.email), requestUrl.origin));
+        }
+        
+        // For regular email confirmations (password resets, etc.), show confirmation page
         return NextResponse.redirect(new URL('/email-confirmed', requestUrl.origin));
       } else {
         // Direct redirect to dashboard for OAuth

@@ -127,6 +127,15 @@ export async function middleware(req) {
     const referer = req.headers.get('referer') || '';
     const isAuthToAuthNavigation = authRoutes.some(route => referer.includes(route));
     
+    // SECURITY FIX: Never redirect from signup page to dashboard
+    // Users should complete the signup process even if they have a session
+    if (pathname === '/signup') {
+      console.log('Allowing signup page access despite session - user must complete signup');
+      // Force sign out the session for security
+      await supabase.auth.signOut();
+      return NextResponse.next();
+    }
+    
     if (!freshLogin && !isLogout && !isAuthToAuthNavigation) {
       console.log('Redirecting to dashboard from auth route');
       return NextResponse.redirect(new URL('/dashboard', req.url));
