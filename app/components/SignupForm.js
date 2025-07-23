@@ -112,13 +112,16 @@ export default function SignupForm() {
       };
       sessionStorage.setItem('email_verification_pending', JSON.stringify(verificationData));
       
-      // Use Supabase's OTP system (same as working test-email page)
-      // This will create a temporary user but our signup API will handle cleanup
+      // Use Supabase's OTP system but don't create user account yet
       const { data, error: otpError } = await supabase.auth.signInWithOtp({
         email: formData.email,
+        options: {
+          shouldCreateUser: false, // Don't create user until they complete the form
+        }
       });
       
-      if (otpError) {
+      // If user doesn't exist, that's expected for signup - OTP will still be sent
+      if (otpError && !otpError.message.includes('User not found') && !otpError.message.includes('Invalid login')) {
         throw otpError;
       }
 
@@ -244,9 +247,13 @@ export default function SignupForm() {
       
       const { data, error } = await supabase.auth.signInWithOtp({
         email: formData.email,
+        options: {
+          shouldCreateUser: false, // Don't create user until they complete the form
+        }
       });
       
-      if (error) {
+      // If user doesn't exist, that's expected for signup - OTP will still be sent
+      if (error && !error.message.includes('User not found') && !error.message.includes('Invalid login')) {
         throw error;
       }
       
