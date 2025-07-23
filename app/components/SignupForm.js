@@ -129,31 +129,16 @@ export default function SignupForm() {
       };
       sessionStorage.setItem('email_verification_pending', JSON.stringify(verificationData));
       
-      // Send OTP via our custom API that uses Resend SMTP
-      const response = await fetch('/api/auth/send-verification-otp', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          email: formData.email,
-          verificationId: verificationId
-        })
+      // Use Supabase's OTP system (same as test-email page which works)
+      const { data, error: otpError } = await supabase.auth.signInWithOtp({
+        email: formData.email,
       });
       
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to send verification code');
+      if (otpError) {
+        throw otpError;
       }
 
       console.log('OTP sent to:', formData.email);
-      
-      // TEMPORARY: For testing, show the OTP in console
-      // In production, this should be removed once email is working
-      if (process.env.NODE_ENV === 'development' || window.location.hostname === 'localhost') {
-        console.log('🔐 TEST MODE - OTP would be sent via email');
-        console.log('📧 For now, use the test code: 123456');
-      }
       
       setEmailVerificationState('sent');
       setOtpTimer(100); // 100 seconds to match Supabase config
@@ -197,36 +182,32 @@ export default function SignupForm() {
     }
   };
 
-  // Verify OTP code using our custom API
+  // Verify OTP code using Supabase (same as test-email page)
   const verifyOtpCode = async (code) => {
     try {
       // Get verification data from session
       const verificationData = JSON.parse(sessionStorage.getItem('email_verification_pending') || '{}');
       
-      if (!verificationData.email || !verificationData.id) {
+      if (!verificationData.email) {
         setOtpError('Verification session expired. Please request a new code.');
         return false;
       }
       
-      // Verify OTP via our API
-      const response = await fetch('/api/auth/verify-otp', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          email: verificationData.email,
-          code: code,
-          verificationId: verificationData.id
-        })
+      // Use Supabase's OTP verification
+      const { data, error } = await supabase.auth.verifyOtp({
+        email: verificationData.email,
+        token: code,
+        type: 'email'
       });
       
-      const result = await response.json();
-      
-      if (!response.ok) {
-        setOtpError(result.error || 'Invalid verification code');
+      if (error) {
+        console.error('OTP verification error:', error);
+        setOtpError(error.message || 'Invalid verification code');
         return false;
       }
+      
+      // Sign out immediately after verification to prevent auto-login
+      await supabase.auth.signOut();
       
       // Mark as verified in session
       verificationData.verified = true;
@@ -263,7 +244,7 @@ export default function SignupForm() {
     }
   };
 
-  // Resend OTP using our custom API
+  // Resend OTP using Supabase (same as test-email page)
   const handleResendOtp = async () => {
     if (!canResendOtp) return;
     
@@ -271,25 +252,19 @@ export default function SignupForm() {
     setOtp(['', '', '', '', '', '']);
     
     try {
-      // Resend OTP via our API
-      const verificationData = JSON.parse(sessionStorage.getItem('email_verification_pending') || '{}');
+      // Force sign out any existing sessions first
+      await supabase.auth.signOut();
       
-      const response = await fetch('/api/auth/send-verification-otp', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          email: formData.email,
-          verificationId: verificationData.id || `verify_${Date.now()}_${Math.random().toString(36).substring(2, 15)}`
-        })
+      // Resend OTP using Supabase
+      const { data, error } = await supabase.auth.signInWithOtp({
+        email: formData.email,
       });
       
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to resend code');
+      if (error) {
+        throw error;
       }
 
+      console.log('OTP resent to:', formData.email);
       setOtpTimer(100); // Reset timer to 100 seconds to match Supabase config
       setCanResendOtp(false);
       setOtpError('New verification code sent! Please check your email.');
@@ -491,12 +466,6 @@ export default function SignupForm() {
             <div className="space-y-3">
               <div className="text-sm text-blue-900">
                 <p className="mb-2">Enter the 6-digit verification code sent to your email</p>
-                {/* TEMPORARY: Remove this once email is working */}
-                {(window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') && (
-                  <p className="text-xs text-orange-600 mt-1">
-                    ⚠️ Email sending may not work in development. Use test code: 123456
-                  </p>
-                )}
               </div>
 
               <div className="flex justify-center space-x-2">
