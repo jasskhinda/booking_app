@@ -66,27 +66,50 @@ export async function POST(request) {
       // Continue with signup if we can't check
     }
     
-    // Step 2: Create the user with admin privileges (bypasses email confirmation)
-    const { data: userData, error: createError } = await adminSupabase.auth.admin.createUser({
+    // Step 2: Create the user using regular signup (since admin creation is failing)
+    // Create a client for user creation
+    const supabaseClient = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+    );
+    
+    console.log('Attempting to create user with regular signUp method');
+    const { data: userData, error: createError } = await supabaseClient.auth.signUp({
       email,
       password,
-      email_confirm: true, // This is the key setting that bypasses email confirmation
-      user_metadata: {
-        first_name: firstName,
-        last_name: lastName,
-        birthdate: birthdate,
-        phone_number: phoneNumber,
-        address: address,
-        marketing_consent: marketingConsent || false,
-        role: 'client',
-      },
+      options: {
+        data: {
+          first_name: firstName,
+          last_name: lastName,
+          birthdate: birthdate,
+          phone_number: phoneNumber,
+          address: address,
+          marketing_consent: marketingConsent || false,
+          role: 'client',
+        }
+      }
     });
     
     if (createError) {
-      console.error('Error creating user:', createError);
+      console.error('Error creating user with signUp:', createError);
       console.error('Full error details:', JSON.stringify(createError, null, 2));
       console.error('User data being sent:', { email, firstName, lastName, birthdate, phoneNumber, address });
       return NextResponse.json({ error: `User creation failed: ${createError.message}` }, { status: 400 });
+    }
+    
+    console.log('User created successfully:', userData.user?.id);
+    
+    // If email confirmation is required, we need to confirm it since we already verified OTP
+    if (userData.user && !userData.user.email_confirmed_at) {
+      console.log('Confirming email for user since OTP was already verified');
+      const { error: confirmError } = await adminSupabase.auth.admin.updateUserById(
+        userData.user.id,
+        { email_confirm: true }
+      );
+      
+      if (confirmError) {
+        console.error('Error confirming email:', confirmError);
+      }
     }
     
     // The user is now created and email is confirmed
