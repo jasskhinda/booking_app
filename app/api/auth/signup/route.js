@@ -25,27 +25,41 @@ export async function POST(request) {
     
     // Step 1: Check if user already exists (and delete any incomplete OTP-only users)
     try {
+      console.log('Checking for existing user:', email);
       const { data: existingUsers } = await adminSupabase.auth.admin.listUsers();
       const existingUser = existingUsers?.users?.find(user => user.email === email);
       
       if (existingUser) {
+        console.log('Found existing user:', {
+          id: existingUser.id,
+          email: existingUser.email,
+          email_confirmed_at: existingUser.email_confirmed_at,
+          user_metadata: existingUser.user_metadata
+        });
+        
         // Check if this user was created only for OTP verification (no complete profile)
         // These users would have been created during OTP verification but never completed signup
         const isIncompleteOtpUser = !existingUser.user_metadata?.first_name && 
                                    !existingUser.user_metadata?.last_name &&
                                    existingUser.email_confirmed_at; // Has verified email but no profile
         
+        console.log('Is incomplete OTP user?', isIncompleteOtpUser);
+        
         if (isIncompleteOtpUser) {
           console.log('Deleting incomplete OTP-only user to allow proper signup:', email);
           // Delete the incomplete user so we can create a proper one
-          await adminSupabase.auth.admin.deleteUser(existingUser.id);
+          const deleteResult = await adminSupabase.auth.admin.deleteUser(existingUser.id);
+          console.log('Delete result:', deleteResult);
         } else {
           // This is a complete user account
+          console.log('User already has complete account, rejecting signup');
           return NextResponse.json(
             { error: 'An account with this email already exists' },
             { status: 400 }
           );
         }
+      } else {
+        console.log('No existing user found, proceeding with creation');
       }
     } catch (checkError) {
       console.error('Error checking existing users:', checkError);
@@ -70,7 +84,9 @@ export async function POST(request) {
     
     if (createError) {
       console.error('Error creating user:', createError);
-      return NextResponse.json({ error: createError.message }, { status: 400 });
+      console.error('Full error details:', JSON.stringify(createError, null, 2));
+      console.error('User data being sent:', { email, firstName, lastName, birthdate, phoneNumber, address });
+      return NextResponse.json({ error: `User creation failed: ${createError.message}` }, { status: 400 });
     }
     
     // The user is now created and email is confirmed
