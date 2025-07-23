@@ -5,7 +5,7 @@ import { createClient } from '@supabase/supabase-js';
 
 export async function POST(request) {
   try {
-    const { email, password, firstName, lastName, birthdate, phoneNumber, address, marketingConsent } = await request.json();
+    const { email, password, firstName, lastName, birthdate, phoneNumber, address, marketingConsent, tempUserId } = await request.json();
     
     // Validate inputs
     if (!email || !password || !firstName || !lastName || !birthdate || !phoneNumber || !address) {
@@ -15,7 +15,18 @@ export async function POST(request) {
       );
     }
     
-    // Step 1: Create the user with admin privileges (bypasses email confirmation)
+    // Step 1: Delete the temporary user if exists
+    if (tempUserId) {
+      try {
+        await adminSupabase.auth.admin.deleteUser(tempUserId);
+        console.log('Deleted temporary user:', tempUserId);
+      } catch (deleteError) {
+        console.error('Error deleting temp user:', deleteError);
+        // Continue anyway - temp user cleanup is not critical
+      }
+    }
+    
+    // Step 2: Create the user with admin privileges (bypasses email confirmation)
     const { data: userData, error: createError } = await adminSupabase.auth.admin.createUser({
       email,
       password,
@@ -38,7 +49,7 @@ export async function POST(request) {
     
     // The user is now created and email is confirmed
     
-    // Step 2: Sign in the user automatically
+    // Step 3: Sign in the user automatically
     // We need to use a client with cookies support to establish a session
     const cookieStore = cookies();
     const supabase = createClient(
