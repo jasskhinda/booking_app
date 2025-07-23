@@ -1,29 +1,12 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 
 export default function SignupForm() {
   const supabase = createClientComponentClient();
   const router = useRouter();
-  
-  // Check for OTP verification from email link
-  useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const otpVerified = urlParams.get('otp_verified');
-    const emailParam = urlParams.get('email');
-    
-    if (otpVerified === 'true' && emailParam) {
-      // User verified via email link, mark as verified
-      setFormData(prev => ({ ...prev, email: emailParam }));
-      setEmailVerificationState('verified');
-      console.log('Email verified via email link');
-      
-      // Clean up URL
-      window.history.replaceState({}, document.title, window.location.pathname);
-    }
-  }, [supabase]);
   
   // Form data state
   const [formData, setFormData] = useState({
@@ -37,32 +20,11 @@ export default function SignupForm() {
     address: '',
     marketingConsent: false
   });
-
-  // Email verification states
-  const [emailVerificationState, setEmailVerificationState] = useState('unverified'); // 'unverified', 'sending', 'sent', 'verified'
-  const [otp, setOtp] = useState(['', '', '', '', '', '']);
-  const [otpTimer, setOtpTimer] = useState(0);
-  const [canResendOtp, setCanResendOtp] = useState(false);
   
   // Form states
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
-  const [otpError, setOtpError] = useState('');
-  
-  const otpRefs = useRef([]);
 
-  // Timer countdown effect
-  useEffect(() => {
-    if (otpTimer > 0) {
-      const timer = setTimeout(() => {
-        setOtpTimer(otpTimer - 1);
-        if (otpTimer === 1) {
-          setCanResendOtp(true);
-        }
-      }, 1000);
-      return () => clearTimeout(timer);
-    }
-  }, [otpTimer]);
 
   // Handle form input changes
   const handleChange = (e) => {
@@ -71,225 +33,16 @@ export default function SignupForm() {
       ...prev,
       [name]: type === 'checkbox' ? checked : value
     }));
-
-    // Reset email verification if email changes
-    if (name === 'email' && emailVerificationState !== 'unverified') {
-      setEmailVerificationState('unverified');
-      setOtp(['', '', '', '', '', '']);
-      setOtpTimer(0);
-      setOtpError('');
-    }
   };
 
-  // Send OTP to email
-  const handleSendOTP = async () => {
-    if (!formData.email) {
-      setError('Please enter your email address');
-      return;
-    }
 
-    // Basic email validation
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(formData.email)) {
-      setError('Please enter a valid email address');
-      return;
-    }
-
-    setEmailVerificationState('sending');
-    setError('');
-    setOtpError('');
-
-    try {
-      // Store email verification request without creating user
-      const verificationId = `verify_${Date.now()}_${Math.random().toString(36).substring(2, 15)}`;
-      
-      // Store verification attempt in sessionStorage (expires with browser session)
-      const verificationData = {
-        email: formData.email,
-        timestamp: Date.now(),
-        verified: false,
-        id: verificationId
-      };
-      sessionStorage.setItem('email_verification_pending', JSON.stringify(verificationData));
-      
-      // Use Supabase's OTP system but don't create user account yet
-      const { data, error: otpError } = await supabase.auth.signInWithOtp({
-        email: formData.email,
-        options: {
-          shouldCreateUser: false, // Don't create user until they complete the form
-        }
-      });
-      
-      // If user doesn't exist, that's expected for signup - OTP will still be sent
-      if (otpError && !otpError.message.includes('User not found') && !otpError.message.includes('Invalid login')) {
-        throw otpError;
-      }
-
-      console.log('OTP sent to:', formData.email);
-      
-      setEmailVerificationState('sent');
-      setOtpTimer(100); // 100 seconds to match Supabase config
-      setCanResendOtp(false);
-
-    } catch (error) {
-      console.error('OTP send error:', error);
-      if (error.message.includes('already registered')) {
-        setError('An account with this email already exists. Please sign in instead.');
-      } else {
-        setError(error.message || 'Failed to send verification code');
-      }
-      setEmailVerificationState('unverified');
-    }
-  };
-
-  // Handle OTP input change
-  const handleOtpChange = (index, value) => {
-    if (value && !/^\d$/.test(value)) return; // Only allow digits
-
-    const newOtp = [...otp];
-    newOtp[index] = value;
-    setOtp(newOtp);
-    setOtpError('');
-
-    // Auto-focus next input
-    if (value && index < 5) {
-      otpRefs.current[index + 1]?.focus();
-    }
-
-    // Auto-verify when all digits entered
-    if (newOtp.every(digit => digit !== '') && value) {
-      handleVerifyOtp(newOtp.join(''));
-    }
-  };
-
-  // Handle OTP backspace
-  const handleOtpKeyDown = (index, e) => {
-    if (e.key === 'Backspace' && !otp[index] && index > 0) {
-      otpRefs.current[index - 1]?.focus();
-    }
-  };
-
-  // Verify OTP code using Supabase (same as test-email page)
-  const verifyOtpCode = async (code) => {
-    try {
-      // Get verification data from session
-      const verificationData = JSON.parse(sessionStorage.getItem('email_verification_pending') || '{}');
-      
-      if (!verificationData.email) {
-        setOtpError('Verification session expired. Please request a new code.');
-        return false;
-      }
-      
-      // Use Supabase's OTP verification (same as working test-email page)
-      const { data, error } = await supabase.auth.verifyOtp({
-        email: verificationData.email,
-        token: code,
-        type: 'email'
-      });
-      
-      if (error) {
-        console.error('OTP verification error:', error);
-        setOtpError(error.message || 'Invalid verification code');
-        return false;
-      }
-      
-      // OTP verified successfully - we can proceed with account creation
-      console.log('OTP verified successfully - email is confirmed');
-      
-      // Mark as verified in session
-      verificationData.verified = true;
-      sessionStorage.setItem('email_verification_pending', JSON.stringify(verificationData));
-      
-      console.log('Email verified successfully with OTP');
-      setEmailVerificationState('verified');
-      setOtpError('');
-      return true;
-      
-    } catch (error) {
-      console.error('OTP verification error:', error);
-      setOtpError('Failed to verify code. Please try again.');
-      return false;
-    }
-  };
-
-  // Handle verification code
-  const handleVerifyOtp = async (otpCode = null) => {
-    const verificationCode = otpCode || otp.join('');
-    
-    if (verificationCode.length !== 6) {
-      setOtpError('Please enter the complete 6-digit code');
-      return;
-    }
-
-    setOtpError('Verifying...');
-    const verified = await verifyOtpCode(verificationCode);
-    
-    if (!verified) {
-      // Clear the OTP inputs on error
-      setOtp(['', '', '', '', '', '']);
-      otpRefs.current[0]?.focus();
-    }
-  };
-
-  // Resend OTP using Supabase (same as test-email page)
-  const handleResendOtp = async () => {
-    if (!canResendOtp) return;
-    
-    setOtpError('');
-    setOtp(['', '', '', '', '', '']);
-    
-    try {
-      // Force sign out any existing sessions first
-      await supabase.auth.signOut();
-      
-      // Resend OTP using Supabase (same as working test-email page)
-      await supabase.auth.signOut(); // Sign out first
-      
-      const { data, error } = await supabase.auth.signInWithOtp({
-        email: formData.email,
-        options: {
-          shouldCreateUser: false, // Don't create user until they complete the form
-        }
-      });
-      
-      // If user doesn't exist, that's expected for signup - OTP will still be sent
-      if (error && !error.message.includes('User not found') && !error.message.includes('Invalid login')) {
-        throw error;
-      }
-      
-      console.log('OTP resent successfully via Supabase');
-
-      console.log('OTP resent to:', formData.email);
-      setOtpTimer(100); // Reset timer to 100 seconds to match Supabase config
-      setCanResendOtp(false);
-      setOtpError('New verification code sent! Please check your email.');
-      
-    } catch (error) {
-      console.error('Resend OTP error:', error);
-      setOtpError('Failed to resend code. Please try again.');
-    }
-  };
-
-  // Format timer display
-  const formatTimer = (seconds) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins}:${secs.toString().padStart(2, '0')}`;
-  };
-
-  // Handle final account creation
+  // Handle account creation - Step 1 of 2-step process
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
     setError('');
     
-    // Validation
-    if (emailVerificationState !== 'verified') {
-      setError('Please verify your email address first');
-      setIsLoading(false);
-      return;
-    }
-
+    // Basic validation
     if (formData.password !== formData.confirmPassword) {
       setError('Passwords do not match');
       setIsLoading(false);
@@ -297,16 +50,7 @@ export default function SignupForm() {
     }
 
     try {
-      // Verify email was actually verified
-      const verificationData = JSON.parse(sessionStorage.getItem('email_verification_pending') || '{}');
-      
-      if (!verificationData.verified || verificationData.email !== formData.email) {
-        setError('Email verification required. Please verify your email first.');
-        setIsLoading(false);
-        return;
-      }
-      
-      // Create the account via API (only after email verification)
+      // Create the account via API
       const response = await fetch('/api/auth/signup', {
         method: 'POST',
         headers: {
@@ -321,12 +65,8 @@ export default function SignupForm() {
           phoneNumber: formData.phoneNumber,
           address: formData.address,
           marketingConsent: formData.marketingConsent,
-          emailVerified: true, // Flag that email was verified
         }),
       });
-      
-      // Clean up verification session
-      sessionStorage.removeItem('email_verification_pending');
 
       const data = await response.json();
       
@@ -334,14 +74,10 @@ export default function SignupForm() {
         throw new Error(data.error || 'Failed to create account');
       }
       
-      console.log('Signup completed successfully');
+      console.log('Account created successfully, redirecting to verification');
       
-      // Check if we should redirect to login page
-      if (data.redirect) {
-        window.location.href = data.redirect;
-      } else {
-        router.push('/dashboard');
-      }
+      // Redirect to verification page with email parameter
+      router.push(`/verify-email?email=${encodeURIComponent(formData.email)}`);
       
     } catch (error) {
       console.error('Account creation error:', error);
@@ -414,117 +150,22 @@ export default function SignupForm() {
           </div>
         </div>
         
-        {/* Email with inline verification */}
+        {/* Email */}
         <div>
           <label htmlFor="email" className="block text-sm font-medium text-black">
-            Email address {emailVerificationState === 'verified' && <span className="text-green-600">✓ Verified</span>}
+            Email address
           </label>
-          <div className="mt-1 flex space-x-2">
-            <input
-              id="email"
-              name="email"
-              type="email"
-              autoComplete="email"
-              required
-              value={formData.email}
-              onChange={handleChange}
-              disabled={emailVerificationState === 'verified'}
-              className={`flex-1 px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-[#5fbfc0] focus:border-[#5fbfc0] bg-white dark:bg-[#1A1A1A] text-[black] dark:text-[white] ${
-                emailVerificationState === 'verified' 
-                  ? 'border-green-300 bg-green-50' 
-                  : 'border-[#DDE5E7] dark:border-[#333333]'
-              }`}
-            />
-            {emailVerificationState === 'unverified' && (
-              <button
-                type="button"
-                onClick={handleSendOTP}
-                className="px-4 py-2 bg-[#5fbfc0] text-white text-sm rounded-md hover:bg-[#4aa5a6] focus:outline-none focus:ring-2 focus:ring-[#5fbfc0] whitespace-nowrap"
-              >
-                Verify Email
-              </button>
-            )}
-            {emailVerificationState === 'sending' && (
-              <div className="px-4 py-2 bg-gray-100 text-gray-600 text-sm rounded-md">
-                Sending...
-              </div>
-            )}
-          </div>
+          <input
+            id="email"
+            name="email"
+            type="email"
+            autoComplete="email"
+            required
+            value={formData.email}
+            onChange={handleChange}
+            className="mt-1 block w-full px-3 py-2 border border-[#DDE5E7] dark:border-[#333333] rounded-md shadow-sm focus:outline-none focus:ring-[#5fbfc0] focus:border-[#5fbfc0] bg-white dark:bg-[#1A1A1A] text-[black] dark:text-[white]"
+          />
         </div>
-
-        {/* Email Verification Section */}
-        {emailVerificationState === 'sent' && (
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-            <div className="flex items-center mb-3">
-              <svg className="h-5 w-5 text-blue-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-              </svg>
-              <h4 className="text-sm font-medium text-blue-900">
-                Verification email sent to {formData.email}
-              </h4>
-            </div>
-            
-            <div className="space-y-3">
-              <div className="text-sm text-blue-900">
-                <p className="mb-2">Enter the 6-digit verification code sent to your email</p>
-              </div>
-
-              <div className="flex justify-center space-x-2">
-                {otp.map((digit, index) => (
-                  <input
-                    key={index}
-                    ref={el => otpRefs.current[index] = el}
-                    type="text"
-                    maxLength="1"
-                    value={digit}
-                    onChange={(e) => handleOtpChange(index, e.target.value)}
-                    onKeyDown={(e) => handleOtpKeyDown(index, e)}
-                    className="w-12 h-12 text-center border-2 border-gray-300 rounded-md focus:border-[#5fbfc0] focus:outline-none text-lg font-semibold"
-                    autoFocus={index === 0}
-                  />
-                ))}
-              </div>
-
-              {otpError && (
-                <div className="text-sm text-center text-red-600">
-                  {otpError}
-                </div>
-              )}
-
-              <div className="flex items-center justify-between">
-                <button
-                  type="button"
-                  onClick={() => handleVerifyOtp()}
-                  className="px-4 py-2 bg-green-600 text-white text-sm rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500"
-                >
-                  Verify Code
-                </button>
-                <button
-                  type="button"
-                  onClick={handleResendOtp}
-                  disabled={!canResendOtp}
-                  className="text-blue-600 hover:text-blue-800 disabled:text-gray-400 disabled:cursor-not-allowed text-sm"
-                >
-                  {canResendOtp ? 'Resend code' : `Resend in ${formatTimer(otpTimer)}`}
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Success message when verified */}
-        {emailVerificationState === 'verified' && (
-          <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-            <div className="flex items-center">
-              <svg className="h-5 w-5 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-              </svg>
-              <span className="text-sm font-medium text-green-900">
-                Email verified successfully! You can now complete your registration.
-              </span>
-            </div>
-          </div>
-        )}
         
         <div>
           <label htmlFor="password" className="block text-sm font-medium text-black">
@@ -632,12 +273,10 @@ export default function SignupForm() {
       <div className="space-y-3">
         <button
           type="submit"
-          disabled={isLoading || emailVerificationState !== 'verified'}
+          disabled={isLoading}
           className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-[#5fbfc0] hover:bg-[#4aa5a6] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#5fbfc0] disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          {isLoading ? 'Creating account...' : 
-           emailVerificationState !== 'verified' ? 'Please verify your email first' :
-           'Create account'}
+          {isLoading ? 'Creating account...' : 'Create account'}
         </button>
         
         <div className="relative">

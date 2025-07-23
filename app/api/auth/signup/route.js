@@ -3,7 +3,7 @@ import { NextResponse } from 'next/server';
 
 export async function POST(request) {
   try {
-    const { email, password, firstName, lastName, birthdate, phoneNumber, address, marketingConsent, emailVerified } = await request.json();
+    const { email, password, firstName, lastName, birthdate, phoneNumber, address, marketingConsent } = await request.json();
     
     // Validate inputs
     if (!email || !password || !firstName || !lastName || !birthdate || !phoneNumber || !address) {
@@ -12,11 +12,12 @@ export async function POST(request) {
         { status: 400 }
       );
     }
-    
-    // Require email verification
-    if (!emailVerified) {
+
+    // Basic email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
       return NextResponse.json(
-        { error: 'Email verification required' },
+        { error: 'Please enter a valid email address' },
         { status: 400 }
       );
     }
@@ -29,12 +30,11 @@ export async function POST(request) {
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
     );
     
-    // Create the user account with all their information
+    // Create user account - this will send verification email automatically
     const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
       email,
       password,
       options: {
-        emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/auth/callback`,
         data: {
           first_name: firstName,
           last_name: lastName,
@@ -52,13 +52,14 @@ export async function POST(request) {
       return NextResponse.json({ error: signUpError.message }, { status: 400 });
     }
     
-    console.log('User created successfully');
+    console.log('User account created successfully');
     
-    // Since we already verified their email with OTP, they should be able to sign in immediately
+    // Account created - redirect to verification page
     return NextResponse.json({ 
       success: true, 
-      message: 'Account created successfully! You can now sign in.',
-      redirect: '/login?email=' + encodeURIComponent(email)
+      message: 'Account created successfully!',
+      redirectToVerification: true,
+      email: email
     });
     
   } catch (error) {
