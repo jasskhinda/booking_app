@@ -23,62 +23,56 @@ export async function POST(request) {
       );
     }
     
-    // Step 1: Check if user already exists (and delete any incomplete OTP-only users)
+    // Step 1: Find the existing user created during OTP verification
+    let existingUser = null;
     try {
-      console.log('Checking for existing user:', email);
+      console.log('Looking for existing user created during OTP verification:', email);
       const { data: existingUsers } = await adminSupabase.auth.admin.listUsers();
-      const existingUser = existingUsers?.users?.find(user => user.email === email);
+      existingUser = existingUsers?.users?.find(user => user.email === email);
       
       if (existingUser) {
-        console.log('Found existing user:', {
+        console.log('Found existing user from OTP verification:', {
           id: existingUser.id,
           email: existingUser.email,
           email_confirmed_at: existingUser.email_confirmed_at,
           user_metadata: existingUser.user_metadata
         });
         
-        // Check if this user was created only for OTP verification (no complete profile)
-        // These users would have been created during OTP verification but never completed signup
-        const isIncompleteOtpUser = !existingUser.user_metadata?.first_name && 
-                                   !existingUser.user_metadata?.last_name &&
-                                   existingUser.email_confirmed_at; // Has verified email but no profile
+        // Check if this user already has complete profile data
+        const hasCompleteProfile = existingUser.user_metadata?.first_name && 
+                                  existingUser.user_metadata?.last_name;
         
-        console.log('Is incomplete OTP user?', isIncompleteOtpUser);
-        
-        if (isIncompleteOtpUser) {
-          console.log('Deleting incomplete OTP-only user to allow proper signup:', email);
-          // Delete the incomplete user so we can create a proper one
-          const deleteResult = await adminSupabase.auth.admin.deleteUser(existingUser.id);
-          console.log('Delete result:', deleteResult);
-        } else {
-          // This is a complete user account
-          console.log('User already has complete account, rejecting signup');
+        if (hasCompleteProfile) {
+          console.log('User already has complete profile, rejecting signup');
           return NextResponse.json(
             { error: 'An account with this email already exists' },
             { status: 400 }
           );
         }
+        
+        console.log('User exists but has incomplete profile, will update with complete data');
       } else {
-        console.log('No existing user found, proceeding with creation');
+        console.log('No existing user found - this should not happen after OTP verification');
+        return NextResponse.json(
+          { error: 'Email verification session expired. Please verify your email again.' },
+          { status: 400 }
+        );
       }
     } catch (checkError) {
       console.error('Error checking existing users:', checkError);
-      // Continue with signup if we can't check
+      return NextResponse.json(
+        { error: 'Unable to verify user status' },
+        { status: 500 }
+      );
     }
     
-    // Step 2: Create the user using regular signup (since admin creation is failing)
-    // Create a client for user creation
-    const supabaseClient = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-    );
-    
-    console.log('Attempting to create user with regular signUp method');
-    const { data: userData, error: createError } = await supabaseClient.auth.signUp({
-      email,
-      password,
-      options: {
-        data: {
+    // Step 2: Update the existing user with complete profile data
+    console.log('Updating existing user with complete profile data');
+    const { data: userData, error: updateError } = await adminSupabase.auth.admin.updateUserById(
+      existingUser.id,
+      {
+        password: password,
+        user_metadata: {
           first_name: firstName,
           last_name: lastName,
           birthdate: birthdate,
@@ -88,29 +82,15 @@ export async function POST(request) {
           role: 'client',
         }
       }
-    });
+    );
     
-    if (createError) {
-      console.error('Error creating user with signUp:', createError);
-      console.error('Full error details:', JSON.stringify(createError, null, 2));
-      console.error('User data being sent:', { email, firstName, lastName, birthdate, phoneNumber, address });
-      return NextResponse.json({ error: `User creation failed: ${createError.message}` }, { status: 400 });
+    if (updateError) {
+      console.error('Error updating user with profile data:', updateError);
+      console.error('Full error details:', JSON.stringify(updateError, null, 2));
+      return NextResponse.json({ error: `Failed to complete account setup: ${updateError.message}` }, { status: 400 });
     }
     
-    console.log('User created successfully:', userData.user?.id);
-    
-    // If email confirmation is required, we need to confirm it since we already verified OTP
-    if (userData.user && !userData.user.email_confirmed_at) {
-      console.log('Confirming email for user since OTP was already verified');
-      const { error: confirmError } = await adminSupabase.auth.admin.updateUserById(
-        userData.user.id,
-        { email_confirm: true }
-      );
-      
-      if (confirmError) {
-        console.error('Error confirming email:', confirmError);
-      }
-    }
+    console.log('User profile updated successfully:', userData.user?.id);
     
     // The user is now created and email is confirmed
     
