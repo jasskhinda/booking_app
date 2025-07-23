@@ -130,9 +130,8 @@ export async function middleware(req) {
     // SECURITY FIX: Never redirect from signup page to dashboard
     // Users should complete the signup process even if they have a session
     if (pathname === '/signup') {
-      console.log('Allowing signup page access despite session - user must complete signup');
-      // Force sign out the session for security
-      await supabase.auth.signOut();
+      console.log('Allowing signup page access - signup form will handle session management');
+      // Let the signup form handle session management instead of middleware
       return NextResponse.next();
     }
     
