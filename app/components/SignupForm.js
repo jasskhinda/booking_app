@@ -190,8 +190,8 @@ export default function SignupForm() {
         return false;
       }
       
-      // Don't sign out - we need the user session for the signup API to find the user
-      console.log('OTP verified successfully, keeping session for signup completion');
+      // OTP verified successfully - we can proceed with account creation
+      console.log('OTP verified successfully - email is confirmed');
       
       // Mark as verified in session
       verificationData.verified = true;
