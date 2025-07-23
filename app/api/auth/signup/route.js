@@ -23,16 +23,29 @@ export async function POST(request) {
       );
     }
     
-    // Step 1: Check if user already exists
+    // Step 1: Check if user already exists (and delete any incomplete OTP-only users)
     try {
       const { data: existingUsers } = await adminSupabase.auth.admin.listUsers();
-      const userExists = existingUsers?.users?.some(user => user.email === email);
+      const existingUser = existingUsers?.users?.find(user => user.email === email);
       
-      if (userExists) {
-        return NextResponse.json(
-          { error: 'An account with this email already exists' },
-          { status: 400 }
-        );
+      if (existingUser) {
+        // Check if this user was created only for OTP verification (no complete profile)
+        // These users would have been created during OTP verification but never completed signup
+        const isIncompleteOtpUser = !existingUser.user_metadata?.first_name && 
+                                   !existingUser.user_metadata?.last_name &&
+                                   existingUser.email_confirmed_at; // Has verified email but no profile
+        
+        if (isIncompleteOtpUser) {
+          console.log('Deleting incomplete OTP-only user to allow proper signup:', email);
+          // Delete the incomplete user so we can create a proper one
+          await adminSupabase.auth.admin.deleteUser(existingUser.id);
+        } else {
+          // This is a complete user account
+          return NextResponse.json(
+            { error: 'An account with this email already exists' },
+            { status: 400 }
+          );
+        }
       }
     } catch (checkError) {
       console.error('Error checking existing users:', checkError);
