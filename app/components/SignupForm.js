@@ -129,7 +129,7 @@ export default function SignupForm() {
       };
       sessionStorage.setItem('email_verification_pending', JSON.stringify(verificationData));
       
-      // Send OTP via our custom API (no user creation)
+      // Send OTP via our custom API that uses Resend SMTP
       const response = await fetch('/api/auth/send-verification-otp', {
         method: 'POST',
         headers: {
@@ -197,7 +197,7 @@ export default function SignupForm() {
     }
   };
 
-  // Verify OTP code
+  // Verify OTP code using our custom API
   const verifyOtpCode = async (code) => {
     try {
       // Get verification data from session
@@ -263,7 +263,7 @@ export default function SignupForm() {
     }
   };
 
-  // Resend OTP
+  // Resend OTP using our custom API
   const handleResendOtp = async () => {
     if (!canResendOtp) return;
     
@@ -285,9 +285,10 @@ export default function SignupForm() {
         })
       });
       
-      const error = !response.ok ? new Error('Failed to resend code') : null;
-
-      if (error) throw error;
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to resend code');
+      }
 
       setOtpTimer(100); // Reset timer to 100 seconds to match Supabase config
       setCanResendOtp(false);
