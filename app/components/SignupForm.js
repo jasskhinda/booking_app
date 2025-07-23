@@ -207,9 +207,8 @@ export default function SignupForm() {
         return false;
       }
       
-      // Immediately sign out to prevent auto-login (cleanup will happen in signup API)
-      await supabase.auth.signOut();
-      console.log('OTP verified successfully, signed out to prevent auto-login');
+      // Don't sign out - we need the user session for the signup API to find the user
+      console.log('OTP verified successfully, keeping session for signup completion');
       
       // Mark as verified in session
       verificationData.verified = true;

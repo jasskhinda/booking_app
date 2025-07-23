@@ -23,81 +23,9 @@ export async function POST(request) {
       );
     }
     
-    // Step 1: Find the existing user created during OTP verification
-    let existingUser = null;
-    try {
-      console.log('Looking for existing user created during OTP verification:', email);
-      const { data: existingUsers } = await adminSupabase.auth.admin.listUsers();
-      existingUser = existingUsers?.users?.find(user => user.email === email);
-      
-      if (existingUser) {
-        console.log('Found existing user from OTP verification:', {
-          id: existingUser.id,
-          email: existingUser.email,
-          email_confirmed_at: existingUser.email_confirmed_at,
-          user_metadata: existingUser.user_metadata
-        });
-        
-        // Check if this user already has complete profile data
-        const hasCompleteProfile = existingUser.user_metadata?.first_name && 
-                                  existingUser.user_metadata?.last_name;
-        
-        if (hasCompleteProfile) {
-          console.log('User already has complete profile, rejecting signup');
-          return NextResponse.json(
-            { error: 'An account with this email already exists' },
-            { status: 400 }
-          );
-        }
-        
-        console.log('User exists but has incomplete profile, will update with complete data');
-      } else {
-        console.log('No existing user found - this should not happen after OTP verification');
-        return NextResponse.json(
-          { error: 'Email verification session expired. Please verify your email again.' },
-          { status: 400 }
-        );
-      }
-    } catch (checkError) {
-      console.error('Error checking existing users:', checkError);
-      return NextResponse.json(
-        { error: 'Unable to verify user status' },
-        { status: 500 }
-      );
-    }
-    
-    // Step 2: Update the existing user with complete profile data
-    console.log('Updating existing user with complete profile data');
-    const { data: userData, error: updateError } = await adminSupabase.auth.admin.updateUserById(
-      existingUser.id,
-      {
-        password: password,
-        user_metadata: {
-          first_name: firstName,
-          last_name: lastName,
-          birthdate: birthdate,
-          phone_number: phoneNumber,
-          address: address,
-          marketing_consent: marketingConsent || false,
-          role: 'client',
-        }
-      }
-    );
-    
-    if (updateError) {
-      console.error('Error updating user with profile data:', updateError);
-      console.error('Full error details:', JSON.stringify(updateError, null, 2));
-      return NextResponse.json({ error: `Failed to complete account setup: ${updateError.message}` }, { status: 400 });
-    }
-    
-    console.log('User profile updated successfully:', userData.user?.id);
-    
-    // The user is now created and email is confirmed
-    
-    // Step 3: Sign in the user automatically
-    // We need to use a client with cookies support to establish a session
+    // Step 1: Get the current user from the session (created during OTP verification)
     const cookieStore = cookies();
-    const supabase = createClient(
+    const supabaseClient = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL,
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
       {
@@ -120,16 +48,72 @@ export async function POST(request) {
       }
     );
     
-    // Now perform the sign-in
-    const { error: signInError } = await supabase.auth.signInWithPassword({
-      email,
-      password,
+    const { data: { user: currentUser } } = await supabaseClient.auth.getUser();
+    
+    if (!currentUser) {
+      console.log('No current user session found');
+      return NextResponse.json(
+        { error: 'Email verification session expired. Please verify your email again.' },
+        { status: 400 }
+      );
+    }
+    
+    if (currentUser.email !== email) {
+      console.log('Session email does not match form email');
+      return NextResponse.json(
+        { error: 'Email verification session mismatch. Please verify your email again.' },
+        { status: 400 }
+      );
+    }
+    
+    console.log('Found current user from session:', {
+      id: currentUser.id,
+      email: currentUser.email,
+      email_confirmed_at: currentUser.email_confirmed_at,
+      user_metadata: currentUser.user_metadata
     });
     
-    if (signInError) {
-      console.error('Error signing in after creation:', signInError);
-      return NextResponse.json({ error: signInError.message }, { status: 400 });
+    // Check if this user already has complete profile data
+    const hasCompleteProfile = currentUser.user_metadata?.first_name && 
+                              currentUser.user_metadata?.last_name;
+    
+    if (hasCompleteProfile) {
+      console.log('User already has complete profile, rejecting signup');
+      return NextResponse.json(
+        { error: 'An account with this email already exists' },
+        { status: 400 }
+      );
     }
+    
+    console.log('User exists but has incomplete profile, will update with complete data');
+    
+    // Step 2: Update the existing user with complete profile data
+    console.log('Updating existing user with complete profile data');
+    const { data: userData, error: updateError } = await adminSupabase.auth.admin.updateUserById(
+      currentUser.id,
+      {
+        password: password,
+        user_metadata: {
+          first_name: firstName,
+          last_name: lastName,
+          birthdate: birthdate,
+          phone_number: phoneNumber,
+          address: address,
+          marketing_consent: marketingConsent || false,
+          role: 'client',
+        }
+      }
+    );
+    
+    if (updateError) {
+      console.error('Error updating user with profile data:', updateError);
+      console.error('Full error details:', JSON.stringify(updateError, null, 2));
+      return NextResponse.json({ error: `Failed to complete account setup: ${updateError.message}` }, { status: 400 });
+    }
+    
+    console.log('User profile updated successfully:', userData.user?.id);
+    
+    // The user profile is now complete and they're already signed in from OTP verification
     
     // Return successful response with user data
     return NextResponse.json({ 
