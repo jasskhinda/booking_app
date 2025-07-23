@@ -8,20 +8,8 @@ export default function SignupForm() {
   const supabase = createClientComponentClient();
   const router = useRouter();
   
-  // Check for OTP verification from email link and force sign out
+  // Check for OTP verification from email link
   useEffect(() => {
-    // CRITICAL SECURITY: Always sign out when accessing signup page
-    const forceSignOut = async () => {
-      try {
-        await supabase.auth.signOut();
-        console.log('Forced sign out on signup page load');
-      } catch (error) {
-        console.error('Error during forced sign out:', error);
-      }
-    };
-    
-    forceSignOut();
-    
     const urlParams = new URLSearchParams(window.location.search);
     const otpVerified = urlParams.get('otp_verified');
     const emailParam = urlParams.get('email');
@@ -112,11 +100,6 @@ export default function SignupForm() {
     setOtpError('');
 
     try {
-      // CRITICAL SECURITY: Force sign out any existing sessions first
-      await supabase.auth.signOut();
-      console.log('Forced sign out before signup attempt');
-      
-      // SECURITY FIX: Don't create any user accounts until OTP is verified
       // Store email verification request without creating user
       const verificationId = `verify_${Date.now()}_${Math.random().toString(36).substring(2, 15)}`;
       
