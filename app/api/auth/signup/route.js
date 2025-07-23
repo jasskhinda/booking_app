@@ -1,4 +1,3 @@
-import { adminSupabase } from '@/lib/admin-supabase';
 import { NextResponse } from 'next/server';
 
 export async function POST(request) {
@@ -21,75 +20,14 @@ export async function POST(request) {
       );
     }
     
-    console.log('Creating new user account for:', email);
+    console.log('Email verified and form completed for:', email);
     
-    // Create the user account
-    const { data: userData, error: createError } = await adminSupabase.auth.admin.createUser({
-      email,
-      password,
-      email_confirm: true, // Skip email confirmation since we verified OTP
-      user_metadata: {
-        first_name: firstName,
-        last_name: lastName,
-        birthdate: birthdate,
-        phone_number: phoneNumber,
-        address: address,
-        marketing_consent: marketingConsent || false,
-        role: 'client',
-      },
-    });
-    
-    if (createError) {
-      console.error('Error creating user:', createError);
-      
-      // If user already exists, that's probably from OTP verification
-      if (createError.message.includes('already registered') || createError.message.includes('already exists')) {
-        console.log('User already exists, updating profile instead');
-        
-        // Find the existing user and update their profile
-        const { data: existingUsers } = await adminSupabase.auth.admin.listUsers();
-        const existingUser = existingUsers?.users?.find(user => user.email === email);
-        
-        if (existingUser) {
-          const { data: updatedUser, error: updateError } = await adminSupabase.auth.admin.updateUserById(
-            existingUser.id,
-            {
-              password: password,
-              user_metadata: {
-                first_name: firstName,
-                last_name: lastName,
-                birthdate: birthdate,
-                phone_number: phoneNumber,
-                address: address,
-                marketing_consent: marketingConsent || false,
-                role: 'client',
-              }
-            }
-          );
-          
-          if (updateError) {
-            console.error('Error updating user:', updateError);
-            return NextResponse.json({ error: 'Failed to complete account setup' }, { status: 400 });
-          }
-          
-          console.log('User profile updated successfully');
-          return NextResponse.json({ 
-            success: true, 
-            message: 'Account created successfully',
-            user: updatedUser.user
-          });
-        }
-      }
-      
-      return NextResponse.json({ error: createError.message }, { status: 400 });
-    }
-    
-    console.log('User created successfully:', userData.user?.id);
-    
+    // Since OTP verification already created the user account,
+    // we just need to let them know they can sign in
     return NextResponse.json({ 
       success: true, 
-      message: 'Account created successfully',
-      user: userData.user
+      message: 'Account setup completed! Please sign in with your email and password.',
+      redirect: '/login?email=' + encodeURIComponent(email)
     });
     
   } catch (error) {

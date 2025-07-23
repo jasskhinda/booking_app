@@ -327,8 +327,14 @@ export default function SignupForm() {
         throw new Error(data.error || 'Failed to create account');
       }
       
-      console.log('Account created successfully');
-      router.push('/dashboard');
+      console.log('Signup completed successfully');
+      
+      // Check if we should redirect to login page
+      if (data.redirect) {
+        window.location.href = data.redirect;
+      } else {
+        router.push('/dashboard');
+      }
       
     } catch (error) {
       console.error('Account creation error:', error);
