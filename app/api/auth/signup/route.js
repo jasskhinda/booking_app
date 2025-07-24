@@ -1,9 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
 import { NextResponse } from 'next/server';
-import { cookies } from 'next/headers';
-
-// Store signup data temporarily (in production, use Redis or database)
-export const signupStore = new Map();
 
 export async function POST(request) {
   try {
@@ -26,7 +22,7 @@ export async function POST(request) {
       );
     }
     
-    console.log('Starting signup process for:', email);
+    console.log('Creating user account for:', email);
     
     // Create a regular Supabase client
     const supabase = createClient(
@@ -34,58 +30,37 @@ export async function POST(request) {
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
     );
     
-    // Store signup data temporarily
-    const signupData = {
+    // Create user account with Supabase (this will send verification email automatically)
+    const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
       email,
       password,
-      firstName,
-      lastName,
-      birthdate,
-      phoneNumber,
-      address,
-      marketingConsent,
-      timestamp: Date.now()
-    };
-    
-    // Generate a unique signup ID
-    const signupId = `signup_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-    signupStore.set(signupId, signupData);
-    
-    // Clean up old entries (older than 10 minutes)
-    for (const [key, data] of signupStore.entries()) {
-      if (Date.now() - data.timestamp > 600000) {
-        signupStore.delete(key);
+      options: {
+        emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://book.compassionatecaretransportation.com'}/auth/callback`,
+        data: {
+          first_name: firstName,
+          last_name: lastName,
+          birthdate: birthdate,
+          phone_number: phoneNumber,
+          address: address,
+          marketing_consent: marketingConsent || false,
+          role: 'client',
+        }
       }
-    }
-    
-    // Send OTP for email verification (this works in test-email page)
-    const { data: otpData, error: otpError } = await supabase.auth.signInWithOtp({
-      email: email,
     });
     
-    if (otpError && !otpError.message.includes('User already registered')) {
-      console.error('OTP send error:', otpError);
-      return NextResponse.json({ error: otpError.message }, { status: 400 });
+    if (signUpError) {
+      console.error('Signup error:', signUpError);
+      return NextResponse.json({ error: signUpError.message }, { status: 400 });
     }
     
-    console.log('OTP sent successfully for signup verification');
+    console.log('User account created successfully');
     
-    // Set signup ID in cookie for verification page
-    const cookieStore = cookies();
-    cookieStore.set('signup_id', signupId, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      maxAge: 600 // 10 minutes
-    });
-    
-    // Redirect to OTP verification page
+    // Account created - show success message
     return NextResponse.json({ 
       success: true, 
-      message: 'Verification code sent! Please check your email.',
-      redirectToVerification: true,
-      email: email,
-      useOtp: true
+      message: 'Account created successfully! Please check your email to verify your account.',
+      showConfirmation: true,
+      email: email
     });
     
   } catch (error) {

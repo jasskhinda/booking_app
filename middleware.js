@@ -56,7 +56,14 @@ export async function middleware(req) {
       return NextResponse.redirect(redirectUrl);
     }
     
-    // Email verification is handled during signup process
+    // Check email verification status
+    if (!session.user.email_confirmed_at) {
+      console.log('Redirecting to login - Email not verified');
+      const redirectUrl = new URL('/login', req.url);
+      redirectUrl.searchParams.set('error', 'email_not_verified');
+      redirectUrl.searchParams.set('message', 'Please verify your email before accessing the dashboard');
+      return NextResponse.redirect(redirectUrl);
+    }
     
     // Check if user has 'client' role in their metadata
     const userRole = session.user.user_metadata?.role;

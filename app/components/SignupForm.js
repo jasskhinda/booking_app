@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import Link from 'next/link';
 
 export default function SignupForm() {
   const supabase = createClientComponentClient();
@@ -74,10 +75,20 @@ export default function SignupForm() {
         throw new Error(data.error || 'Failed to create account');
       }
       
-      console.log('Account created successfully, redirecting to verification');
+      console.log('Account created successfully');
       
-      // Redirect to verification page with email parameter
-      router.push(`/verify-email?email=${encodeURIComponent(formData.email)}`);
+      // Show success message instead of redirecting
+      if (data.showConfirmation) {
+        setError('');
+        // Show success state
+        setFormData({
+          ...formData,
+          accountCreated: true
+        });
+      } else {
+        // Fallback to dashboard
+        router.push('/dashboard');
+      }
       
     } catch (error) {
       console.error('Account creation error:', error);
@@ -107,6 +118,43 @@ export default function SignupForm() {
       setError(error.message || 'Failed to sign up with Google');
     }
   };
+
+  // Show success message if account was created
+  if (formData.accountCreated) {
+    return (
+      <div className="mt-8 space-y-6">
+        <div className="bg-green-50 border border-green-200 rounded-lg p-6 text-center">
+          <div className="mx-auto w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4">
+            <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+            </svg>
+          </div>
+          <h3 className="text-lg font-semibold text-green-900 mb-2">Account Created Successfully!</h3>
+          <p className="text-green-700 mb-4">
+            We&apos;ve sent a verification email to <strong>{formData.email}</strong>
+          </p>
+          <p className="text-sm text-green-600 mb-6">
+            Please check your email and click the verification link to activate your account.
+          </p>
+          <div className="space-y-3">
+            <Link 
+              href="/login" 
+              className="block w-full py-2 px-4 bg-[#5fbfc0] text-white rounded-md hover:bg-[#4aa5a6] transition-colors"
+            >
+              Go to Login
+            </Link>
+            <button
+              type="button"
+              onClick={() => window.location.reload()}
+              className="block w-full py-2 px-4 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition-colors"
+            >
+              Create Another Account
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <form onSubmit={handleSubmit} className="mt-8 space-y-6">

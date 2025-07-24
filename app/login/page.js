@@ -6,6 +6,22 @@ import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import Link from "next/link";
 import EmailLoginForm from '@/app/components/EmailLoginForm';
 
+function VerificationMessage() {
+  const searchParams = useSearchParams();
+  const error = searchParams.get('error');
+  const message = searchParams.get('message');
+  
+  if (error === 'email_not_verified' && message) {
+    return (
+      <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+        <p className="text-sm text-yellow-800">{message}</p>
+      </div>
+    );
+  }
+  
+  return null;
+}
+
 function LoginContent() {
   const searchParams = useSearchParams();
   const supabase = createClientComponentClient();
@@ -74,6 +90,9 @@ function LoginContent() {
               </p>
             </div>
             <EmailLoginForm />
+            <Suspense fallback={null}>
+              <VerificationMessage />
+            </Suspense>
           </div>
         </div>
       </section>
