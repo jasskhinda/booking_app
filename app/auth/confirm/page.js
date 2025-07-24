@@ -72,10 +72,14 @@ export default function ConfirmEmail() {
               if (sessionData.session && isVerified) {
                 console.log('Email verified in token - redirecting to dashboard');
                 sessionStorage.setItem('email_just_confirmed', 'true');
+                
+                // Force a session refresh to ensure it's properly saved
+                await supabase.auth.refreshSession();
+                
                 // Wait a moment for the session to be fully established
                 setTimeout(() => {
                   window.location.href = '/dashboard';
-                }, 500);
+                }, 1000);
                 return;
               }
             }
