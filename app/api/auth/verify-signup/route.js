@@ -4,17 +4,22 @@ import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { signupStore } from '../signup/route.js';
 
-// Create admin client for user creation
-const adminSupabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_ROLE_KEY,
-  {
-    auth: {
-      autoRefreshToken: false,
-      persistSession: false
-    }
+// Create admin client for user creation (only if service key exists)
+const createAdminClient = () => {
+  if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
+    return null;
   }
-);
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL,
+    process.env.SUPABASE_SERVICE_ROLE_KEY,
+    {
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false
+      }
+    }
+  );
+};
 
 export async function POST(request) {
   try {
@@ -83,21 +88,48 @@ export async function POST(request) {
       return NextResponse.json({ error: 'Signup data not found. Please start over.' }, { status: 400 });
     }
     
-    // Now create the actual user account with admin client
-    const { data: userData, error: createError } = await adminSupabase.auth.admin.createUser({
-      email: signupData.email,
-      password: signupData.password,
-      email_confirm: true, // Mark email as confirmed
-      user_metadata: {
-        first_name: signupData.firstName,
-        last_name: signupData.lastName,
-        birthdate: signupData.birthdate,
-        phone_number: signupData.phoneNumber,
-        address: signupData.address,
-        marketing_consent: signupData.marketingConsent || false,
-        role: 'client',
-      }
-    });
+    // Create the actual user account
+    let userData, createError;
+    
+    const adminSupabase = createAdminClient();
+    if (adminSupabase) {
+      // Use admin API if available (local development)
+      const result = await adminSupabase.auth.admin.createUser({
+        email: signupData.email,
+        password: signupData.password,
+        email_confirm: true, // Mark email as confirmed
+        user_metadata: {
+          first_name: signupData.firstName,
+          last_name: signupData.lastName,
+          birthdate: signupData.birthdate,
+          phone_number: signupData.phoneNumber,
+          address: signupData.address,
+          marketing_consent: signupData.marketingConsent || false,
+          role: 'client',
+        }
+      });
+      userData = result.data;
+      createError = result.error;
+    } else {
+      // Use regular signup for production
+      const result = await supabase.auth.signUp({
+        email: signupData.email,
+        password: signupData.password,
+        options: {
+          data: {
+            first_name: signupData.firstName,
+            last_name: signupData.lastName,
+            birthdate: signupData.birthdate,
+            phone_number: signupData.phoneNumber,
+            address: signupData.address,
+            marketing_consent: signupData.marketingConsent || false,
+            role: 'client',
+          }
+        }
+      });
+      userData = result.data;
+      createError = result.error;
+    }
     
     if (createError) {
       console.error('User creation error:', createError);
