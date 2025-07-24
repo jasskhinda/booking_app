@@ -46,6 +46,16 @@ export async function middleware(req) {
     pathname === route || pathname.startsWith(`${route}/`)
   );
   
+  // Check for error in URL (expired links, etc)
+  const urlError = req.nextUrl.searchParams.get('error') || req.nextUrl.hash.includes('error=');
+  if (urlError && pathname === '/dashboard') {
+    console.log('Error detected in dashboard URL, redirecting to login');
+    const redirectUrl = new URL('/login', req.url);
+    redirectUrl.searchParams.set('error', 'Link expired');
+    redirectUrl.searchParams.set('message', 'The confirmation link has expired. Please sign up again.');
+    return NextResponse.redirect(redirectUrl);
+  }
+  
   if (isProtectedRoute) {
     // If there's no session, redirect to login
     if (!session) {
