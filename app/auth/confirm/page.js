@@ -1,12 +1,15 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import Link from 'next/link';
 
 export default function ConfirmEmail() {
   const router = useRouter();
   const supabase = createClientComponentClient();
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
 
   useEffect(() => {
     const handleEmailConfirmation = async () => {
@@ -24,9 +27,13 @@ export default function ConfirmEmail() {
         console.error('Email confirmation error:', error, errorDescription);
         
         if (error === 'access_denied' && errorDescription?.includes('expired')) {
-          router.push('/login?error=expired&message=' + encodeURIComponent('Email confirmation link has expired. Please sign up again.'));
+          // Show error directly on this page instead of redirecting
+          setError('Email confirmation link has expired. Please sign up again.');
+          setLoading(false);
         } else {
-          router.push('/login?error=' + encodeURIComponent(error));
+          // Show generic error
+          setError('Email confirmation failed. Please try signing up again.');
+          setLoading(false);
         }
         return;
       }
@@ -46,6 +53,36 @@ export default function ConfirmEmail() {
 
     handleEmailConfirmation();
   }, [router, supabase]);
+
+  if (error) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="bg-white p-8 rounded-lg shadow-lg max-w-md mx-auto text-center">
+          <div className="mx-auto w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mb-4">
+            <svg className="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </div>
+          <h2 className="text-xl font-semibold text-gray-900 mb-2">Email Confirmation Failed</h2>
+          <p className="text-gray-600 mb-6">{error}</p>
+          <div className="space-y-3">
+            <Link 
+              href="/signup" 
+              className="block w-full py-2 px-4 bg-[#5fbfc0] text-white rounded-md hover:bg-[#4aa5a6] transition-colors"
+            >
+              Sign Up Again
+            </Link>
+            <Link 
+              href="/login" 
+              className="block w-full py-2 px-4 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition-colors"
+            >
+              Back to Login
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50">
