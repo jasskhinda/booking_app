@@ -69,13 +69,26 @@ export async function middleware(req) {
       return NextResponse.redirect(redirectUrl);
     }
     
-    // Check email verification status
+    // Check email verification status with grace period for recent confirmations
     if (!session.user.email_confirmed_at) {
+      // Check if this is a very recent user (within last 5 minutes) - might be confirming email
+      const userCreatedAt = new Date(session.user.created_at);
+      const now = new Date();
+      const timeSinceCreation = now - userCreatedAt;
+      const fiveMinutesInMs = 5 * 60 * 1000;
+      
+      if (timeSinceCreation < fiveMinutesInMs) {
+        // Very recent user, might be in the middle of email confirmation
+        console.log('Recent user accessing dashboard - allowing for potential email confirmation in progress');
+        return NextResponse.next();
+      }
+      
       console.log('Redirecting to login - Email not verified', {
         userId: session.user.id,
         email: session.user.email,
         emailConfirmedAt: session.user.email_confirmed_at,
-        userMetadata: session.user.user_metadata
+        userCreatedAt: session.user.created_at,
+        timeSinceCreation: timeSinceCreation
       });
       const redirectUrl = new URL('/login', req.url);
       redirectUrl.searchParams.set('error', 'email_not_verified');

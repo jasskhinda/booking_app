@@ -54,15 +54,19 @@ export default function ConfirmEmail() {
           
           if (session && session.user.email_confirmed_at) {
             // Session is good and email is confirmed
-            setTimeout(() => {
-              router.push('/dashboard');
-            }, 1000);
+            console.log('Session confirmed, redirecting to dashboard');
+            window.location.href = '/dashboard'; // Force full page load
           } else {
-            // Session not ready yet, try refreshing
+            // Session not ready yet, try refreshing and wait longer
+            console.log('Session not ready, refreshing...');
             await supabase.auth.refreshSession();
-            setTimeout(() => {
-              router.push('/dashboard');
-            }, 1500);
+            await new Promise(resolve => setTimeout(resolve, 2000)); // Wait 2 seconds
+            
+            // Check again after refresh
+            const { data: { session: newSession } } = await supabase.auth.getSession();
+            console.log('After refresh:', { hasSession: !!newSession, emailConfirmed: newSession?.user?.email_confirmed_at });
+            
+            window.location.href = '/dashboard'; // Force redirect anyway
           }
         } catch (error) {
           console.error('Session check error:', error);
