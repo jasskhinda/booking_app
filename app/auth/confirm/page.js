@@ -40,18 +40,46 @@ export default function ConfirmEmail() {
 
       // If we have tokens, the email is confirmed and user is logged in
       if (accessToken && type === 'signup') {
-        console.log('Email confirmed successfully, redirecting to dashboard');
+        console.log('Email confirmed successfully, setting up session...');
         
-        // Wait for Supabase to fully process the session
         try {
-          // Force multiple session refreshes to ensure email_confirmed_at is updated
-          console.log('Starting session validation...');
+          // First, set the session using the tokens from the URL
+          console.log('Setting session with tokens from URL...');
+          const refreshToken = hashParams.get('refresh_token');
           
+          if (refreshToken) {
+            const { data: sessionData, error: setSessionError } = await supabase.auth.setSession({
+              access_token: accessToken,
+              refresh_token: refreshToken
+            });
+            
+            if (setSessionError) {
+              console.error('Error setting session:', setSessionError);
+            } else {
+              console.log('Session set successfully:', {
+                hasSession: !!sessionData.session,
+                userId: sessionData.session?.user?.id,
+                email: sessionData.session?.user?.email,
+                emailVerified: sessionData.session?.user?.user_metadata?.email_verified
+              });
+              
+              // Since the token already shows email_verified: true, we can redirect immediately
+              if (sessionData.session && sessionData.session.user.user_metadata?.email_verified) {
+                console.log('Email verified in token - redirecting to dashboard');
+                sessionStorage.setItem('email_just_confirmed', 'true');
+                window.location.href = '/dashboard';
+                return;
+              }
+            }
+          }
+          
+          // Fallback: Try session refresh approach
+          console.log('Trying session refresh approach...');
           for (let attempt = 1; attempt <= 3; attempt++) {
             console.log(`Session attempt ${attempt}/3`);
             
             await supabase.auth.refreshSession();
-            await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1 second
+            await new Promise(resolve => setTimeout(resolve, 1000));
             
             const { data: { session }, error: sessionError } = await supabase.auth.getSession();
             console.log(`Attempt ${attempt} session:`, { 
@@ -62,25 +90,21 @@ export default function ConfirmEmail() {
               userEmail: session?.user?.email
             });
             
-            // Check both email_confirmed_at and user_metadata.email_verified
             const isEmailVerified = session?.user?.email_confirmed_at || session?.user?.user_metadata?.email_verified;
             
             if (session && isEmailVerified) {
               console.log('Email verified successfully! Redirecting to dashboard...');
-              // Add a flag to help middleware recognize this is a confirmed user
               sessionStorage.setItem('email_just_confirmed', 'true');
               window.location.href = '/dashboard';
               return;
             }
           }
           
-          // If we get here, email confirmation might have failed
-          console.log('Email confirmation may have failed after 3 attempts');
+          console.log('Email confirmation may have failed after all attempts');
           setError('Email confirmation is taking longer than expected. Please try logging in.');
           setLoading(false);
         } catch (error) {
-          console.error('Session check error:', error);
-          // Fallback - redirect anyway
+          console.error('Session setup error:', error);
           setTimeout(() => {
             router.push('/dashboard');
           }, 2000);
