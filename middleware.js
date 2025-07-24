@@ -56,7 +56,14 @@ export async function middleware(req) {
       return NextResponse.redirect(redirectUrl);
     }
     
-    // Email verification is disabled in Supabase settings
+    // Check email verification status
+    if (!session.user.email_confirmed_at) {
+      console.log('Redirecting to signup - Email not verified');
+      const redirectUrl = new URL('/signup', req.url);
+      redirectUrl.searchParams.set('error', 'email_not_verified');
+      redirectUrl.searchParams.set('message', 'Please verify your email to continue');
+      return NextResponse.redirect(redirectUrl);
+    }
     
     // Check if user has 'client' role in their metadata
     const userRole = session.user.user_metadata?.role;

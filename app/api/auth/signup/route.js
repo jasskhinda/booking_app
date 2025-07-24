@@ -30,11 +30,12 @@ export async function POST(request) {
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
     );
     
-    // Create user account - this will send verification email automatically
+    // Create user account with email confirmation required
     const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
       email,
       password,
       options: {
+        emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/auth/callback`,
         data: {
           first_name: firstName,
           last_name: lastName,
@@ -52,12 +53,12 @@ export async function POST(request) {
       return NextResponse.json({ error: signUpError.message }, { status: 400 });
     }
     
-    console.log('User account created successfully');
+    console.log('User account created - verification email sent');
     
     // Account created - redirect to verification page
     return NextResponse.json({ 
       success: true, 
-      message: 'Account created successfully!',
+      message: 'Account created! Please check your email for verification.',
       redirectToVerification: true,
       email: email
     });
