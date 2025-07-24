@@ -3,7 +3,7 @@ import { NextResponse } from 'next/server';
 
 export const config = {
   matcher: [
-    // Auth routes
+    // Auth routes (but NOT /auth/confirm)
     '/login',
     '/signup',
     '/reset-password',
@@ -36,7 +36,13 @@ export async function middleware(req) {
     data: { session },
   } = await supabase.auth.getSession();
   
-  console.log('Session check in middleware:', session ? 'Session exists' : 'No session');
+  console.log('Session check in middleware:', { 
+    hasSession: !!session,
+    userId: session?.user?.id,
+    email: session?.user?.email,
+    emailConfirmed: session?.user?.email_confirmed_at,
+    path: pathname 
+  });
   
   // Define which routes should be protected
   const protectedRoutes = ['/dashboard', '/dashboard/book', '/dashboard/trips', '/dashboard/settings', '/dashboard/payment-methods', '/update-password'];
@@ -65,7 +71,12 @@ export async function middleware(req) {
     
     // Check email verification status
     if (!session.user.email_confirmed_at) {
-      console.log('Redirecting to login - Email not verified');
+      console.log('Redirecting to login - Email not verified', {
+        userId: session.user.id,
+        email: session.user.email,
+        emailConfirmedAt: session.user.email_confirmed_at,
+        userMetadata: session.user.user_metadata
+      });
       const redirectUrl = new URL('/login', req.url);
       redirectUrl.searchParams.set('error', 'email_not_verified');
       redirectUrl.searchParams.set('message', 'Please verify your email before accessing the dashboard');

@@ -63,7 +63,11 @@ export default function EmailLoginForm() {
       if (error) throw error;
 
       console.log('Login successful');
-      router.push('/dashboard');
+      
+      // Give the session a moment to be established before redirecting
+      setTimeout(() => {
+        window.location.href = '/dashboard'; // Use window.location to force refresh
+      }, 500);
 
     } catch (error) {
       console.error('Login error:', error);

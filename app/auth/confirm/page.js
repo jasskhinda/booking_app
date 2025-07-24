@@ -41,10 +41,36 @@ export default function ConfirmEmail() {
       // If we have tokens, the email is confirmed and user is logged in
       if (accessToken && type === 'signup') {
         console.log('Email confirmed successfully, redirecting to dashboard');
-        // Give Supabase a moment to process the session
-        setTimeout(() => {
-          router.push('/dashboard');
-        }, 500);
+        
+        // Wait for Supabase to fully process the session
+        try {
+          // Check if session is properly established
+          const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+          console.log('Session after confirmation:', { 
+            hasSession: !!session, 
+            emailConfirmed: session?.user?.email_confirmed_at,
+            userId: session?.user?.id 
+          });
+          
+          if (session && session.user.email_confirmed_at) {
+            // Session is good and email is confirmed
+            setTimeout(() => {
+              router.push('/dashboard');
+            }, 1000);
+          } else {
+            // Session not ready yet, try refreshing
+            await supabase.auth.refreshSession();
+            setTimeout(() => {
+              router.push('/dashboard');
+            }, 1500);
+          }
+        } catch (error) {
+          console.error('Session check error:', error);
+          // Fallback - redirect anyway
+          setTimeout(() => {
+            router.push('/dashboard');
+          }, 2000);
+        }
       } else {
         // No tokens or error, redirect to login
         router.push('/login');
