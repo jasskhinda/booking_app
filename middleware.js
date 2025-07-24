@@ -83,6 +83,13 @@ export async function middleware(req) {
         return NextResponse.next();
       }
       
+      // Also check if this request has the fresh confirmation flag
+      const referer = req.headers.get('referer') || '';
+      if (referer.includes('/auth/confirm')) {
+        console.log('Request coming from email confirmation - allowing access');
+        return NextResponse.next();
+      }
+      
       console.log('Redirecting to login - Email not verified', {
         userId: session.user.id,
         email: session.user.email,

@@ -44,30 +44,36 @@ export default function ConfirmEmail() {
         
         // Wait for Supabase to fully process the session
         try {
-          // Check if session is properly established
-          const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-          console.log('Session after confirmation:', { 
-            hasSession: !!session, 
-            emailConfirmed: session?.user?.email_confirmed_at,
-            userId: session?.user?.id 
-          });
+          // Force multiple session refreshes to ensure email_confirmed_at is updated
+          console.log('Starting session validation...');
           
-          if (session && session.user.email_confirmed_at) {
-            // Session is good and email is confirmed
-            console.log('Session confirmed, redirecting to dashboard');
-            window.location.href = '/dashboard'; // Force full page load
-          } else {
-            // Session not ready yet, try refreshing and wait longer
-            console.log('Session not ready, refreshing...');
+          for (let attempt = 1; attempt <= 3; attempt++) {
+            console.log(`Session attempt ${attempt}/3`);
+            
             await supabase.auth.refreshSession();
-            await new Promise(resolve => setTimeout(resolve, 2000)); // Wait 2 seconds
+            await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1 second
             
-            // Check again after refresh
-            const { data: { session: newSession } } = await supabase.auth.getSession();
-            console.log('After refresh:', { hasSession: !!newSession, emailConfirmed: newSession?.user?.email_confirmed_at });
+            const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+            console.log(`Attempt ${attempt} session:`, { 
+              hasSession: !!session, 
+              emailConfirmed: session?.user?.email_confirmed_at,
+              userId: session?.user?.id,
+              userEmail: session?.user?.email
+            });
             
-            window.location.href = '/dashboard'; // Force redirect anyway
+            if (session && session.user.email_confirmed_at) {
+              console.log('Email confirmed successfully! Redirecting to dashboard...');
+              // Add a flag to help middleware recognize this is a confirmed user
+              sessionStorage.setItem('email_just_confirmed', 'true');
+              window.location.href = '/dashboard';
+              return;
+            }
           }
+          
+          // If we get here, email confirmation might have failed
+          console.log('Email confirmation may have failed after 3 attempts');
+          setError('Email confirmation is taking longer than expected. Please try logging in.');
+          setLoading(false);
         } catch (error) {
           console.error('Session check error:', error);
           // Fallback - redirect anyway
