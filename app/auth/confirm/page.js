@@ -46,6 +46,7 @@ export default function ConfirmEmail() {
           // First, set the session using the tokens from the URL
           console.log('Setting session with tokens from URL...');
           const refreshToken = hashParams.get('refresh_token');
+          const expiresAt = hashParams.get('expires_at');
           
           if (refreshToken) {
             const { data: sessionData, error: setSessionError } = await supabase.auth.setSession({
@@ -60,14 +61,21 @@ export default function ConfirmEmail() {
                 hasSession: !!sessionData.session,
                 userId: sessionData.session?.user?.id,
                 email: sessionData.session?.user?.email,
-                emailVerified: sessionData.session?.user?.user_metadata?.email_verified
+                emailVerified: sessionData.session?.user?.user_metadata?.email_verified,
+                emailConfirmedAt: sessionData.session?.user?.email_confirmed_at
               });
               
-              // Since the token already shows email_verified: true, we can redirect immediately
-              if (sessionData.session && sessionData.session.user.user_metadata?.email_verified) {
+              // Check both verification fields - if either is true, redirect
+              const isVerified = sessionData.session?.user?.user_metadata?.email_verified || 
+                               sessionData.session?.user?.email_confirmed_at;
+              
+              if (sessionData.session && isVerified) {
                 console.log('Email verified in token - redirecting to dashboard');
                 sessionStorage.setItem('email_just_confirmed', 'true');
-                window.location.href = '/dashboard';
+                // Wait a moment for the session to be fully established
+                setTimeout(() => {
+                  window.location.href = '/dashboard';
+                }, 500);
                 return;
               }
             }

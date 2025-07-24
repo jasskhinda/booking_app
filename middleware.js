@@ -85,10 +85,17 @@ export async function middleware(req) {
         return NextResponse.next();
       }
       
-      // Also check if this request has the fresh confirmation flag
+      // Also check if this request has the fresh confirmation flag or session storage flag
       const referer = req.headers.get('referer') || '';
       if (referer.includes('/auth/confirm')) {
         console.log('Request coming from email confirmation - allowing access');
+        return NextResponse.next();
+      }
+      
+      // Check if user just confirmed email (for immediate access)
+      const hasJustConfirmed = req.headers.get('x-email-just-confirmed') === 'true';
+      if (hasJustConfirmed) {
+        console.log('User just confirmed email - allowing immediate access');
         return NextResponse.next();
       }
       
