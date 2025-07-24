@@ -70,7 +70,9 @@ export async function middleware(req) {
     }
     
     // Check email verification status with grace period for recent confirmations
-    if (!session.user.email_confirmed_at) {
+    const isEmailVerified = session.user.email_confirmed_at || session.user.user_metadata?.email_verified;
+    
+    if (!isEmailVerified) {
       // Check if this is a very recent user (within last 5 minutes) - might be confirming email
       const userCreatedAt = new Date(session.user.created_at);
       const now = new Date();
@@ -94,6 +96,7 @@ export async function middleware(req) {
         userId: session.user.id,
         email: session.user.email,
         emailConfirmedAt: session.user.email_confirmed_at,
+        emailVerifiedMetadata: session.user.user_metadata?.email_verified,
         userCreatedAt: session.user.created_at,
         timeSinceCreation: timeSinceCreation
       });

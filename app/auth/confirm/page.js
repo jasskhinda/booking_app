@@ -57,12 +57,16 @@ export default function ConfirmEmail() {
             console.log(`Attempt ${attempt} session:`, { 
               hasSession: !!session, 
               emailConfirmed: session?.user?.email_confirmed_at,
+              emailVerifiedMetadata: session?.user?.user_metadata?.email_verified,
               userId: session?.user?.id,
               userEmail: session?.user?.email
             });
             
-            if (session && session.user.email_confirmed_at) {
-              console.log('Email confirmed successfully! Redirecting to dashboard...');
+            // Check both email_confirmed_at and user_metadata.email_verified
+            const isEmailVerified = session?.user?.email_confirmed_at || session?.user?.user_metadata?.email_verified;
+            
+            if (session && isEmailVerified) {
+              console.log('Email verified successfully! Redirecting to dashboard...');
               // Add a flag to help middleware recognize this is a confirmed user
               sessionStorage.setItem('email_just_confirmed', 'true');
               window.location.href = '/dashboard';
