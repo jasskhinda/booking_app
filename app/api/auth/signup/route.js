@@ -35,7 +35,7 @@ export async function POST(request) {
       email,
       password,
       options: {
-        emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://book.compassionatecaretransportation.com'}/auth/callback`,
+        emailRedirectTo: `https://book.compassionatecaretransportation.com/auth/callback`,
         data: {
           first_name: firstName,
           last_name: lastName,

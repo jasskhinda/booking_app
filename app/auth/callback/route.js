@@ -2,12 +2,17 @@ import { NextResponse } from 'next/server';
 import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
 import { cookies } from 'next/headers';
 
-// This route handles the callback after OAuth sign-in
+// This route handles the callback after OAuth sign-in and email confirmations
 export async function GET(request) {
   const requestUrl = new URL(request.url);
   const code = requestUrl.searchParams.get('code');
   const error = requestUrl.searchParams.get('error');
   const errorDescription = requestUrl.searchParams.get('error_description');
+  
+  // Check if this is an email confirmation (tokens in hash)
+  const hashParams = requestUrl.hash ? new URLSearchParams(requestUrl.hash.substring(1)) : null;
+  const accessToken = requestUrl.searchParams.get('access_token') || hashParams?.get('access_token');
+  const type = requestUrl.searchParams.get('type') || hashParams?.get('type');
   
   console.log('Auth callback called with:', { 
     code: code ? 'present' : 'missing',
@@ -19,8 +24,16 @@ export async function GET(request) {
     allParams: Object.fromEntries(requestUrl.searchParams.entries())
   });
   
+  // Handle email confirmation (tokens in URL hash or params)
+  if (accessToken && type === 'signup') {
+    console.log('Email confirmation detected, redirecting to dashboard');
+    // Email has been confirmed, user is already logged in via the tokens
+    // Redirect to dashboard
+    return NextResponse.redirect(new URL('/dashboard', requestUrl.origin));
+  }
+  
   // Handle OAuth errors
-  if (error) {
+  if (error && !accessToken) {
     console.error('OAuth error received:', { error, errorDescription, allParams: Object.fromEntries(requestUrl.searchParams.entries()) });
     
     // Log more details for debugging
