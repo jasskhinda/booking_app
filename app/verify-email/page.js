@@ -12,10 +12,15 @@ function VerifyEmailContent() {
   const email = searchParams.get('email');
   const supabase = createClientComponentClient();
 
+  const [otp, setOtp] = useState(['', '', '', '', '', '']);
+  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
   const [isResending, setIsResending] = useState(false);
   const [timer, setTimer] = useState(60);
   const [canResend, setCanResend] = useState(false);
+  
+  const otpRefs = useRef([]);
 
   // Timer countdown
   useEffect(() => {
@@ -36,36 +41,112 @@ function VerifyEmailContent() {
       router.push('/signup');
     }
   }, [email, router]);
+  
+  // Handle OTP input
+  const handleOtpChange = (index, value) => {
+    if (value && !/^\d$/.test(value)) return; // Only digits
+
+    const newOtp = [...otp];
+    newOtp[index] = value;
+    setOtp(newOtp);
+    setError('');
+
+    // Auto-focus next input
+    if (value && index < 5) {
+      otpRefs.current[index + 1]?.focus();
+    }
+
+    // Auto-verify when complete
+    if (newOtp.every(digit => digit !== '') && value) {
+      handleVerifyOtp(newOtp.join(''));
+    }
+  };
+
+  // Handle backspace
+  const handleOtpKeyDown = (index, e) => {
+    if (e.key === 'Backspace' && !otp[index] && index > 0) {
+      otpRefs.current[index - 1]?.focus();
+    }
+  };
 
 
 
-  // Resend verification email
+  // Verify OTP and complete signup
+  const handleVerifyOtp = async (otpCode = null) => {
+    const verificationCode = otpCode || otp.join('');
+    
+    if (verificationCode.length !== 6) {
+      setError('Please enter the complete 6-digit code');
+      return;
+    }
+
+    setIsLoading(true);
+    setError('');
+
+    try {
+      const response = await fetch('/api/auth/verify-signup', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: email,
+          otp: verificationCode
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Verification failed');
+      }
+
+      // Success!
+      setSuccess('Email verified successfully!');
+      setTimeout(() => {
+        if (data.redirect) {
+          router.push(data.redirect);
+        } else {
+          router.push('/dashboard');
+        }
+      }, 1500);
+      
+    } catch (error) {
+      console.error('Verification error:', error);
+      setError(error.message || 'Invalid verification code');
+      setOtp(['', '', '', '', '', '']);
+      otpRefs.current[0]?.focus();
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  
+  // Resend OTP
   const handleResendOtp = async () => {
     if (!canResend) return;
 
     setIsResending(true);
     setError('');
+    setSuccess('');
 
     try {
-      const { error } = await supabase.auth.resend({
-        type: 'signup',
-        email: email
+      // Use the same OTP sending method as test-email page
+      const { data, error } = await supabase.auth.signInWithOtp({
+        email: email,
       });
 
-      if (error) {
-        setError(error.message || 'Failed to resend verification email');
-      } else {
-        setTimer(60);
-        setCanResend(false);
-        setError(''); // Clear any previous errors
-        // Show success message
-        setTimeout(() => {
-          setError('Verification email sent! Please check your inbox.');
-        }, 100);
+      if (error && !error.message.includes('User already registered')) {
+        throw error;
       }
+
+      setTimer(60);
+      setCanResend(false);
+      setSuccess('New verification code sent! Please check your email.');
+      setOtp(['', '', '', '', '', '']);
+      
     } catch (err) {
       console.error('Resend error:', err);
-      setError('Failed to resend email. Please try again.');
+      setError(err.message || 'Failed to resend code. Please try again.');
     } finally {
       setIsResending(false);
     }
@@ -103,7 +184,7 @@ function VerifyEmailContent() {
               Please verify your email
             </h1>
             <p className="text-gray-600 mb-4">
-              We&apos;ve sent a verification link to
+              We&apos;ve sent a 6-digit verification code to
             </p>
             <p className="text-[#5fbfc0] font-semibold text-lg">
               {email}
@@ -111,15 +192,34 @@ function VerifyEmailContent() {
           </div>
 
           <div className="space-y-6">
-            {/* Instructions */}
-            <div className="text-center">
-              <p className="text-gray-600 mb-4">
-                Please check your email and click the verification link to activate your account.
-              </p>
-              <p className="text-sm text-gray-500">
-                The link will expire in 24 hours.
-              </p>
+            {/* OTP Input */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-3 text-center">
+                Enter verification code
+              </label>
+              <div className="flex justify-center space-x-3">
+                {otp.map((digit, index) => (
+                  <input
+                    key={index}
+                    ref={el => otpRefs.current[index] = el}
+                    type="text"
+                    maxLength="1"
+                    value={digit}
+                    onChange={(e) => handleOtpChange(index, e.target.value)}
+                    onKeyDown={(e) => handleOtpKeyDown(index, e)}
+                    className="w-12 h-12 text-center text-lg font-semibold border-2 border-gray-300 rounded-lg focus:border-[#5fbfc0] focus:outline-none"
+                    autoFocus={index === 0}
+                  />
+                ))}
+              </div>
             </div>
+
+            {/* Success Message */}
+            {success && (
+              <div className="text-green-600 text-sm text-center bg-green-50 p-3 rounded-lg">
+                {success}
+              </div>
+            )}
 
             {/* Error Message */}
             {error && (
@@ -127,6 +227,15 @@ function VerifyEmailContent() {
                 {error}
               </div>
             )}
+
+            {/* Verify Button */}
+            <button
+              onClick={() => handleVerifyOtp()}
+              disabled={isLoading || otp.some(digit => digit === '')}
+              className="w-full bg-[#5fbfc0] text-white py-3 px-4 rounded-lg font-semibold hover:bg-[#4aa5a6] focus:outline-none focus:ring-2 focus:ring-[#5fbfc0] disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isLoading ? 'Verifying...' : 'Verify Email'}
+            </button>
 
             {/* Resend / Change Email */}
             <div className="space-y-3">
@@ -136,7 +245,7 @@ function VerifyEmailContent() {
                   disabled={!canResend || isResending}
                   className="text-[#5fbfc0] hover:text-[#4aa5a6] font-medium disabled:text-gray-400 disabled:cursor-not-allowed"
                 >
-                  {isResending ? 'Sending...' : canResend ? 'Resend verification email' : `Resend in ${timer}s`}
+                  {isResending ? 'Sending...' : canResend ? 'Resend code' : `Resend in ${timer}s`}
                 </button>
               </div>
               
