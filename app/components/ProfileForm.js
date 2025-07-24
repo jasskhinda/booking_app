@@ -48,32 +48,48 @@ export default function ProfileForm({ user, profile = {} }) {
     }
   }, [profile?.default_payment_method_id]);
 
-  // Initialize form data with profile data
+  // Initialize form data with profile data and user metadata fallback
   useEffect(() => {
-    if (profile) {
-      // Splitting full name into first and last name if we have it but not individual fields
-      let firstName = profile.first_name;
-      let lastName = profile.last_name;
-      
-      if ((!firstName || !lastName) && profile.full_name) {
-        const nameParts = profile.full_name.split(' ');
-        firstName = nameParts[0] || '';
-        lastName = nameParts.slice(1).join(' ') || '';
-      }
-      
-      setFormData(prevData => ({
-        ...prevData,
-        first_name: firstName || '',
-        last_name: lastName || '',
-        phone_number: profile.phone_number || '',
-        address: profile.address || '',
-        accessibility_needs: profile.accessibility_needs || '',
-        medical_requirements: profile.medical_requirements || '',
-        emergency_contact: profile.emergency_contact || '',
-        preferred_payment_method: profile.preferred_payment_method || '',
-        is_veteran: profile.is_veteran || false,
-      }));
+    // Get data from profile table first, then fallback to user metadata
+    let firstName = profile?.first_name || user?.user_metadata?.first_name || '';
+    let lastName = profile?.last_name || user?.user_metadata?.last_name || '';
+    let phoneNumber = profile?.phone_number || user?.user_metadata?.phone_number || '';
+    let address = profile?.address || user?.user_metadata?.address || '';
+    
+    // Handle full name splitting if individual names aren't available
+    if ((!firstName || !lastName) && profile?.full_name) {
+      const nameParts = profile.full_name.split(' ');
+      firstName = nameParts[0] || '';
+      lastName = nameParts.slice(1).join(' ') || '';
     }
+    
+    console.log('Initializing form with data:', {
+      firstName,
+      lastName,
+      phoneNumber,
+      address,
+      fromProfile: {
+        phone: profile?.phone_number,
+        address: profile?.address
+      },
+      fromUserMetadata: {
+        phone: user?.user_metadata?.phone_number,
+        address: user?.user_metadata?.address
+      }
+    });
+    
+    setFormData(prevData => ({
+      ...prevData,
+      first_name: firstName,
+      last_name: lastName,
+      phone_number: phoneNumber,
+      address: address,
+      accessibility_needs: profile?.accessibility_needs || '',
+      medical_requirements: profile?.medical_requirements || '',
+      emergency_contact: profile?.emergency_contact || '',
+      preferred_payment_method: profile?.preferred_payment_method || '',
+      is_veteran: profile?.is_veteran || false,
+    }));
     
     // Fetch default payment method
     fetchDefaultPaymentMethod();
