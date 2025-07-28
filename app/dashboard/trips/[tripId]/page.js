@@ -267,6 +267,8 @@ export default function TripDetailsPage() {
         return 'status-pending';
       case 'upcoming':
         return 'status-upcoming';
+      case 'awaiting_driver_acceptance':
+        return 'status-upcoming'; // Same styling as 'upcoming' since both show as "Approved"
       case 'in_process':
         return 'status-in-process';
       case 'completed':
@@ -370,6 +372,7 @@ export default function TripDetailsPage() {
              trip.status === 'paid_in_progress' ? 'Trip In Process' :
              trip.status === 'payment_failed' ? 'Payment Failed - Action Required' :
              trip.status === 'upcoming' ? 'Trip Approved' : 
+             trip.status === 'awaiting_driver_acceptance' ? 'Approved' :
              trip.status === 'in_process' ? 'Trip In Process' :
              trip.status === 'completed' ? 'Completed' : 
              trip.status === 'in_progress' ? 'In Progress' : 
