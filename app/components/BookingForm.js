@@ -80,7 +80,7 @@ async function determineCounty(address) {
     const addressLower = address?.toLowerCase() || '';
     console.log('🚨 BOOKING APP COUNTY DETECTION EMERGENCY CHECK 🚨', { address: addressLower });
     
-    // Known Franklin County address patterns (consistent with dispatcher_app and facility_app)
+    // Known Franklin County address patterns (consistent with facility_app emergency fixes)
     const franklinCountyPatterns = [
       'westerville',
       'columbus', 
@@ -94,12 +94,45 @@ async function determineCounty(address) {
       'whitehall',
       'worthington',
       'grandview heights',
-      '43082', // Westerville zip
-      '43228', // Columbus zip
-      'executive campus dr',  // FIX: Added missing pattern
-      'franshire'            // FIX: Added missing pattern
+      'canal winchester',    // Added from facility_app
+      'groveport',          // Added from facility_app
+      'new albany',         // Added from facility_app
+      'powell',             // Added from facility_app
+      'sunbury',            // Added from facility_app
+      'pickerington',       // Added from facility_app
+      'pataskala',          // Added from facility_app
+      'blacklick',          // Added from facility_app
+      'minerva park',       // Added from facility_app
+      '43082',              // Westerville zip
+      '43228',              // Columbus zip
+      '43017',              // Dublin zip - Added
+      '43016',              // Dublin zip - Added
+      '43123',              // Grove City zip - Added
+      '43026',              // Hilliard zip - Added
+      '43081',              // Westerville zip - Added
+      'executive campus dr', // FIX: Added missing pattern
+      'franshire'           // FIX: Added missing pattern
     ];
     
+    // Known Non-Franklin County patterns (for Lancaster, OH and similar exclusions)
+    const nonFranklinCountyPatterns = [
+      'lancaster, oh',
+      'lancaster,oh', 
+      'lancaster ohio',
+      '43130',              // Lancaster, OH zip code
+      'fairfield county',   // Lancaster is in Fairfield County
+      'fairfield co'
+    ];
+    
+    // Check for explicit non-Franklin patterns first (these override Franklin patterns)
+    const isExplicitlyNonFranklin = nonFranklinCountyPatterns.some(pattern => addressLower.includes(pattern));
+    
+    if (isExplicitlyNonFranklin) {
+      console.log('🚨 NON-FRANKLIN PATTERN DETECTED: Address explicitly detected as outside Franklin County');
+      return 'Fairfield County'; // or whatever the actual county is
+    }
+    
+    // Then check for Franklin County patterns
     const isAddressFranklin = franklinCountyPatterns.some(pattern => addressLower.includes(pattern));
     
     if (isAddressFranklin) {
