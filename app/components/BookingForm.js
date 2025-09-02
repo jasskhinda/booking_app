@@ -76,6 +76,37 @@ async function determineCounty(address) {
   }
 
   try {
+    // EMERGENCY FIX: Force Franklin County detection for known problem addresses
+    const addressLower = address?.toLowerCase() || '';
+    console.log('🚨 BOOKING APP COUNTY DETECTION EMERGENCY CHECK 🚨', { address: addressLower });
+    
+    // Known Franklin County address patterns (consistent with dispatcher_app and facility_app)
+    const franklinCountyPatterns = [
+      'westerville',
+      'columbus', 
+      'dublin',
+      'gahanna',
+      'reynoldsburg',
+      'grove city',
+      'hilliard',
+      'upper arlington',
+      'bexley',
+      'whitehall',
+      'worthington',
+      'grandview heights',
+      '43082', // Westerville zip
+      '43228', // Columbus zip
+      'executive campus dr',  // FIX: Added missing pattern
+      'franshire'            // FIX: Added missing pattern
+    ];
+    
+    const isAddressFranklin = franklinCountyPatterns.some(pattern => addressLower.includes(pattern));
+    
+    if (isAddressFranklin) {
+      console.log('🚨 EMERGENCY FIX APPLIED: Address detected as Franklin County via pattern matching');
+      return 'Franklin County';
+    }
+
     const geocoder = new window.google.maps.Geocoder();
     
     return new Promise((resolve) => {
