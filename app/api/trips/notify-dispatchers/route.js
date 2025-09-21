@@ -34,7 +34,6 @@ export async function POST(request) {
       .from('trips')
       .select('*')
       .eq('id', tripId)
-      .eq('user_id', session.user.id)
       .single();
     
     if (tripError || !trip) {
