@@ -1,12 +1,12 @@
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
+import { createRouteHandlerClient } from '@/lib/route-handler-client';
 import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
-import { notifyDispatchersOfNewTrip } from '@/lib/notifications';
+const { notifyDispatchersOfNewTrip } = require('@/lib/notifications');
 
 export async function POST(request) {
   try {
     // Create Supabase client
-    const supabase = createRouteHandlerClient({ cookies });
+    const supabase = await createRouteHandlerClient();
     
     // Get the current session
     const { data: { session } } = await supabase.auth.getSession();
@@ -29,13 +29,14 @@ export async function POST(request) {
       );
     }
     
-    // Fetch the trip details
+    // Fetch the trip details - only allow user to access their own trips
     const { data: trip, error: tripError } = await supabase
       .from('trips')
       .select('*')
       .eq('id', tripId)
+      .eq('user_id', session.user.id)
       .single();
-    
+
     if (tripError || !trip) {
       console.error('Error fetching trip:', tripError);
       return NextResponse.json(
@@ -43,7 +44,10 @@ export async function POST(request) {
         { status: 404 }
       );
     }
-    
+
+    // For booking_app, all bookings are direct client bookings
+    // No need to enrich with facility data
+
     // Set a timeout to prevent the API from hanging if notification takes too long
     // This makes the endpoint more resilient when handling many concurrent requests
     let notificationTimeout;
@@ -65,15 +69,11 @@ export async function POST(request) {
       clearTimeout(notificationTimeout);
       
       if (!result.success) {
-        // Don't fail the API call if it's just a dispatcher notification issue
         console.error('Failed to notify dispatchers:', result.error);
-        
-        // Log but continue - the trip was still created successfully
-        return NextResponse.json({
-          success: true,
-          message: 'Trip created successfully. Dispatcher notification issue logged.',
-          warning: result.error || 'Dispatcher notification failed'
-        });
+        return NextResponse.json(
+          { error: 'Failed to notify dispatchers', details: result.error },
+          { status: 500 }
+        );
       }
       
       return NextResponse.json({

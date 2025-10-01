@@ -966,7 +966,14 @@ export default function BookingForm({ user }) {
       }
 
       console.log('Trip booked successfully:', data);
-      
+
+      // 🎉 DEPLOYMENT CHECK: If you see this, new code is deployed! 🎉
+      console.log('🎉🎉🎉 DEPLOYMENT VERIFIED - NEW CODE ACTIVE 🎉🎉🎉');
+      console.log('📧 Calling notification API for trip:', data[0].id);
+
+      // Notify dispatchers in the background
+      notifyDispatchersInBackground(data[0].id);
+
       // Trip was created, show success immediately
       setSuccess(true);
       setBookingStatus('success');
@@ -1005,7 +1012,9 @@ export default function BookingForm({ user }) {
   
   // Function to notify dispatchers in the background
   const notifyDispatchersInBackground = async (tripId) => {
+    console.log('📧 Inside notifyDispatchersInBackground, trip ID:', tripId);
     try {
+      console.log('📧 Sending request to /api/trips/notify-dispatchers...');
       const notifyResponse = await fetch('/api/trips/notify-dispatchers', {
         method: 'POST',
         headers: {
@@ -1013,14 +1022,16 @@ export default function BookingForm({ user }) {
         },
         body: JSON.stringify({ tripId }),
       });
-      
+
+      console.log('📧 Response status:', notifyResponse.status);
       const notifyResult = await notifyResponse.json();
-      
+      console.log('📧 Response data:', notifyResult);
+
       if (!notifyResponse.ok) {
-        console.error('Error notifying dispatchers:', notifyResult.error);
+        console.error('❌ Error notifying dispatchers:', notifyResult.error);
         // We don't block the user experience if notification fails
       } else {
-        console.log('Dispatchers notified successfully');
+        console.log('✅ Dispatchers notified successfully');
       }
     } catch (notifyError) {
       console.error('Error in dispatcher notification:', notifyError);
