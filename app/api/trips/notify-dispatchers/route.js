@@ -1,7 +1,7 @@
 import { createRouteHandlerClient } from '@/lib/route-handler-client';
 import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
-const { notifyDispatchersOfNewTrip } = require('@/lib/notifications');
+const { notifyDispatchersOfNewTrip, sendFacilityConfirmation, sendClientConfirmation } = require('@/lib/notifications');
 
 export async function POST(request) {
   try {
@@ -29,13 +29,29 @@ export async function POST(request) {
       );
     }
     
-    // Fetch the trip details - only allow user to access their own trips
-    const { data: trip, error: tripError } = await supabase
+    // Get user's profile to check if they're facility staff
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('role, facility_id')
+      .eq('id', session.user.id)
+      .single();
+
+    const isFacilityStaff = profile?.role === 'facility';
+
+    // Fetch the trip details
+    // For facility staff: allow access to any trip from their facility
+    // For regular users: only allow access to their own trips
+    let tripQuery = supabase
       .from('trips')
       .select('*')
-      .eq('id', tripId)
-      .eq('user_id', session.user.id)
-      .single();
+      .eq('id', tripId);
+
+    // If not facility staff, restrict to user's own trips
+    if (!isFacilityStaff) {
+      tripQuery = tripQuery.eq('user_id', session.user.id);
+    }
+
+    const { data: trip, error: tripError } = await tripQuery.single();
 
     if (tripError || !trip) {
       console.error('Error fetching trip:', tripError);
@@ -45,8 +61,45 @@ export async function POST(request) {
       );
     }
 
-    // For booking_app, all bookings are direct client bookings
-    // No need to enrich with facility data
+    // Additional security: verify facility staff can only access trips from their facility
+    if (isFacilityStaff && trip.facility_id && trip.facility_id !== profile.facility_id) {
+      return NextResponse.json(
+        { error: 'Access denied - trip belongs to different facility' },
+        { status: 403 }
+      );
+    }
+
+    // Enrich trip data with client and facility information for better email notifications
+    try {
+      // Fetch client data if it's a managed client
+      if (trip.managed_client_id) {
+        const { data: clientData } = await supabase
+          .from('facility_managed_clients')
+          .select('first_name, last_name, email')
+          .eq('id', trip.managed_client_id)
+          .single();
+
+        if (clientData) {
+          trip.client_info = clientData;
+        }
+      }
+
+      // Fetch facility data if there's a facility_id
+      if (trip.facility_id) {
+        const { data: facilityData } = await supabase
+          .from('facilities')
+          .select('contact_email, name')
+          .eq('id', trip.facility_id)
+          .single();
+
+        if (facilityData) {
+          trip.facility_info = facilityData;
+        }
+      }
+    } catch (enrichError) {
+      // Don't fail if enrichment fails - just log and continue
+      console.log('Could not enrich trip data:', enrichError.message);
+    }
 
     // Set a timeout to prevent the API from hanging if notification takes too long
     // This makes the endpoint more resilient when handling many concurrent requests
@@ -75,7 +128,29 @@ export async function POST(request) {
           { status: 500 }
         );
       }
-      
+
+      // Send confirmation emails in the background (non-blocking)
+      // For facility bookings, send to facility and client
+      if (trip.managed_client_id && trip.client_info && trip.facility_info) {
+        const clientName = `${trip.client_info.first_name} ${trip.client_info.last_name}`;
+
+        // Send facility confirmation
+        sendFacilityConfirmation(trip, trip.facility_info.contact_email, clientName)
+          .catch(err => console.error('Error sending facility confirmation:', err));
+
+        // Send client confirmation if they have an email
+        if (trip.client_info.email) {
+          sendClientConfirmation(trip, trip.client_info.email, clientName)
+            .catch(err => console.error('Error sending client confirmation:', err));
+        }
+      }
+      // For direct bookings, send to client only
+      else if (session.user.email) {
+        const clientName = session.user.user_metadata?.full_name || 'Valued Customer';
+        sendClientConfirmation(trip, session.user.email, clientName)
+          .catch(err => console.error('Error sending client confirmation:', err));
+      }
+
       return NextResponse.json({
         success: true,
         message: 'Dispatchers notified successfully'
