@@ -301,7 +301,7 @@ export default function ProfileForm({ user, profile = {} }) {
                 
                 <div className="md:col-span-2">
                   <label htmlFor="address" className="block text-base font-bold text-black mb-1">
-                    Address
+                    Your Address
                   </label>
                   <input
                     id="address"
@@ -311,7 +311,7 @@ export default function ProfileForm({ user, profile = {} }) {
                     onChange={handleChange}
                     className="w-full p-3 border border-[#DDE5E7] rounded-md text-base placeholder-white"
                     style={{ backgroundColor: '#000000', color: '#ffffff' }}
-                    placeholder="Address"
+                    placeholder="Your full address"
                   />
                 </div>
                 
