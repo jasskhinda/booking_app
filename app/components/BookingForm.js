@@ -229,6 +229,14 @@ export default function BookingForm({ user }) {
     wheelchairRental: false,
     isRoundTrip: false,
     isEmergency: false,
+    pickupBuildingInfo: '',
+    destinationBuildingInfo: '',
+    weight: '',
+    heightFeet: '',
+    heightInches: '',
+    dateOfBirth: '',
+    additionalPassengers: 0,
+    tripNotes: '',
   });
   const [isLoading, setIsLoading] = useState(false);
   const [bookingStatus, setBookingStatus] = useState('idle'); // idle, loading, submitting, success, error
@@ -947,16 +955,23 @@ export default function BookingForm({ user }) {
           pickup_time: formData.pickupTime,
           return_pickup_time: formData.isRoundTrip ? formData.returnPickupTime : null, // Save return pickup time only for round trips
           status: 'pending', // Changed from 'upcoming' to 'pending'
-          special_requirements: null,
+          special_requirements: formData.tripNotes || null, // Save trip notes as special requirements
           wheelchair_type: formData.wheelchairType,
           wheelchair_rental: formData.wheelchairRental,
           is_round_trip: formData.isRoundTrip,
           is_emergency: formData.isEmergency,
           price: calculatedPrice, // Save estimated price
           payment_method_id: selectedPaymentMethodId, // Include the selected payment method
-          distance: distanceMiles > 0 
-            ? Math.round((formData.isRoundTrip ? distanceMiles * 2 : distanceMiles) * 10) / 10 
+          distance: distanceMiles > 0
+            ? Math.round((formData.isRoundTrip ? distanceMiles * 2 : distanceMiles) * 10) / 10
             : null, // Save distance in miles, doubled for round trips, rounded to 1 decimal
+          pickup_building_info: formData.pickupBuildingInfo || null,
+          destination_building_info: formData.destinationBuildingInfo || null,
+          weight: formData.weight ? parseInt(formData.weight) : null,
+          height_feet: formData.heightFeet ? parseInt(formData.heightFeet) : null,
+          height_inches: formData.heightInches ? parseInt(formData.heightInches) : null,
+          date_of_birth: formData.dateOfBirth || null,
+          additional_passengers: formData.additionalPassengers ? parseInt(formData.additionalPassengers) : 0,
           created_at: new Date().toISOString(),
         }])
         .select();
@@ -988,6 +1003,14 @@ export default function BookingForm({ user }) {
         wheelchairRental: false,
         isRoundTrip: false,
         isEmergency: false,
+        pickupBuildingInfo: '',
+        destinationBuildingInfo: '',
+        weight: '',
+        heightFeet: '',
+        heightInches: '',
+        dateOfBirth: '',
+        additionalPassengers: 0,
+        tripNotes: '',
       });
 
       // Start the redirect process
@@ -1131,7 +1154,60 @@ export default function BookingForm({ user }) {
                 {error}
               </div>
             )}
-            
+
+            {/* Enhanced Client Information Section - Profile Display */}
+            {profileData && (
+              <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4 mb-6">
+                <div className="flex justify-between items-center mb-3">
+                  <h3 className="text-lg font-bold text-black flex items-center">
+                    <span className="mr-2">👤</span>
+                    Client Information
+                  </h3>
+                  <a
+                    href="/dashboard/profile"
+                    className="text-sm text-[#5fbfc0] hover:text-[#4aa5a6] font-medium inline-flex items-center"
+                  >
+                    <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                    </svg>
+                    Edit Client Info
+                  </a>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <p className="text-black/70 font-medium">Name</p>
+                    <p className="text-black font-bold">{profileData.full_name || 'Not provided'}</p>
+                  </div>
+                  <div>
+                    <p className="text-black/70 font-medium">Phone</p>
+                    <p className="text-black font-bold">{profileData.phone || 'Not provided'}</p>
+                  </div>
+                  {profileData.medical_notes && (
+                    <div className="md:col-span-2">
+                      <p className="text-black/70 font-medium">Medical Notes</p>
+                      <p className="text-black font-bold">{profileData.medical_notes}</p>
+                    </div>
+                  )}
+                  {profileData.accessibility_needs && (
+                    <div className="md:col-span-2">
+                      <p className="text-black/70 font-medium">Accessibility Needs</p>
+                      <p className="text-black font-bold">{profileData.accessibility_needs}</p>
+                    </div>
+                  )}
+                </div>
+
+                <div className="mt-3 pt-3 border-t border-blue-200 dark:border-blue-800">
+                  <p className="text-xs text-black/60 flex items-start">
+                    <svg className="w-4 h-4 mr-1 mt-0.5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                    Client information loaded from profile. To make changes, please use the 'Edit Client Info' link above.
+                  </p>
+                </div>
+              </div>
+            )}
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Pickup Address */}
               <div className="col-span-1 md:col-span-2">
@@ -1140,24 +1216,37 @@ export default function BookingForm({ user }) {
                     Pickup Address
                   </label>
                 </div>
-                
+
                 <div className="relative">
-                  <div 
-                    ref={pickupAutocompleteContainerRef} 
+                  <div
+                    ref={pickupAutocompleteContainerRef}
                     className="w-full"
                     aria-label="Pickup location input"
                   >
                     {/* Autocomplete input will be inserted here */}
                   </div>
-                  <input 
-                    type="hidden" 
-                    name="pickupAddress" 
-                    value={formData.pickupAddress} 
+                  <input
+                    type="hidden"
+                    name="pickupAddress"
+                    value={formData.pickupAddress}
                     required
                   />
                 </div>
+
+                {/* Pickup Building Info */}
+                <div className="mt-2">
+                  <input
+                    type="text"
+                    name="pickupBuildingInfo"
+                    id="pickupBuildingInfo"
+                    value={formData.pickupBuildingInfo}
+                    onChange={handleChange}
+                    placeholder="Apartment, suite, building entrance, etc. (optional)"
+                    className="w-full px-3 py-2 border border-[#DDE5E7] dark:border-[#333333] rounded-md shadow-sm focus:outline-none focus:ring-[#5fbfc0] focus:border-[#5fbfc0] bg-white dark:bg-[#1A1A1A] text-black dark:text-white"
+                  />
+                </div>
               </div>
-              
+
               {/* Destination Address */}
               <div className="col-span-1 md:col-span-2">
                 <div className="flex justify-between items-center mb-1">
@@ -1165,20 +1254,33 @@ export default function BookingForm({ user }) {
                     Destination Address
                   </label>
                 </div>
-                
+
                 <div className="relative">
-                  <div 
-                    ref={destinationAutocompleteContainerRef} 
+                  <div
+                    ref={destinationAutocompleteContainerRef}
                     className="w-full"
                     aria-label="Destination location input"
                   >
                     {/* Autocomplete input will be inserted here */}
                   </div>
-                  <input 
-                    type="hidden" 
-                    name="destinationAddress" 
-                    value={formData.destinationAddress} 
+                  <input
+                    type="hidden"
+                    name="destinationAddress"
+                    value={formData.destinationAddress}
                     required
+                  />
+                </div>
+
+                {/* Destination Building Info */}
+                <div className="mt-2">
+                  <input
+                    type="text"
+                    name="destinationBuildingInfo"
+                    id="destinationBuildingInfo"
+                    value={formData.destinationBuildingInfo}
+                    onChange={handleChange}
+                    placeholder="Building, entrance, room number, etc. (optional)"
+                    className="w-full px-3 py-2 border border-[#DDE5E7] dark:border-[#333333] rounded-md shadow-sm focus:outline-none focus:ring-[#5fbfc0] focus:border-[#5fbfc0] bg-white dark:bg-[#1A1A1A] text-black dark:text-white"
                   />
                 </div>
               </div>
@@ -1426,7 +1528,185 @@ export default function BookingForm({ user }) {
                   </div>
                 </div>
               </div>
-              
+
+              {/* Enhanced Client Demographics Section */}
+              <div className="col-span-1 md:col-span-2 border-t border-gray-200 pt-6 mt-6">
+                <div className="flex justify-between items-center mb-4">
+                  <h3 className="text-lg font-bold text-black flex items-center">
+                    <span className="mr-2">👤</span>
+                    Enhanced Client Information
+                  </h3>
+                  <a
+                    href="/dashboard/profile"
+                    className="text-sm text-[#5fbfc0] hover:text-[#4aa5a6] font-medium inline-flex items-center"
+                  >
+                    <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                    </svg>
+                    Edit Client Info
+                  </a>
+                </div>
+
+                <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4 mb-4">
+                  <p className="text-xs text-black/60 flex items-start">
+                    <svg className="w-4 h-4 mr-1 mt-0.5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                    Client information loaded from profile. To make changes, please use the 'Edit Client Info' link above.
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Weight Field */}
+                  <div>
+                    <label htmlFor="weight" className="block text-base font-bold text-black mb-1">
+                      Weight (lbs)
+                    </label>
+                    <input
+                      type="number"
+                      name="weight"
+                      id="weight"
+                      value={formData.weight}
+                      onChange={handleChange}
+                      placeholder="Enter weight in pounds"
+                      min="0"
+                      max="400"
+                      className="w-full px-3 py-2 border border-[#DDE5E7] dark:border-[#333333] rounded-md shadow-sm focus:outline-none focus:ring-[#5fbfc0] focus:border-[#5fbfc0] bg-white dark:bg-[#1A1A1A] text-black dark:text-white"
+                    />
+                    {formData.weight && parseInt(formData.weight) >= 400 && (
+                      <div className="mt-2 p-3 bg-red-50 border-2 border-red-500 rounded-md">
+                        <p className="text-sm font-bold text-red-800 flex items-start">
+                          <span className="mr-1">🚫</span>
+                          <span>Cannot accommodate - Over 400 lbs weight limit</span>
+                        </p>
+                      </div>
+                    )}
+                    {formData.weight && parseInt(formData.weight) >= 300 && parseInt(formData.weight) < 400 && (
+                      <div className="mt-2 p-2 bg-orange-50 border border-orange-200 rounded-md">
+                        <p className="text-sm text-orange-800 flex items-start">
+                          <span className="mr-1">⚠️</span>
+                          <span>Bariatric transportation required. Additional $150 per leg vs $50 regular rate.</span>
+                        </p>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Height Field - Split into Feet and Inches */}
+                  <div>
+                    <label className="block text-base font-bold text-black mb-1">
+                      Height
+                    </label>
+                    <div className="grid grid-cols-2 gap-2">
+                      <div>
+                        <select
+                          name="heightFeet"
+                          id="heightFeet"
+                          value={formData.heightFeet}
+                          onChange={handleChange}
+                          className="w-full px-3 py-2 border border-[#DDE5E7] dark:border-[#333333] rounded-md shadow-sm focus:outline-none focus:ring-[#5fbfc0] focus:border-[#5fbfc0] bg-white dark:bg-[#1A1A1A] text-black dark:text-white"
+                        >
+                          <option value="">Feet</option>
+                          <option value="4">4 ft</option>
+                          <option value="5">5 ft</option>
+                          <option value="6">6 ft</option>
+                          <option value="7">7 ft</option>
+                        </select>
+                      </div>
+                      <div>
+                        <select
+                          name="heightInches"
+                          id="heightInches"
+                          value={formData.heightInches}
+                          onChange={handleChange}
+                          className="w-full px-3 py-2 border border-[#DDE5E7] dark:border-[#333333] rounded-md shadow-sm focus:outline-none focus:ring-[#5fbfc0] focus:border-[#5fbfc0] bg-white dark:bg-[#1A1A1A] text-black dark:text-white"
+                        >
+                          <option value="">Inches</option>
+                          {[...Array(12)].map((_, i) => (
+                            <option key={i} value={i}>{i} in</option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Date of Birth Field */}
+                  <div>
+                    <label htmlFor="dateOfBirth" className="block text-base font-bold text-black mb-1">
+                      Date of Birth
+                    </label>
+                    <input
+                      type="date"
+                      name="dateOfBirth"
+                      id="dateOfBirth"
+                      value={formData.dateOfBirth}
+                      onChange={handleChange}
+                      className="w-full px-3 py-2 border border-[#DDE5E7] dark:border-[#333333] rounded-md shadow-sm focus:outline-none focus:ring-[#5fbfc0] focus:border-[#5fbfc0] bg-white dark:bg-[#1A1A1A] text-black dark:text-white"
+                    />
+                    <p className="mt-1 text-xs text-black/60">Required for hospital record verification when needed</p>
+                  </div>
+
+                  {/* Email Address (from profile, display-only) */}
+                  <div>
+                    <label htmlFor="email" className="block text-base font-bold text-black mb-1">
+                      Email Address
+                    </label>
+                    <input
+                      type="email"
+                      name="email"
+                      id="email"
+                      value={user?.email || ''}
+                      disabled
+                      className="w-full px-3 py-2 border border-[#DDE5E7] dark:border-[#333333] rounded-md shadow-sm bg-gray-100 dark:bg-[#0A0A0A] text-black/60 dark:text-white/60 cursor-not-allowed"
+                    />
+                  </div>
+
+                  {/* Additional Passengers Field */}
+                  <div>
+                    <label htmlFor="additionalPassengers" className="block text-base font-bold text-black mb-1">
+                      Additional Passengers
+                    </label>
+                    <input
+                      type="number"
+                      name="additionalPassengers"
+                      id="additionalPassengers"
+                      value={formData.additionalPassengers}
+                      onChange={handleChange}
+                      min="0"
+                      max="4"
+                      className="w-full px-3 py-2 border border-[#DDE5E7] dark:border-[#333333] rounded-md shadow-sm focus:outline-none focus:ring-[#5fbfc0] focus:border-[#5fbfc0] bg-white dark:bg-[#1A1A1A] text-black dark:text-white"
+                    />
+                    <p className="mt-1 text-xs text-black/60">Maximum 4 additional passengers</p>
+                  </div>
+
+                  {/* Trip Notes Field */}
+                  <div className="md:col-span-2">
+                    <label htmlFor="tripNotes" className="block text-base font-bold text-black mb-1">
+                      Trip Notes
+                    </label>
+                    <textarea
+                      name="tripNotes"
+                      id="tripNotes"
+                      value={formData.tripNotes}
+                      onChange={handleChange}
+                      rows="4"
+                      placeholder="Special instructions, medical equipment, etc."
+                      className="w-full px-3 py-2 border border-[#DDE5E7] dark:border-[#333333] rounded-md shadow-sm focus:outline-none focus:ring-[#5fbfc0] focus:border-[#5fbfc0] bg-white dark:bg-[#1A1A1A] text-black dark:text-white"
+                    ></textarea>
+                  </div>
+                </div>
+
+                {/* Why This Information Matters */}
+                <div className="mt-6 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+                  <h4 className="text-sm font-bold text-black mb-2">Why This Information Matters</h4>
+                  <ul className="text-xs text-black/70 space-y-1 list-disc list-inside">
+                    <li>Weight information helps us assign the appropriate vehicle and equipment</li>
+                    <li>Height and mobility details ensure your comfort and safety during transport</li>
+                    <li>Date of birth may be required for hospital check-in and insurance verification</li>
+                    <li>Trip notes help our drivers provide personalized, compassionate care</li>
+                  </ul>
+                </div>
+              </div>
+
               {/* Map display */}
               <div className="col-span-1 md:col-span-2 mt-4">
                 <div className="relative w-full h-[300px] rounded-md border border-[#DDE5E7] dark:border-[#333333] overflow-hidden">
@@ -1900,34 +2180,43 @@ export default function BookingForm({ user }) {
                 </div>
               </div>
               {/* Move the Request Ride button here, full width */}
-              <button
-                type="submit"
-                disabled={isLoading || !defaultPaymentMethod || paymentMethodsLoading}
-                className="w-full py-3 px-4 bg-[#5fbfc0] hover:bg-[#4aa5a6] text-white dark:text-[black] font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#5fbfc0] disabled:opacity-50 disabled:cursor-not-allowed relative overflow-hidden mt-4"
-              >
-                {bookingStatus === 'loading' && (
-                  <span className="absolute inset-0 flex items-center justify-center bg-[#5fbfc0]">
-                    <svg className="animate-spin h-5 w-5 text-white dark:text-[black]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
-                  </span>
-                )}
-                {bookingStatus === 'submitting' && (
-                  <span className="absolute inset-0 flex items-center justify-center bg-[#5fbfc0]">
-                    <div className="flex items-center space-x-2">
+              {formData.weight && parseInt(formData.weight) >= 400 ? (
+                <a
+                  href="mailto:support@cct.com?subject=Transportation Request - Over 400 lbs"
+                  className="w-full py-3 px-4 bg-red-600 hover:bg-red-700 text-white font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 text-center block mt-4"
+                >
+                  Cannot Book - Contact Us
+                </a>
+              ) : (
+                <button
+                  type="submit"
+                  disabled={isLoading || !defaultPaymentMethod || paymentMethodsLoading}
+                  className="w-full py-3 px-4 bg-[#5fbfc0] hover:bg-[#4aa5a6] text-white dark:text-[black] font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#5fbfc0] disabled:opacity-50 disabled:cursor-not-allowed relative overflow-hidden mt-4"
+                >
+                  {bookingStatus === 'loading' && (
+                    <span className="absolute inset-0 flex items-center justify-center bg-[#5fbfc0]">
                       <svg className="animate-spin h-5 w-5 text-white dark:text-[black]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                         <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                       </svg>
-                      <span className="text-white dark:text-[black]">Booking your trip...</span>
-                    </div>
+                    </span>
+                  )}
+                  {bookingStatus === 'submitting' && (
+                    <span className="absolute inset-0 flex items-center justify-center bg-[#5fbfc0]">
+                      <div className="flex items-center space-x-2">
+                        <svg className="animate-spin h-5 w-5 text-white dark:text-[black]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        <span className="text-white dark:text-[black]">Booking your trip...</span>
+                      </div>
+                    </span>
+                  )}
+                  <span className={bookingStatus === 'loading' || bookingStatus === 'submitting' ? 'invisible' : ''}>
+                    {isLoading ? 'Submitting...' : 'Request Ride'}
                   </span>
-                )}
-                <span className={bookingStatus === 'loading' || bookingStatus === 'submitting' ? 'invisible' : ''}>
-                  {isLoading ? 'Submitting...' : 'Request Ride'}
-                </span>
-              </button>
+                </button>
+              )}
             </div> {/* <-- Close the grid container here */}
           </form>
 

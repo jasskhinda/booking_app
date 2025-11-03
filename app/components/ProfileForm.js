@@ -17,6 +17,7 @@ export default function ProfileForm({ user, profile = {} }) {
     emergency_contact: '',
     preferred_payment_method: '',
     is_veteran: false,
+    weight: '',
   });
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState({ text: '', type: '' });
@@ -89,6 +90,7 @@ export default function ProfileForm({ user, profile = {} }) {
       emergency_contact: profile?.emergency_contact || '',
       preferred_payment_method: profile?.preferred_payment_method || '',
       is_veteran: profile?.is_veteran || false,
+      weight: profile?.weight || '',
     }));
     
     // Fetch default payment method
@@ -152,6 +154,7 @@ export default function ProfileForm({ user, profile = {} }) {
         emergency_contact: formData.emergency_contact,
         preferred_payment_method: formData.preferred_payment_method,
         is_veteran: formData.is_veteran,
+        weight: formData.weight ? parseFloat(formData.weight) : null,
         updated_at: new Date().toISOString()
       };
       
@@ -327,7 +330,30 @@ export default function ProfileForm({ user, profile = {} }) {
                     placeholder="Emergency Contact (Name & Phone)"
                   />
                 </div>
-                
+
+                <div>
+                  <label htmlFor="weight" className="block text-base font-bold text-black mb-1">
+                    Weight (lbs)
+                  </label>
+                  <input
+                    id="weight"
+                    name="weight"
+                    type="number"
+                    min="50"
+                    max="1000"
+                    value={formData.weight}
+                    onChange={handleChange}
+                    className="w-full p-3 border border-[#DDE5E7] rounded-md text-base placeholder-white"
+                    style={{ backgroundColor: '#000000', color: '#ffffff' }}
+                    placeholder="Weight in pounds"
+                  />
+                  {formData.weight && parseFloat(formData.weight) >= 300 && (
+                    <p className="mt-1 text-sm font-bold text-[#5fbfc0]">
+                      ⚠️ Bariatric rate applies ($150 per leg)
+                    </p>
+                  )}
+                </div>
+
                 <div className="md:col-span-2 flex items-center pt-2">
                   <input
                     id="is_veteran"
@@ -338,7 +364,7 @@ export default function ProfileForm({ user, profile = {} }) {
                     className="h-5 w-5 text-[#5fbfc0] focus:ring-[#5fbfc0] border-[#DDE5E7] rounded"
                   />
                   <label htmlFor="is_veteran" className="ml-3 block text-base font-bold text-black">
-                    I am a veteran
+                    I am a veteran (20% discount)
                   </label>
                 </div>
               </div>
