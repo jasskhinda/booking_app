@@ -12,7 +12,8 @@ export async function GET(request) {
       }, { status: 400 });
     }
 
-    const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
+    // Try server-side key first, then fall back to public key
+    const apiKey = process.env.GOOGLE_MAPS_API_KEY || process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
 
     if (!apiKey) {
       console.error('Google Maps API key not configured');
@@ -27,6 +28,11 @@ export async function GET(request) {
 
     const response = await fetch(detailsUrl);
     const data = await response.json();
+
+    // Log if Google API returns an error
+    if (data.status !== 'OK') {
+      console.error('Google API error:', data.status, data.error_message);
+    }
 
     // Return the Google API response as-is
     return NextResponse.json(data);
