@@ -347,7 +347,12 @@ export default function ProfileForm({ user, profile = {} }) {
                     style={{ backgroundColor: '#000000', color: '#ffffff' }}
                     placeholder="Weight in pounds"
                   />
-                  {formData.weight && parseFloat(formData.weight) >= 300 && (
+                  {formData.weight && parseFloat(formData.weight) >= 400 && (
+                    <p className="mt-2 text-sm font-bold text-red-600 bg-red-50 border border-red-500 rounded p-2">
+                      🚫 Cannot accommodate rides over 400 lbs - Please contact us for alternative arrangements
+                    </p>
+                  )}
+                  {formData.weight && parseFloat(formData.weight) >= 300 && parseFloat(formData.weight) < 400 && (
                     <p className="mt-1 text-sm font-bold text-[#5fbfc0]">
                       ⚠️ Bariatric rate applies ($150 per leg)
                     </p>
