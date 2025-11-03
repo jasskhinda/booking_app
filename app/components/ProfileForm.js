@@ -18,6 +18,9 @@ export default function ProfileForm({ user, profile = {} }) {
     preferred_payment_method: '',
     is_veteran: false,
     weight: '',
+    height_feet: '',
+    height_inches: '',
+    date_of_birth: '',
   });
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState({ text: '', type: '' });
@@ -91,6 +94,9 @@ export default function ProfileForm({ user, profile = {} }) {
       preferred_payment_method: profile?.preferred_payment_method || '',
       is_veteran: profile?.is_veteran || false,
       weight: profile?.weight || '',
+      height_feet: profile?.height_feet || '',
+      height_inches: profile?.height_inches || '',
+      date_of_birth: profile?.date_of_birth || '',
     }));
     
     // Fetch default payment method
@@ -155,6 +161,9 @@ export default function ProfileForm({ user, profile = {} }) {
         preferred_payment_method: formData.preferred_payment_method,
         is_veteran: formData.is_veteran,
         weight: formData.weight ? parseFloat(formData.weight) : null,
+        height_feet: formData.height_feet ? parseInt(formData.height_feet) : null,
+        height_inches: formData.height_inches ? parseInt(formData.height_inches) : null,
+        date_of_birth: formData.date_of_birth || null,
         updated_at: new Date().toISOString()
       };
       
@@ -357,6 +366,64 @@ export default function ProfileForm({ user, profile = {} }) {
                       ⚠️ Bariatric rate applies ($150 per leg)
                     </p>
                   )}
+                </div>
+
+                {/* Height Field */}
+                <div>
+                  <label className="block text-base font-bold text-black mb-1">
+                    Height *
+                  </label>
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <select
+                        name="height_feet"
+                        id="height_feet"
+                        value={formData.height_feet}
+                        onChange={handleChange}
+                        className="w-full p-3 border border-[#DDE5E7] rounded-md text-base"
+                        style={{ backgroundColor: '#000000', color: '#ffffff' }}
+                      >
+                        <option value="">Feet</option>
+                        <option value="4">4 ft</option>
+                        <option value="5">5 ft</option>
+                        <option value="6">6 ft</option>
+                        <option value="7">7 ft</option>
+                      </select>
+                    </div>
+                    <div>
+                      <select
+                        name="height_inches"
+                        id="height_inches"
+                        value={formData.height_inches}
+                        onChange={handleChange}
+                        className="w-full p-3 border border-[#DDE5E7] rounded-md text-base"
+                        style={{ backgroundColor: '#000000', color: '#ffffff' }}
+                      >
+                        <option value="">Inches</option>
+                        {[...Array(12)].map((_, i) => (
+                          <option key={i} value={i}>{i} in</option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+                  <p className="mt-1 text-xs text-black/60">Helps ensure proper vehicle and equipment selection</p>
+                </div>
+
+                {/* Date of Birth Field */}
+                <div>
+                  <label htmlFor="date_of_birth" className="block text-base font-bold text-black mb-1">
+                    Date of Birth *
+                  </label>
+                  <input
+                    id="date_of_birth"
+                    name="date_of_birth"
+                    type="date"
+                    value={formData.date_of_birth}
+                    onChange={handleChange}
+                    className="w-full p-3 border border-[#DDE5E7] rounded-md text-base"
+                    style={{ backgroundColor: '#000000', color: '#ffffff' }}
+                  />
+                  <p className="mt-1 text-xs text-black/60">Required for hospital record verification when needed</p>
                 </div>
 
                 <div className="md:col-span-2 flex items-center pt-2">
