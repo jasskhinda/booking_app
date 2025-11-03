@@ -1202,7 +1202,7 @@ export default function BookingForm({ user }) {
                     <svg className="w-4 h-4 mr-1 mt-0.5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                     </svg>
-                    Client information loaded from profile. To make changes, please use the 'Edit Client Info' link above.
+                    Client information loaded from profile. To make changes, please use the &apos;Edit Client Info&apos; link above.
                   </p>
                 </div>
               </div>
@@ -1552,7 +1552,7 @@ export default function BookingForm({ user }) {
                     <svg className="w-4 h-4 mr-1 mt-0.5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                     </svg>
-                    Client information loaded from profile. To make changes, please use the 'Edit Client Info' link above.
+                    Client information loaded from profile. To make changes, please use the &apos;Edit Client Info&apos; link above.
                   </p>
                 </div>
 
