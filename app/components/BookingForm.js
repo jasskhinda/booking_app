@@ -965,8 +965,8 @@ export default function BookingForm({ user }) {
           distance: distanceMiles > 0
             ? Math.round((formData.isRoundTrip ? distanceMiles * 2 : distanceMiles) * 10) / 10
             : null, // Save distance in miles, doubled for round trips, rounded to 1 decimal
-          pickup_building_info: formData.pickupBuildingInfo || null,
-          destination_building_info: formData.destinationBuildingInfo || null,
+          pickup_details: formData.pickupBuildingInfo || null, // Using facility_app column name
+          destination_details: formData.destinationBuildingInfo || null, // Using facility_app column name
           weight: formData.weight ? parseInt(formData.weight) : null,
           height_feet: formData.heightFeet ? parseInt(formData.heightFeet) : null,
           height_inches: formData.heightInches ? parseInt(formData.heightInches) : null,

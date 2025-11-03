@@ -1,38 +1,56 @@
 -- Add comprehensive booking fields to trips table for booking_app
--- This migration adds all the enhanced client information and booking details
+-- IMPORTANT: This database is shared across ALL apps (facility_app, booking_app, dispatcher_app, etc.)
+-- Some columns already exist from facility_app migrations - we only add what's NEW
 
--- Add building/apartment information fields
-ALTER TABLE trips
-ADD COLUMN IF NOT EXISTS pickup_building_info TEXT;
+-- Add client demographics fields (NEW - don't exist in facility_app)
+-- Using DO blocks to safely check and add columns to prevent conflicts
 
-ALTER TABLE trips
-ADD COLUMN IF NOT EXISTS destination_building_info TEXT;
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns
+                   WHERE table_name = 'trips' AND column_name = 'weight') THEN
+        ALTER TABLE trips ADD COLUMN weight NUMERIC(5,1);
+        COMMENT ON COLUMN trips.weight IS 'Client weight in pounds - used for bariatric pricing (300-399 lbs = $150/leg, 400+ lbs = cannot accommodate)';
+    END IF;
+END $$;
 
--- Add client demographics fields
-ALTER TABLE trips
-ADD COLUMN IF NOT EXISTS weight INTEGER;
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns
+                   WHERE table_name = 'trips' AND column_name = 'height_feet') THEN
+        ALTER TABLE trips ADD COLUMN height_feet INTEGER;
+        COMMENT ON COLUMN trips.height_feet IS 'Client height in feet (4-7)';
+    END IF;
+END $$;
 
-ALTER TABLE trips
-ADD COLUMN IF NOT EXISTS height_feet INTEGER;
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns
+                   WHERE table_name = 'trips' AND column_name = 'height_inches') THEN
+        ALTER TABLE trips ADD COLUMN height_inches INTEGER;
+        COMMENT ON COLUMN trips.height_inches IS 'Client height in inches (0-11)';
+    END IF;
+END $$;
 
-ALTER TABLE trips
-ADD COLUMN IF NOT EXISTS height_inches INTEGER;
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns
+                   WHERE table_name = 'trips' AND column_name = 'date_of_birth') THEN
+        ALTER TABLE trips ADD COLUMN date_of_birth DATE;
+        COMMENT ON COLUMN trips.date_of_birth IS 'Client date of birth - required for hospital record verification';
+    END IF;
+END $$;
 
-ALTER TABLE trips
-ADD COLUMN IF NOT EXISTS date_of_birth DATE;
-
--- Add additional passengers field
-ALTER TABLE trips
-ADD COLUMN IF NOT EXISTS additional_passengers INTEGER DEFAULT 0;
-
--- Add comments to document the purpose of each field
-COMMENT ON COLUMN trips.pickup_building_info IS 'Additional pickup location details (apartment, suite, building entrance, etc.)';
-COMMENT ON COLUMN trips.destination_building_info IS 'Additional destination details (building, entrance, room number, etc.)';
-COMMENT ON COLUMN trips.weight IS 'Client weight in pounds - used for bariatric pricing (300-399 lbs = $150/leg, 400+ lbs = cannot accommodate)';
-COMMENT ON COLUMN trips.height_feet IS 'Client height in feet (4-7)';
-COMMENT ON COLUMN trips.height_inches IS 'Client height in inches (0-11)';
-COMMENT ON COLUMN trips.date_of_birth IS 'Client date of birth - required for hospital record verification';
-COMMENT ON COLUMN trips.additional_passengers IS 'Number of additional passengers (0-4) accompanying the primary client';
-
--- Note: special_requirements field already exists and is being used for trip_notes
-COMMENT ON COLUMN trips.special_requirements IS 'Special instructions, medical equipment needs, and other trip-specific notes';
+-- IMPORTANT: The following columns ALREADY EXIST from facility_app migrations:
+-- ============================================================================
+-- - additional_passengers (from facility_app/db/add_missing_trip_columns.sql)
+-- - pickup_details (from facility_app/db/add_missing_trip_columns.sql)
+-- - destination_details (from facility_app/db/add_missing_trip_columns.sql)
+-- - special_requirements (from original schema.sql)
+--
+-- We will use these existing columns in booking_app:
+-- - pickup_building_info -> maps to pickup_details
+-- - destination_building_info -> maps to destination_details
+-- - tripNotes -> maps to special_requirements
+--
+-- DO NOT create duplicate columns! Update BookingForm.js to use the existing column names.
