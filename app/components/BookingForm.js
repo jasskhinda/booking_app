@@ -5,6 +5,7 @@ import { getSupabaseClient } from '@/lib/client-supabase';
 import { useRouter } from 'next/navigation';
 import DashboardLayout from './DashboardLayout';
 import Script from 'next/script';
+import { getPricingEstimate } from '@/lib/pricing';
 
 // Helper function to format date in AM/PM format
 function formatTimeAmPm(dateStr) {
@@ -328,7 +329,7 @@ export default function BookingForm({ user }) {
     
     isCalculatingRouteRef.current = true;
     setIsCalculatingRoute(true); // Set loading state
-    console.log('Starting route calculation...');
+    console.log('Starting route calculation with NEW PRICING LOGIC...');
     
     const directionsService = new window.google.maps.DirectionsService();
     
@@ -344,169 +345,64 @@ export default function BookingForm({ user }) {
           // Calculate estimated values based on route data
           const route = result.routes[0];
           if (route && route.legs && route.legs[0]) {
-          const duration = route.legs[0].duration.text;
-          
-          // Get distance values
-          const distanceValue = route.legs[0].distance.value; // in meters
-          const durationValue = route.legs[0].duration.value; // in seconds
-          
-          // Convert meters to miles (1 meter = 0.000621371 miles)
-          const miles = distanceValue * 0.000621371;
-          const formattedMiles = miles.toFixed(1);
-          
-          // Store both distance values for future use
-          setDistanceMiles(miles);
-          setDistanceMeters(distanceValue);
-          
-          console.log('Debug: Distance calculation', {
-            distanceValue,
-            miles,
-            formattedMiles,
-            isRoundTrip: formData.isRoundTrip
-          });
-          
-          // Calculate price using new pricing structure
-          let basePrice = 50; // $50 per leg
-
-          // Round trip adjustment (double the base price)
-          if (formData.isRoundTrip) {
-            basePrice = 100; // $50 per leg x 2 legs
-          }
-          
-          // County determination logic
-          console.log('Form data for county detection:', { 
-            pickupAddress: formData.pickupAddress,
-            destinationAddress: formData.destinationAddress 
-          });
-          const pickupCounty = await determineCounty(formData.pickupAddress);
-          const destinationCounty = await determineCounty(formData.destinationAddress);
-          
-          // Determine if trip is within Franklin County or crosses county lines
-          const isInFranklinCounty = pickupCounty === 'Franklin County' && destinationCounty === 'Franklin County';
-          const isOneCountyOut = !isInFranklinCounty && (pickupCounty === 'Franklin County' || destinationCounty === 'Franklin County');
-          const isTwoCountiesOut = !isInFranklinCounty && pickupCounty !== 'Franklin County' && destinationCounty !== 'Franklin County';
-          
-          // County-based charges
-          if (isTwoCountiesOut) {
-            // $50 per county outside of 1 county (2 counties out)
-            basePrice += 50;
-          }
-          
-          // Mileage charges based on location
-          const totalMiles = formData.isRoundTrip ? miles * 2 : miles;
-          let mileageRate;
-          
-          if (isInFranklinCounty) {
-            mileageRate = 3; // $3 per mile inside Franklin County
-          } else {
-            mileageRate = 4; // $4 per mile outside Franklin County
-          }
-          
-          basePrice += totalMiles * mileageRate;
-          
-          console.log('Debug: Price calculation', {
-            basePrice: basePrice,
-            totalMiles,
-            mileageRate,
-            mileageCharge: totalMiles * mileageRate,
-            pickupCounty,
-            destinationCounty,
-            isInFranklinCounty,
-            isOneCountyOut,
-            isTwoCountiesOut
-          });
-          
-          // Weekend and hour adjustments
-          const pickupDate = new Date(formData.pickupTime);
-          const day = pickupDate.getDay();
-          const hour = pickupDate.getHours();
-          
-          // Weekend adjustment ($40 for Saturday or Sunday)
-          if (day === 0 || day === 6) { // Weekend (0 = Sunday, 6 = Saturday)
-            basePrice += 40;
-          }
-          
-          // Off-hours adjustment ($40 for before 8am or after 8pm)
-          if (hour < 8 || hour >= 20) {
-            basePrice += 40;
-          }
-          
-          // Emergency fee (if marked as emergency)
-          if (formData.isEmergency) {
-            basePrice += 40;
-          }
-          
-          // Wheelchair rental fee (if wheelchair rental is requested)
-          if (formData.wheelchairType === 'none' && formData.wheelchairRental) {
-            basePrice += 25;
-          }
-          
-          // Check if user is a veteran for higher discount
-          const { data: profileData } = await supabase
-            .from('profiles')
-            .select('is_veteran')
-            .eq('id', user.id)
-            .single();
+            const duration = route.legs[0].duration.text;
             
-          // Apply 20% discount for veterans, 10% for regular individual clients
-          const priceBeforeDiscount = basePrice;
-          let discountPercentage = 0;
-          let discountAmount = 0;
-          
-          if (profileData?.is_veteran) {
-            discountPercentage = 20;
-            discountAmount = basePrice * 0.2;
-            basePrice = basePrice * 0.8; // 20% discount for veterans
-          } else {
-            discountPercentage = 10;
-            discountAmount = basePrice * 0.1;
-            basePrice = basePrice * 0.9; // 10% discount for non-veterans
+            // Get distance values
+            const distanceValue = route.legs[0].distance.value; // in meters
+            const durationValue = route.legs[0].duration.value; // in seconds
+            
+            // Convert meters to miles (1 meter = 0.000621371 miles)
+            const miles = distanceValue * 0.000621371;
+            const formattedMiles = miles.toFixed(1);
+            
+            // Store both distance values for future use
+            setDistanceMiles(miles);
+            setDistanceMeters(distanceValue);
+            
+            console.log('🚀 Using NEW pricing calculation with complete breakdown');
+            
+            // Get user profile data for veteran status and weight
+            const { data: profileData } = await supabase
+              .from('profiles')
+              .select('is_veteran, weight')
+              .eq('id', user.id)
+              .single();
+            
+            // Use NEW pricing calculation
+            const pricingResult = await getPricingEstimate({
+              pickupAddress: formData.pickupAddress,
+              destinationAddress: formData.destinationAddress,
+              isRoundTrip: formData.isRoundTrip,
+              pickupDateTime: formData.pickupTime,
+              clientWeight: parseInt(formData.weight || profileData?.weight || 250),
+              isEmergency: formData.isEmergency,
+              isVeteran: profileData?.is_veteran || false,
+              preCalculatedDistance: {
+                distance: miles,
+                duration: duration,
+                text: `${formattedMiles} mi`
+              }
+            });
+            
+            if (pricingResult.success && pricingResult.pricing) {
+              const pricing = pricingResult.pricing;
+              
+              console.log('💰 Complete pricing breakdown:', pricing);
+              
+              // Store pricing breakdown for display and submission
+              setPricingBreakdown(pricing);
+              setEstimatedFare(pricing.total);
+              setEstimatedDuration(duration);
+            } else {
+              console.error('❌ Error calculating pricing:', pricingResult.error);
+              // Fallback to basic pricing
+              setEstimatedFare(formData.isRoundTrip ? 100 : 50);
+              setEstimatedDuration(duration);
+            }
           }
-          
-          // Set the price rounded to the nearest cent
-          const finalPrice = Math.round(basePrice * 100) / 100;
-          
-          // Create pricing breakdown
-          const breakdown = {
-            baseRate: formData.isRoundTrip ? 100 : 50,
-            mileageRate: mileageRate,
-            totalMiles: totalMiles,
-            mileageCharge: totalMiles * mileageRate,
-            countyCharge: isTwoCountiesOut ? 50 : 0,
-            weekendAdjustment: (day === 0 || day === 6) ? 40 : 0,
-            offHoursAdjustment: (hour < 8 || hour >= 20) ? 40 : 0,
-            emergencyFee: formData.isEmergency ? 40 : 0,
-            wheelchairRentalFee: (formData.wheelchairType === 'none' && formData.wheelchairRental) ? 25 : 0,
-            subtotal: priceBeforeDiscount,
-            discountPercentage: discountPercentage,
-            discountAmount: discountAmount,
-            finalPrice: finalPrice,
-            isVeteran: profileData?.is_veteran || false,
-            pickupCounty: pickupCounty,
-            destinationCounty: destinationCounty,
-            isInFranklinCounty: isInFranklinCounty,
-            isTwoCountiesOut: isTwoCountiesOut
-          };
-          
-          console.log('Debug: Final price calculation', {
-            priceBeforeDiscount,
-            isVeteran: profileData?.is_veteran,
-            discountPercentage: `${discountPercentage}%`,
-            discountAmount: `$${discountAmount.toFixed(2)}`,
-            discountedPrice: basePrice,
-            finalPrice,
-            weekendAdj: (day === 0 || day === 6) ? 40 : 0,
-            offHoursAdj: (hour < 8 || hour >= 20) ? 40 : 0,
-            wheelchairAdj: formData.wheelchairType === 'wheelchair' ? 25 : 0
-          });
-          
-          setPricingBreakdown(breakdown);
-          setEstimatedFare(finalPrice);
-          setEstimatedDuration(duration);
+        } else {
+          console.error('Error calculating route:', status);
         }
-      } else {
-        console.error('Error calculating route:', status);
-      }
       } finally {
         // Reset the calculation flag regardless of success or error
         isCalculatingRouteRef.current = false;
@@ -514,7 +410,7 @@ export default function BookingForm({ user }) {
         console.log('Route calculation completed');
       }
     });
-  }, [mapInstance, directionsRenderer, formData.isRoundTrip, formData.pickupTime, formData.wheelchairType, formData.wheelchairRental, formData.pickup, formData.destination, formData.isEmergency, supabase, user.id]);
+  }, [mapInstance, directionsRenderer, formData.isRoundTrip, formData.pickupTime, formData.weight, formData.pickupAddress, formData.destinationAddress, formData.isEmergency, supabase, user.id]);
 
   // References to PlaceAutocompleteElement containers
   const pickupAutocompleteContainerRef = useRef(null);
@@ -945,7 +841,7 @@ export default function BookingForm({ user }) {
       
       setBookingStatus('submitting');
       
-      // Insert the trip into the database
+      // Insert the trip into the database WITH PRICING BREAKDOWN
       const { data, error: insertError } = await supabase
         .from('trips')
         .insert([{
@@ -972,6 +868,25 @@ export default function BookingForm({ user }) {
           height_inches: formData.heightInches ? parseInt(formData.heightInches) : null,
           date_of_birth: formData.dateOfBirth || null,
           additional_passengers: formData.additionalPassengers ? parseInt(formData.additionalPassengers) : 0,
+          // 💰 NEW: Save complete pricing breakdown for cost transparency
+          pricing_breakdown_data: pricingBreakdown ? {
+            basePrice: pricingBreakdown.basePrice,
+            baseRatePerLeg: pricingBreakdown.baseRatePerLeg,
+            isBariatric: pricingBreakdown.isBariatric,
+            legs: pricingBreakdown.legs,
+            tripDistancePrice: pricingBreakdown.tripDistancePrice,
+            deadMileagePrice: pricingBreakdown.deadMileagePrice,
+            distancePrice: pricingBreakdown.distancePrice,
+            countySurcharge: pricingBreakdown.countySurcharge,
+            weekendSurcharge: pricingBreakdown.weekendSurcharge,
+            afterHoursSurcharge: pricingBreakdown.afterHoursSurcharge,
+            emergencySurcharge: pricingBreakdown.emergencySurcharge,
+            holidaySurcharge: pricingBreakdown.holidaySurcharge,
+            veteranDiscount: pricingBreakdown.veteranDiscount,
+            total: pricingBreakdown.total
+          } : null,
+          pricing_breakdown_total: pricingBreakdown?.total || calculatedPrice,
+          pricing_breakdown_locked_at: pricingBreakdown ? new Date().toISOString() : null,
           created_at: new Date().toISOString(),
         }])
         .select();
