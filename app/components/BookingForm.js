@@ -1164,7 +1164,7 @@ export default function BookingForm({ user }) {
                     Client Information
                   </h3>
                   <a
-                    href="/dashboard/profile"
+                    href="/dashboard/settings"
                     className="text-sm text-[#5fbfc0] hover:text-[#4aa5a6] font-medium inline-flex items-center"
                   >
                     <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1537,7 +1537,7 @@ export default function BookingForm({ user }) {
                     Enhanced Client Information
                   </h3>
                   <a
-                    href="/dashboard/profile"
+                    href="/dashboard/settings"
                     className="text-sm text-[#5fbfc0] hover:text-[#4aa5a6] font-medium inline-flex items-center"
                   >
                     <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
