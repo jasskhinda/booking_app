@@ -361,22 +361,15 @@ export default function BookingForm({ user }) {
             
             console.log('🚀 Using NEW pricing calculation with complete breakdown');
             
-            // Get user profile data for veteran status and weight
-            const { data: profileData } = await supabase
-              .from('profiles')
-              .select('is_veteran, weight')
-              .eq('id', user.id)
-              .single();
-            
-            // Use NEW pricing calculation
+            // Use NEW pricing calculation with profile data
             const pricingResult = await getPricingEstimate({
               pickupAddress: formData.pickupAddress,
               destinationAddress: formData.destinationAddress,
               isRoundTrip: formData.isRoundTrip,
               pickupDateTime: formData.pickupTime,
-              clientWeight: parseInt(formData.weight || profileData?.weight || 250),
+              clientWeight: parseInt(profileData?.weight || 250), // From profile state
               isEmergency: formData.isEmergency,
-              isVeteran: profileData?.is_veteran || false,
+              isVeteran: profileData?.is_veteran || false, // From profile state
               preCalculatedDistance: {
                 distance: miles,
                 duration: duration,
@@ -410,7 +403,7 @@ export default function BookingForm({ user }) {
         console.log('Route calculation completed');
       }
     });
-  }, [mapInstance, directionsRenderer, formData.isRoundTrip, formData.pickupTime, formData.weight, formData.pickupAddress, formData.destinationAddress, formData.isEmergency, supabase, user.id]);
+  }, [mapInstance, directionsRenderer, formData.isRoundTrip, formData.pickupTime, formData.pickupAddress, formData.destinationAddress, formData.isEmergency, profileData, supabase, user.id]);
 
   // References to PlaceAutocompleteElement containers
   const pickupAutocompleteContainerRef = useRef(null);
@@ -638,6 +631,39 @@ export default function BookingForm({ user }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isGoogleLoaded, formData.pickupAddress, formData.destinationAddress]);
   
+  // Effect to geocode addresses if they exist but locations aren't set
+  useEffect(() => {
+    if (!isGoogleLoaded || !window.google?.maps?.Geocoder) return;
+    if (pickupLocation || !formData.pickupAddress) return; // Skip if already have location or no address
+    
+    const geocoder = new window.google.maps.Geocoder();
+    geocoder.geocode({ address: formData.pickupAddress }, (results, status) => {
+      if (status === 'OK' && results[0]) {
+        const location = {
+          lat: results[0].geometry.location.lat(),
+          lng: results[0].geometry.location.lng()
+        };
+        setPickupLocation(location);
+      }
+    });
+  }, [isGoogleLoaded, formData.pickupAddress, pickupLocation]);
+
+  useEffect(() => {
+    if (!isGoogleLoaded || !window.google?.maps?.Geocoder) return;
+    if (destinationLocation || !formData.destinationAddress) return; // Skip if already have location or no address
+    
+    const geocoder = new window.google.maps.Geocoder();
+    geocoder.geocode({ address: formData.destinationAddress }, (results, status) => {
+      if (status === 'OK' && results[0]) {
+        const location = {
+          lat: results[0].geometry.location.lat(),
+          lng: results[0].geometry.location.lng()
+        };
+        setDestinationLocation(location);
+      }
+    });
+  }, [isGoogleLoaded, formData.destinationAddress, destinationLocation]);
+
   // Effect to calculate route when both locations are available
   useEffect(() => {
     if (pickupLocation && destinationLocation && mapInstance && directionsRenderer) {
@@ -863,10 +889,10 @@ export default function BookingForm({ user }) {
             : null, // Save distance in miles, doubled for round trips, rounded to 1 decimal
           pickup_details: formData.pickupBuildingInfo || null, // Using facility_app column name
           destination_details: formData.destinationBuildingInfo || null, // Using facility_app column name
-          weight: formData.weight ? parseInt(formData.weight) : null,
-          height_feet: formData.heightFeet ? parseInt(formData.heightFeet) : null,
-          height_inches: formData.heightInches ? parseInt(formData.heightInches) : null,
-          date_of_birth: formData.dateOfBirth || null,
+          weight: profileData?.weight ? parseInt(profileData.weight) : null, // From profile
+          height_feet: profileData?.height_feet ? parseInt(profileData.height_feet) : null, // From profile
+          height_inches: profileData?.height_inches !== undefined ? parseInt(profileData.height_inches) : null, // From profile
+          date_of_birth: profileData?.date_of_birth || null, // From profile
           additional_passengers: formData.additionalPassengers ? parseInt(formData.additionalPassengers) : 0,
           // 💰 NEW: Save complete pricing breakdown for cost transparency
           pricing_breakdown_data: pricingBreakdown ? {
@@ -1472,23 +1498,15 @@ export default function BookingForm({ user }) {
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {/* Weight Field */}
+                  {/* Weight Field - From Profile */}
                   <div>
                     <label htmlFor="weight" className="block text-base font-bold text-black mb-1">
                       Weight (lbs)
                     </label>
-                    <input
-                      type="number"
-                      name="weight"
-                      id="weight"
-                      value={formData.weight}
-                      onChange={handleChange}
-                      placeholder="Enter weight in pounds"
-                      min="0"
-                      max="400"
-                      className="w-full px-3 py-2 border border-[#DDE5E7] dark:border-[#333333] rounded-md shadow-sm focus:outline-none focus:ring-[#5fbfc0] focus:border-[#5fbfc0] bg-white dark:bg-[#1A1A1A] text-black dark:text-white"
-                    />
-                    {formData.weight && parseInt(formData.weight) >= 400 && (
+                    <div className="w-full px-3 py-2 border border-[#DDE5E7] dark:border-[#333333] rounded-md shadow-sm bg-gray-100 dark:bg-[#0A0A0A] text-black dark:text-white font-medium">
+                      {profileData?.weight || 'Not provided'}
+                    </div>
+                    {profileData?.weight && parseInt(profileData.weight) >= 400 && (
                       <div className="mt-2 p-3 bg-red-50 border-2 border-red-500 rounded-md">
                         <p className="text-sm font-bold text-red-800 flex items-start">
                           <span className="mr-1">🚫</span>
@@ -1496,7 +1514,7 @@ export default function BookingForm({ user }) {
                         </p>
                       </div>
                     )}
-                    {formData.weight && parseInt(formData.weight) >= 300 && parseInt(formData.weight) < 400 && (
+                    {profileData?.weight && parseInt(profileData.weight) >= 300 && parseInt(profileData.weight) < 400 && (
                       <div className="mt-2 p-2 bg-orange-50 border border-orange-200 rounded-md">
                         <p className="text-sm text-orange-800 flex items-start">
                           <span className="mr-1">⚠️</span>
@@ -1506,57 +1524,30 @@ export default function BookingForm({ user }) {
                     )}
                   </div>
 
-                  {/* Height Field - Split into Feet and Inches */}
+                  {/* Height Field - From Profile */}
                   <div>
                     <label className="block text-base font-bold text-black mb-1">
                       Height
                     </label>
-                    <div className="grid grid-cols-2 gap-2">
-                      <div>
-                        <select
-                          name="heightFeet"
-                          id="heightFeet"
-                          value={formData.heightFeet}
-                          onChange={handleChange}
-                          className="w-full px-3 py-2 border border-[#DDE5E7] dark:border-[#333333] rounded-md shadow-sm focus:outline-none focus:ring-[#5fbfc0] focus:border-[#5fbfc0] bg-white dark:bg-[#1A1A1A] text-black dark:text-white"
-                        >
-                          <option value="">Feet</option>
-                          <option value="4">4 ft</option>
-                          <option value="5">5 ft</option>
-                          <option value="6">6 ft</option>
-                          <option value="7">7 ft</option>
-                        </select>
-                      </div>
-                      <div>
-                        <select
-                          name="heightInches"
-                          id="heightInches"
-                          value={formData.heightInches}
-                          onChange={handleChange}
-                          className="w-full px-3 py-2 border border-[#DDE5E7] dark:border-[#333333] rounded-md shadow-sm focus:outline-none focus:ring-[#5fbfc0] focus:border-[#5fbfc0] bg-white dark:bg-[#1A1A1A] text-black dark:text-white"
-                        >
-                          <option value="">Inches</option>
-                          {[...Array(12)].map((_, i) => (
-                            <option key={i} value={i}>{i} in</option>
-                          ))}
-                        </select>
-                      </div>
+                    <div className="w-full px-3 py-2 border border-[#DDE5E7] dark:border-[#333333] rounded-md shadow-sm bg-gray-100 dark:bg-[#0A0A0A] text-black dark:text-white font-medium">
+                      {profileData?.height_feet && profileData?.height_inches !== undefined
+                        ? `${profileData.height_feet}' ${profileData.height_inches}"`
+                        : profileData?.height_feet
+                        ? `${profileData.height_feet}' 0"`
+                        : 'Not provided'}
                     </div>
                   </div>
 
-                  {/* Date of Birth Field */}
+                  {/* Date of Birth Field - From Profile */}
                   <div>
                     <label htmlFor="dateOfBirth" className="block text-base font-bold text-black mb-1">
                       Date of Birth
                     </label>
-                    <input
-                      type="date"
-                      name="dateOfBirth"
-                      id="dateOfBirth"
-                      value={formData.dateOfBirth}
-                      onChange={handleChange}
-                      className="w-full px-3 py-2 border border-[#DDE5E7] dark:border-[#333333] rounded-md shadow-sm focus:outline-none focus:ring-[#5fbfc0] focus:border-[#5fbfc0] bg-white dark:bg-[#1A1A1A] text-black dark:text-white"
-                    />
+                    <div className="w-full px-3 py-2 border border-[#DDE5E7] dark:border-[#333333] rounded-md shadow-sm bg-gray-100 dark:bg-[#0A0A0A] text-black dark:text-white font-medium">
+                      {profileData?.date_of_birth 
+                        ? new Date(profileData.date_of_birth).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' })
+                        : 'Not provided'}
+                    </div>
                     <p className="mt-1 text-xs text-black/60">Required for hospital record verification when needed</p>
                   </div>
 
@@ -1565,14 +1556,9 @@ export default function BookingForm({ user }) {
                     <label htmlFor="email" className="block text-base font-bold text-black mb-1">
                       Email Address
                     </label>
-                    <input
-                      type="email"
-                      name="email"
-                      id="email"
-                      value={user?.email || ''}
-                      disabled
-                      className="w-full px-3 py-2 border border-[#DDE5E7] dark:border-[#333333] rounded-md shadow-sm bg-gray-100 dark:bg-[#0A0A0A] text-black/60 dark:text-white/60 cursor-not-allowed"
-                    />
+                    <div className="w-full px-3 py-2 border border-[#DDE5E7] dark:border-[#333333] rounded-md shadow-sm bg-gray-100 dark:bg-[#0A0A0A] text-black dark:text-white font-medium">
+                      {user?.email || 'Not provided'}
+                    </div>
                   </div>
 
                   {/* Additional Passengers Field */}
@@ -1859,84 +1845,164 @@ export default function BookingForm({ user }) {
                   )}
                   
                   <div className="col-span-2">
-                    <p className="text-sm font-bold text-black">Estimated Fare</p>
                     {pickupLocation && destinationLocation ? (
                       <div>
                         {isCalculatingRoute ? (
-                          <div className="flex items-center space-x-2">
-                            <svg className="animate-spin h-4 w-4 text-[#5fbfc0]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                            </svg>
-                            <p className="font-bold text-black text-lg">Calculating...</p>
+                          <div className="bg-gradient-to-br from-[#5fbfc0]/10 to-[#5fbfc0]/5 rounded-xl p-6 border-2 border-[#5fbfc0]/20">
+                            <div className="flex items-center justify-center space-x-3">
+                              <svg className="animate-spin h-6 w-6 text-[#5fbfc0]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                              </svg>
+                              <p className="font-bold text-[#5fbfc0] text-lg">Calculating your fare...</p>
+                            </div>
                           </div>
-                        ) : (
-                          <p className="font-bold text-black text-lg">
-                            {estimatedFare ? `$${estimatedFare.toFixed(2)}` : 'Enter addresses to calculate'}
-                          </p>
-                        )}
-                        
-                        {/* Pricing Breakdown */}
-                        {pricingBreakdown && !isCalculatingRoute && (
-                          <div className="mt-3 p-3 bg-white/100 rounded-md border border-[#DDE5E7] dark:border-[#333333]">
-                            <p className="text-xs font-bold text-black mb-2">Pricing Breakdown:</p>
-                            <div className="space-y-1 text-xs">
-                              <div className="flex justify-between">
-                                <span className="text-black font-bold">Base fare ({formData.isRoundTrip ? 'round trip' : 'one-way'}):</span>
-                                <span className="text-black font-bold">${pricingBreakdown.baseRate.toFixed(2)}</span>
-                              </div>
-                              <div className="flex justify-between">
-                                <span className="text-black font-bold">Mileage ({pricingBreakdown.totalMiles.toFixed(1)} miles × ${pricingBreakdown.mileageRate}/mi {pricingBreakdown.isInFranklinCounty ? 'Franklin County' : 'Outside Franklin County'}):</span>
-                                <span className="text-black font-bold">${pricingBreakdown.mileageCharge.toFixed(2)}</span>
-                              </div>
-                              {pricingBreakdown.countyCharge > 0 && (
-                                <div className="flex justify-between">
-                                  <span className="text-black font-bold">County surcharge (2+ counties out):</span>
-                                  <span className="text-black font-bold">+${pricingBreakdown.countyCharge.toFixed(2)}</span>
+                        ) : pricingBreakdown ? (
+                          <div className="bg-gradient-to-br from-[#5fbfc0]/10 to-[#5fbfc0]/5 rounded-xl p-6 border-2 border-[#5fbfc0]/30 shadow-lg">
+                            {/* Header with Total */}
+                            <div className="text-center mb-6 pb-6 border-b-2 border-[#5fbfc0]/20">
+                              <p className="text-sm font-semibold text-gray-600 mb-2 uppercase tracking-wide">Estimated Fare</p>
+                              <p className="text-4xl font-bold text-[#5fbfc0]">
+                                ${pricingBreakdown.total.toFixed(2)}
+                              </p>
+                              {pricingBreakdown.isBariatric && (
+                                <div className="mt-3 inline-block px-4 py-1 bg-amber-100 border border-amber-300 rounded-full">
+                                  <p className="text-xs font-semibold text-amber-800">⚠️ Bariatric Rate Applied</p>
                                 </div>
                               )}
-                              {pricingBreakdown.weekendAdjustment > 0 && (
-                                <div className="flex justify-between">
-                                  <span className="text-black font-bold">Weekend premium:</span>
-                                  <span className="text-black font-bold">+${pricingBreakdown.weekendAdjustment.toFixed(2)}</span>
+                            </div>
+                            
+                            {/* Trip Details */}
+                            <div className="mb-5 pb-5 border-b border-gray-200">
+                              <p className="text-xs font-bold text-gray-700 mb-3 uppercase tracking-wide">Trip Details</p>
+                              <div className="grid grid-cols-2 gap-3">
+                                <div className="bg-white/50 rounded-lg p-3">
+                                  <p className="text-xs text-gray-500 mb-1">Distance</p>
+                                  <p className="text-lg font-bold text-gray-800">{distanceMiles.toFixed(1)} mi</p>
                                 </div>
-                              )}
-                              {pricingBreakdown.offHoursAdjustment > 0 && (
-                                <div className="flex justify-between">
-                                  <span className="text-black font-bold">Off-hours premium:</span>
-                                  <span className="text-black font-bold">+${pricingBreakdown.offHoursAdjustment.toFixed(2)}</span>
+                                <div className="bg-white/50 rounded-lg p-3">
+                                  <p className="text-xs text-gray-500 mb-1">Trip Type</p>
+                                  <p className="text-lg font-bold text-gray-800">{formData.isRoundTrip ? 'Round Trip' : 'One-Way'}</p>
                                 </div>
-                              )}
-                              {pricingBreakdown.emergencyFee > 0 && (
-                                <div className="flex justify-between">
-                                  <span className="text-black font-bold">Emergency fee:</span>
-                                  <span className="text-black font-bold">+${pricingBreakdown.emergencyFee.toFixed(2)}</span>
-                                </div>
-                              )}
-                              {pricingBreakdown.wheelchairRentalFee > 0 && (
-                                <div className="flex justify-between">
-                                  <span className="text-black font-bold">Wheelchair rental:</span>
-                                  <span className="text-black font-bold">+${pricingBreakdown.wheelchairRentalFee.toFixed(2)}</span>
-                                </div>
-                              )}
-                              <div className="flex justify-between pt-1 mt-1 border-t border-[#DDE5E7] dark:border-[#333333]">
-                                <span className="text-black font-bold">Subtotal:</span>
-                                <span className="text-black font-bold">${pricingBreakdown.subtotal.toFixed(2)}</span>
-                              </div>
-                              <div className="flex justify-between text-black font-bold text-base">
-                                <span>{profileData?.is_veteran ? 'Veteran discount (20%)' : 'Individual discount (10%)'}:</span>
-                                <span>- ${pricingBreakdown.discountAmount.toFixed(2)}</span>
-                              </div>
-                              <div className="flex justify-between pt-1 mt-1 border-t border-[#DDE5E7] dark:border-[#333333] font-medium text-sm">
-                                <span className="text-black font-bold">Total:</span>
-                                <span className="text-black font-bold">${pricingBreakdown.finalPrice.toFixed(2)}</span>
                               </div>
                             </div>
+
+                            {/* Pricing Breakdown */}
+                            <div className="space-y-2">
+                              <p className="text-xs font-bold text-gray-700 mb-3 uppercase tracking-wide">Cost Breakdown</p>
+                              
+                              {/* Base Price */}
+                              <div className="flex justify-between items-center py-2">
+                                <div>
+                                  <span className="text-sm text-gray-700 font-medium">Base Rate</span>
+                                  <p className="text-xs text-gray-500">
+                                    {pricingBreakdown.legs} leg{pricingBreakdown.legs > 1 ? 's' : ''} × ${pricingBreakdown.baseRatePerLeg}
+                                    {pricingBreakdown.isBariatric && ' (Bariatric)'}
+                                  </p>
+                                </div>
+                                <span className="text-sm font-bold text-gray-800">${pricingBreakdown.basePrice.toFixed(2)}</span>
+                              </div>
+
+                              {/* Trip Distance Charge */}
+                              {pricingBreakdown.tripDistancePrice > 0 && (
+                                <div className="flex justify-between items-center py-2 bg-white/30 rounded-lg px-3">
+                                  <div>
+                                    <span className="text-sm text-gray-700 font-medium">Trip Distance</span>
+                                    <p className="text-xs text-gray-500">{distanceMiles.toFixed(1)} miles traveled</p>
+                                  </div>
+                                  <span className="text-sm font-bold text-gray-800">${pricingBreakdown.tripDistancePrice.toFixed(2)}</span>
+                                </div>
+                              )}
+
+                              {/* Dead Mileage */}
+                              {pricingBreakdown.deadMileagePrice > 0 && (
+                                <div className="flex justify-between items-center py-2 bg-white/30 rounded-lg px-3">
+                                  <div>
+                                    <span className="text-sm text-gray-700 font-medium">Dead Mileage</span>
+                                    <p className="text-xs text-gray-500">Office travel (2+ counties)</p>
+                                  </div>
+                                  <span className="text-sm font-bold text-gray-800">${pricingBreakdown.deadMileagePrice.toFixed(2)}</span>
+                                </div>
+                              )}
+
+                              {/* County Surcharge */}
+                              {pricingBreakdown.countySurcharge > 0 && (
+                                <div className="flex justify-between items-center py-2 bg-orange-50 rounded-lg px-3 border border-orange-200">
+                                  <div>
+                                    <span className="text-sm text-orange-700 font-medium">County Surcharge</span>
+                                    <p className="text-xs text-orange-600">2+ counties out</p>
+                                  </div>
+                                  <span className="text-sm font-bold text-orange-700">+${pricingBreakdown.countySurcharge.toFixed(2)}</span>
+                                </div>
+                              )}
+
+                              {/* Time-based Surcharges */}
+                              {pricingBreakdown.weekendSurcharge > 0 && (
+                                <div className="flex justify-between items-center py-2 bg-blue-50 rounded-lg px-3 border border-blue-200">
+                                  <span className="text-sm text-blue-700 font-medium">Weekend Surcharge</span>
+                                  <span className="text-sm font-bold text-blue-700">+${pricingBreakdown.weekendSurcharge.toFixed(2)}</span>
+                                </div>
+                              )}
+
+                              {pricingBreakdown.afterHoursSurcharge > 0 && (
+                                <div className="flex justify-between items-center py-2 bg-indigo-50 rounded-lg px-3 border border-indigo-200">
+                                  <span className="text-sm text-indigo-700 font-medium">After-Hours Surcharge</span>
+                                  <span className="text-sm font-bold text-indigo-700">+${pricingBreakdown.afterHoursSurcharge.toFixed(2)}</span>
+                                </div>
+                              )}
+
+                              {pricingBreakdown.emergencySurcharge > 0 && (
+                                <div className="flex justify-between items-center py-2 bg-red-50 rounded-lg px-3 border border-red-200">
+                                  <span className="text-sm text-red-700 font-medium">Emergency Surcharge</span>
+                                  <span className="text-sm font-bold text-red-700">+${pricingBreakdown.emergencySurcharge.toFixed(2)}</span>
+                                </div>
+                              )}
+
+                              {pricingBreakdown.holidaySurcharge > 0 && (
+                                <div className="flex justify-between items-center py-2 bg-purple-50 rounded-lg px-3 border border-purple-200">
+                                  <span className="text-sm text-purple-700 font-medium">Holiday Surcharge</span>
+                                  <span className="text-sm font-bold text-purple-700">+${pricingBreakdown.holidaySurcharge.toFixed(2)}</span>
+                                </div>
+                              )}
+
+                              {/* Veteran Discount */}
+                              {pricingBreakdown.veteranDiscount > 0 && (
+                                <div className="flex justify-between items-center py-2 bg-green-50 rounded-lg px-3 border border-green-200 mt-3">
+                                  <div>
+                                    <span className="text-sm text-green-700 font-medium">Veteran Discount</span>
+                                    <p className="text-xs text-green-600">20% savings - Thank you for your service!</p>
+                                  </div>
+                                  <span className="text-sm font-bold text-green-700">-${pricingBreakdown.veteranDiscount.toFixed(2)}</span>
+                                </div>
+                              )}
+
+                              {/* Total */}
+                              <div className="flex justify-between items-center pt-4 mt-4 border-t-2 border-[#5fbfc0]/30">
+                                <span className="text-base font-bold text-gray-800">Total Fare</span>
+                                <span className="text-2xl font-bold text-[#5fbfc0]">${pricingBreakdown.total.toFixed(2)}</span>
+                              </div>
+                            </div>
+
+                            {/* Info Notice */}
+                            <div className="mt-4 pt-4 border-t border-gray-200">
+                              <div className="flex items-start space-x-2 text-xs text-gray-600">
+                                <span className="text-base">ℹ️</span>
+                                <p>Final fare may vary slightly based on actual route and traffic conditions.</p>
+                              </div>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="bg-gray-50 rounded-xl p-6 border-2 border-gray-200 text-center">
+                            <p className="text-sm font-semibold text-gray-500">Estimated Fare</p>
+                            <p className="font-bold text-gray-400 text-lg mt-2">Enter addresses to calculate</p>
                           </div>
                         )}
                       </div>
                     ) : (
-                      <p className="font-bold text-black">Enter addresses</p>
+                      <div className="bg-gray-50 rounded-xl p-6 border-2 border-gray-200 text-center">
+                        <p className="text-sm font-semibold text-gray-500">Estimated Fare</p>
+                        <p className="font-bold text-gray-400 text-lg mt-2">Enter addresses to calculate</p>
+                      </div>
                     )}
                   </div>
                   
