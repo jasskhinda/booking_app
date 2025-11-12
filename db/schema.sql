@@ -22,6 +22,9 @@ CREATE TABLE trips (
   is_round_trip BOOLEAN DEFAULT FALSE,
   distance DECIMAL(10,1),
   payment_method_id TEXT, -- Stripe payment method ID used for this trip
+  pricing_breakdown_data JSONB, -- Detailed pricing breakdown (JSON) locked at booking time
+  pricing_breakdown_total DECIMAL(10,2), -- Total from pricing breakdown for quick access
+  pricing_breakdown_locked_at TIMESTAMPTZ, -- When pricing was locked during booking
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );

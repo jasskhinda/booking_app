@@ -58,14 +58,14 @@ export async function GET(request) {
         { status: 401 }
       );
     }
-    
+
     // Get the Stripe customer ID
     const { data: profile, error: profileError } = await supabase
       .from('profiles')
       .select('stripe_customer_id')
       .eq('id', session.user.id)
       .single();
-    
+
     if (profileError) {
       console.error('Error fetching profile:', profileError);
       return NextResponse.json(
@@ -73,18 +73,18 @@ export async function GET(request) {
         { status: 500 }
       );
     }
-    
+
     // If no customer ID, return empty list
     if (!profile?.stripe_customer_id) {
       return NextResponse.json({ paymentMethods: [] });
     }
-    
+
     // Retrieve the customer's payment methods
     const paymentMethods = await stripe.paymentMethods.list({
       customer: profile.stripe_customer_id,
       type: 'card',
     });
-    
+
     return NextResponse.json({ paymentMethods: paymentMethods.data });
   } catch (error) {
     console.error('Error retrieving payment methods:', error);
@@ -116,33 +116,33 @@ export async function DELETE(request) {
         { status: 401 }
       );
     }
-    
+
     // Verify the payment method belongs to this user
     const { data: profile } = await supabase
       .from('profiles')
       .select('stripe_customer_id')
       .eq('id', session.user.id)
       .single();
-    
+
     if (!profile?.stripe_customer_id) {
       return NextResponse.json(
         { error: 'User has no associated payment methods' },
         { status: 400 }
       );
     }
-    
+
     const paymentMethod = await stripe.paymentMethods.retrieve(paymentMethodId);
-    
+
     if (paymentMethod.customer !== profile.stripe_customer_id) {
       return NextResponse.json(
         { error: 'This payment method does not belong to the current user' },
         { status: 403 }
       );
     }
-    
+
     // Detach the payment method from the customer
     await stripe.paymentMethods.detach(paymentMethodId);
-    
+
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error('Error deleting payment method:', error);

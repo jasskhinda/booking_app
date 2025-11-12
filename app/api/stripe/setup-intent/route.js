@@ -56,14 +56,14 @@ export async function POST(request) {
         { status: 401 }
       );
     }
-    
+
     // Get or create customer ID
     const { data: profile, error: profileError } = await supabase
       .from('profiles')
       .select('stripe_customer_id')
       .eq('id', session.user.id)
       .single();
-    
+
     if (profileError && profileError.code !== 'PGRST116') {
       console.error('Error fetching profile:', profileError);
       return NextResponse.json(
@@ -71,9 +71,9 @@ export async function POST(request) {
         { status: 500 }
       );
     }
-    
+
     let customerId = profile?.stripe_customer_id;
-    
+
     // If the customer doesn't exist in Stripe yet, create one
     if (!customerId) {
       const customer = await stripe.customers.create({
@@ -83,15 +83,15 @@ export async function POST(request) {
           user_id: session.user.id
         }
       });
-      
+
       customerId = customer.id;
-      
+
       // Save the customer ID to the user's profile
       const { error: updateError } = await supabase
         .from('profiles')
         .update({ stripe_customer_id: customerId })
         .eq('id', session.user.id);
-      
+
       if (updateError) {
         console.error('Error updating profile with Stripe customer ID:', updateError);
         return NextResponse.json(
@@ -100,7 +100,7 @@ export async function POST(request) {
         );
       }
     }
-    
+
     // Create a setup intent to securely collect payment method details
     const setupIntent = await stripe.setupIntents.create({
       customer: customerId,

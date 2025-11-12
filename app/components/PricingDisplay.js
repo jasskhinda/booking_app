@@ -13,6 +13,7 @@ export default function PricingDisplay({
   const [pricing, setPricing] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [pricingResult, setPricingResult] = useState(null); // Store complete pricing result
 
   // Calculate pricing when relevant form data changes
   useEffect(() => {
@@ -68,12 +69,14 @@ export default function PricingDisplay({
 
       if (result.success) {
         setPricing(result);
+        setPricingResult(result); // Store complete result with countyInfo, distanceInfo, etc.
         if (onPricingCalculated) {
           onPricingCalculated(result);
         }
       } else {
         setError(result.error || 'Unable to calculate pricing');
         setPricing(null);
+        setPricingResult(null);
         if (onPricingCalculated) {
           onPricingCalculated(null);
         }
@@ -82,6 +85,7 @@ export default function PricingDisplay({
       console.error('Pricing calculation error:', err);
       setError('Error calculating trip fare');
       setPricing(null);
+      setPricingResult(null);
       if (onPricingCalculated) {
         onPricingCalculated(null);
       }
@@ -167,7 +171,12 @@ export default function PricingDisplay({
             </summary>
             
             <div className="mt-3 space-y-2">
-              {createPricingBreakdown(pricing.pricing).map((item, index) => (
+              {createPricingBreakdown(
+                pricing.pricing,
+                pricingResult?.countyInfo,
+                pricingResult?.distanceInfo,
+                pricingResult?.deadMileageDistance
+              ).map((item, index) => (
                 <div 
                   key={index} 
                   className={`flex justify-between items-center py-1 ${
