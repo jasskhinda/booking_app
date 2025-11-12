@@ -1181,7 +1181,7 @@ export default function BookingForm({ user }) {
                   </div>
                   <div>
                     <p className="text-black/70 font-medium">Phone</p>
-                    <p className="text-black font-bold">{profileData.phone || 'Not provided'}</p>
+                    <p className="text-black font-bold">{profileData.phone_number || 'Not provided'}</p>
                   </div>
                   {profileData.medical_notes && (
                     <div className="md:col-span-2">
