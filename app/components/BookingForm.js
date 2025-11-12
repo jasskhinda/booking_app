@@ -1348,101 +1348,84 @@ export default function BookingForm({ user }) {
                 <div className="border border-gray-300 rounded-lg p-4">
                   <label className="block text-base font-bold text-black mb-3 flex items-center">
                     <span className="mr-2">♿</span>
-                    Wheelchair Transportation
+                    Wheelchair Requirements
                   </label>
-                  <p className="text-sm text-gray-600 mb-4">What type of wheelchair do you have?</p>
-                  
-                  <div className="space-y-3">
+                  <p className="text-sm text-gray-600 mb-4">Select the type of wheelchair needed</p>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
                     {/* None */}
-                    <label className="flex items-start cursor-pointer">
+                    <label className="flex items-center cursor-pointer border-2 rounded-lg p-3 hover:border-[#5fbfc0] transition-colors"
+                           style={{ borderColor: formData.wheelchairType === 'none' ? '#5fbfc0' : '#ddd', backgroundColor: formData.wheelchairType === 'none' ? '#f0f9f9' : '#fff' }}>
                       <input
                         type="radio"
                         name="wheelchairType"
                         value="none"
                         checked={formData.wheelchairType === 'none'}
                         onChange={handleChange}
-                        className="mt-1 mr-3 text-[#5fbfc0] focus:ring-[#5fbfc0]"
+                        className="mr-3 text-[#5fbfc0] focus:ring-[#5fbfc0]"
                       />
-                      <div>
-                        <div className="font-medium text-black">None</div>
-                        <div className="text-sm text-gray-600">No wheelchair needed</div>
+                      <div className="flex-1">
+                        <div className="font-semibold text-black">🚶 No Wheelchair Needed</div>
                       </div>
                     </label>
 
                     {/* Manual wheelchair */}
-                    <label className="flex items-start cursor-pointer">
+                    <label className="flex items-center cursor-pointer border-2 rounded-lg p-3 hover:border-[#5fbfc0] transition-colors"
+                           style={{ borderColor: formData.wheelchairType === 'manual' ? '#5fbfc0' : '#ddd', backgroundColor: formData.wheelchairType === 'manual' ? '#f0f9f9' : '#fff' }}>
                       <input
                         type="radio"
                         name="wheelchairType"
                         value="manual"
                         checked={formData.wheelchairType === 'manual'}
                         onChange={handleChange}
-                        className="mt-1 mr-3 text-[#5fbfc0] focus:ring-[#5fbfc0]"
+                        className="mr-3 text-[#5fbfc0] focus:ring-[#5fbfc0]"
                       />
-                      <div>
-                        <div className="font-medium text-black">Manual wheelchair (I have my own)</div>
-                        <div className="text-sm text-gray-600">Standard manual wheelchair that you bring</div>
-                        <div className="text-sm text-green-600 font-medium">No additional fee</div>
+                      <div className="flex-1">
+                        <div className="font-semibold text-black">♿ Manual Wheelchair</div>
                       </div>
                     </label>
 
                     {/* Power wheelchair */}
-                    <label className="flex items-start cursor-pointer">
+                    <label className="flex items-center cursor-pointer border-2 rounded-lg p-3 hover:border-[#5fbfc0] transition-colors"
+                           style={{ borderColor: formData.wheelchairType === 'power' ? '#5fbfc0' : '#ddd', backgroundColor: formData.wheelchairType === 'power' ? '#f0f9f9' : '#fff' }}>
                       <input
                         type="radio"
                         name="wheelchairType"
                         value="power"
                         checked={formData.wheelchairType === 'power'}
                         onChange={handleChange}
-                        className="mt-1 mr-3 text-[#5fbfc0] focus:ring-[#5fbfc0]"
+                        className="mr-3 text-[#5fbfc0] focus:ring-[#5fbfc0]"
                       />
-                      <div>
-                        <div className="font-medium text-black">Power wheelchair (I have my own)</div>
-                        <div className="text-sm text-gray-600">Electric/motorized wheelchair that you bring</div>
-                        <div className="text-sm text-green-600 font-medium">No additional fee</div>
+                      <div className="flex-1">
+                        <div className="font-semibold text-black">🦽 Power Wheelchair</div>
                       </div>
                     </label>
 
-                    {/* Transport wheelchair - Not Available */}
-                    <div className="flex items-start opacity-50">
+                    {/* Transport wheelchair */}
+                    <label className="flex items-center cursor-pointer border-2 rounded-lg p-3 hover:border-[#5fbfc0] transition-colors"
+                           style={{ borderColor: formData.wheelchairType === 'transport' ? '#5fbfc0' : '#ddd', backgroundColor: formData.wheelchairType === 'transport' ? '#f0f9f9' : '#fff' }}>
                       <input
                         type="radio"
                         name="wheelchairType"
                         value="transport"
-                        disabled
-                        className="mt-1 mr-3 text-gray-400"
+                        checked={formData.wheelchairType === 'transport'}
+                        onChange={handleChange}
+                        className="mr-3 text-[#5fbfc0] focus:ring-[#5fbfc0]"
                       />
-                      <div>
-                        <div className="font-medium text-gray-500">Transport wheelchair</div>
-                        <div className="text-sm text-red-600 font-medium">Not Available</div>
-                        <div className="text-sm text-gray-500">Lightweight transport chair - Not permitted for safety reasons</div>
+                      <div className="flex-1">
+                        <div className="font-semibold text-black">🪑 Transport Chair</div>
                       </div>
-                    </div>
+                    </label>
                   </div>
 
-                  {/* Wheelchair Rental Option - Only show if "None" is selected */}
-                  {formData.wheelchairType === 'none' && (
-                    <div className="mt-6 pt-4 border-t border-gray-200">
-                      <p className="text-sm font-medium text-black mb-3">Do you want us to provide a wheelchair?</p>
-                      
-                      <div className="space-y-3">
-                        <label className="flex items-start cursor-pointer">
-                          <input
-                            type="radio"
-                            name="wheelchairRental"
-                            value="true"
-                            checked={formData.wheelchairRental === true}
-                            onChange={(e) => setFormData({...formData, wheelchairRental: e.target.value === 'true'})}
-                            className="mt-1 mr-3 text-[#5fbfc0] focus:ring-[#5fbfc0]"
-                          />
-                          <div>
-                            <div className="font-medium text-black">Yes, please provide a wheelchair</div>
-                            <div className="text-sm text-gray-600">We will provide a suitable wheelchair for your trip</div>
-                            <div className="text-sm text-blue-600 font-medium">+$25 wheelchair rental fee</div>
-                          </div>
-                        </label>
+                  {/* Wheelchair Provider Option - Show if any wheelchair type is selected (not "none") */}
+                  {formData.wheelchairType !== 'none' && (
+                    <div className="mt-4 p-4 bg-gray-50 rounded-lg">
+                      <p className="text-sm font-bold text-black mb-3">Wheelchair Provider</p>
 
-                        <label className="flex items-start cursor-pointer">
+                      <div className="space-y-3">
+                        <label className="flex items-start cursor-pointer border-2 rounded-lg p-3 hover:border-[#5fbfc0] transition-colors"
+                               style={{ borderColor: formData.wheelchairRental === false ? '#5fbfc0' : '#ddd', backgroundColor: formData.wheelchairRental === false ? '#f0f9f9' : '#fff' }}>
                           <input
                             type="radio"
                             name="wheelchairRental"
@@ -1451,22 +1434,30 @@ export default function BookingForm({ user }) {
                             onChange={(e) => setFormData({...formData, wheelchairRental: e.target.value === 'true'})}
                             className="mt-1 mr-3 text-[#5fbfc0] focus:ring-[#5fbfc0]"
                           />
-                          <div>
-                            <div className="font-medium text-black">No, wheelchair not needed</div>
-                            <div className="text-sm text-gray-600">Passenger can walk or transfer independently</div>
+                          <div className="flex-1">
+                            <div className="font-semibold text-black">I'll bring my own</div>
+                            <div className="text-sm text-green-600 font-medium">No additional charge</div>
+                          </div>
+                        </label>
+
+                        <label className="flex items-start cursor-pointer border-2 rounded-lg p-3 hover:border-[#5fbfc0] transition-colors"
+                               style={{ borderColor: formData.wheelchairRental === true ? '#5fbfc0' : '#ddd', backgroundColor: formData.wheelchairRental === true ? '#f0f9f9' : '#fff' }}>
+                          <input
+                            type="radio"
+                            name="wheelchairRental"
+                            value="true"
+                            checked={formData.wheelchairRental === true}
+                            onChange={(e) => setFormData({...formData, wheelchairRental: e.target.value === 'true'})}
+                            className="mt-1 mr-3 text-[#5fbfc0] focus:ring-[#5fbfc0]"
+                          />
+                          <div className="flex-1">
+                            <div className="font-semibold text-black">CCT will provide</div>
+                            <div className="text-sm text-blue-600 font-medium">+$25 rental fee</div>
                           </div>
                         </label>
                       </div>
                     </div>
                   )}
-
-                  {/* Information note */}
-                  <div className="mt-4 p-3 bg-blue-50 rounded-md">
-                    <p className="text-sm text-blue-800">
-                      <span className="font-medium">Wheelchair Accessibility Information:</span><br />
-                      All our vehicles are equipped with wheelchair accessibility features. The same fee applies to all wheelchair types to ensure fair and transparent pricing.
-                    </p>
-                  </div>
                 </div>
               </div>
 
