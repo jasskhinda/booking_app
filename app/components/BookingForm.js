@@ -1869,7 +1869,11 @@ export default function BookingForm({ user }) {
                               <div className="grid grid-cols-2 gap-3">
                                 <div className="bg-white/50 rounded-lg p-3">
                                   <p className="text-xs text-gray-500 mb-1">Distance</p>
-                                  <p className="text-lg font-bold text-gray-800">{distanceMiles.toFixed(1)} mi</p>
+                                  <p className="text-lg font-bold text-gray-800">
+                                    {formData.isRoundTrip
+                                      ? `${(distanceMiles * 2).toFixed(1)} mi (${distanceMiles.toFixed(1)} each way)`
+                                      : `${distanceMiles.toFixed(1)} mi`}
+                                  </p>
                                 </div>
                                 <div className="bg-white/50 rounded-lg p-3">
                                   <p className="text-xs text-gray-500 mb-1">Trip Type</p>
@@ -1899,7 +1903,11 @@ export default function BookingForm({ user }) {
                                 <div className="flex justify-between items-center py-2 bg-white/30 rounded-lg px-3">
                                   <div>
                                     <span className="text-sm text-gray-700 font-medium">Trip Distance</span>
-                                    <p className="text-xs text-gray-500">{distanceMiles.toFixed(1)} miles traveled</p>
+                                    <p className="text-xs text-gray-500">
+                                      {formData.isRoundTrip
+                                        ? `${(distanceMiles * 2).toFixed(1)} miles (${distanceMiles.toFixed(1)} each way)`
+                                        : `${distanceMiles.toFixed(1)} miles`}
+                                    </p>
                                   </div>
                                   <span className="text-sm font-bold text-gray-800">${pricingBreakdown.tripDistancePrice.toFixed(2)}</span>
                                 </div>
