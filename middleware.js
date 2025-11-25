@@ -161,11 +161,16 @@ export async function middleware(req) {
         }
       } catch (error) {
         console.error('Error fetching user profile:', error);
-        // On error, also redirect to login
-        const redirectUrl = new URL('/login', req.url);
-        redirectUrl.searchParams.set('error', 'server_error');
-        redirectUrl.searchParams.set('fresh', 'true'); // Add flag to prevent redirect loops
-        return NextResponse.redirect(redirectUrl);
+        console.error('Error details:', {
+          message: error.message,
+          userId: session.user.id,
+          email: session.user.email,
+          pathname
+        });
+        // Don't logout on database errors - allow access and log the error
+        // The user has a valid session, database errors shouldn't log them out
+        console.log('Database error occurred, but allowing access due to valid session');
+        return NextResponse.next();
       }
     }
   }
