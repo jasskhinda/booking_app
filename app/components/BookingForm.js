@@ -1435,7 +1435,7 @@ export default function BookingForm({ user }) {
                             className="mt-1 mr-3 text-[#5fbfc0] focus:ring-[#5fbfc0]"
                           />
                           <div className="flex-1">
-                            <div className="font-semibold text-black">I'll bring my own</div>
+                            <div className="font-semibold text-black">I&apos;ll bring my own</div>
                             <div className="text-sm text-green-600 font-medium">No additional charge</div>
                           </div>
                         </label>
