@@ -954,9 +954,9 @@ export default function BookingForm({ user }) {
         tripNotes: '',
       });
 
-      // Start the redirect process
+      // Start the redirect process with full page reload to preserve session
       setTimeout(() => {
-        router.push('/dashboard/trips');
+        window.location.href = '/dashboard/trips';
       }, 2000);
       
       // In the background, notify dispatchers without blocking the user flow
